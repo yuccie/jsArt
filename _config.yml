@@ -1,8 +1,8 @@
 # Basic
-title: Vno Jekyll
-subtitle: A blog-orientation theme for Jekyll
-welcome_message: <a href="https://github.com/onevcat/vno-jekyll" target="_blank">Download the theme</a>
-description: Vno Jekyll is a port of my Ghost theme vno.
+title: 雅奇
+subtitle: for js art
+welcome_message: <a href="https://yuccie.github.io/jsArt/" target="_blank">wecome to my blog</a>
+description: go ahead man.
 creator: <a href="http://onev.cat">@onevcat</a>
 
 url: "http://vno.onevcat.com"
@@ -16,14 +16,14 @@ highlighter: rouge
 cover_color: red
 
 # The blog button should not be removed.
-blog_button:
-    title: Blog
-    description: Visit blog
+blog_btns:
+    - {title: Blog, description: Visit blog, url: '/#blog'}
+    - {title: async, description: es6 async, url: '/#blog'}
 
 # Navigation buttons in the front page.
 nav:
-    - {title: Projects, description: My Projects, url: 'http://project.onevcat.com'}
-    # - {title: Another Button, description: A button, url: 'http://example.com'}
+    - {title: github, description: My github, url: 'https://yuccie.github.io/jsArt/'}
+
 
 # Pagination
 gems: [jekyll-paginate]
@@ -37,11 +37,11 @@ comment:
     
 # Social
 social:
-    weibo: onevcat
-    github: onevcat
-    twitter: onevcat
-    gplus: 107108267983477358170
-    mail: onev@onevcat.com
+    weibo: yuccie
+    github: yuccie
+    twitter: yuccie
+    gplus: yuccie
+    mail: yuccie1617@gmail.com
 
 # Google Analytics
 ga:

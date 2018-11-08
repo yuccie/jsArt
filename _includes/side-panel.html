@@ -3,16 +3,22 @@
 
     <div class="panel-main__inner panel-inverted">
     <div class="panel-main__content">
-
-        <a href="/#blog" title="前往 {{ site.title }} 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="{{ site.title }} logo" class="panel-cover__logo logo" /></a>
-        <h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for {{ site.title }}" class="blog-button">{{ site.title }}</a></h1>
+				<!-- 头像 -->
+				<a href="/#blog" title="前往 {{ site.title }} 的主页" class="blog-button"><img src="/assets/images/avatar.jpg" width="80" alt="{{ site.title }} logo" class="panel-cover__logo logo" /></a>
+				
+				<!-- 用户名 -->
+				<h1 class="panel-cover__title panel-title"><a href="/#blog" title="link to homepage for {{ site.title }}" class="blog-button">{{ site.title }}</a></h1>
+				
+				<!-- 描述 -->
         {% if site.subtitle %}
         <span class="panel-cover__subtitle panel-subtitle">{{site.subtitle}}</span>
-        {% endif %}
-        <hr class="panel-cover__divider" />
+				{% endif %}
+				
+				<hr class="panel-cover__divider" />
+				
         <p class="panel-cover__description">{{ site.description }}</p>
         <hr class="panel-cover__divider panel-cover__divider--secondary" />
-        
+				
         {% if site.welcome_message %}
         <p class="panel-cover__description">{{ site.welcome_message }}</p>
         {% endif %}
@@ -21,9 +27,17 @@
           <div>
             <nav class="cover-navigation cover-navigation--primary">
               <ul class="navigation">
-                <li class="navigation__item"><a href="/#blog" title="{{site.blog_button.description}}" class="blog-button">{{site.blog_button.title}}</a></li>
-                {% for item in site.nav %}
-                  <li class="navigation__item"><a href="{{item.url}}" target="_blank" title="{{item.description}}">{{item.title}}</a></li>
+
+								{% for item in site.blog_btns %}
+									<li class="navigation__item">
+										<a href="{{item.url}}" title="{{item.description}}" class="blog-button">{{item.title}}</a>
+									</li>
+								{% endfor %}
+
+								{% for item in site.nav %}
+                  <li class="navigation__item">
+										<a href="{{item.url}}" target="_blank" title="{{item.description}}">{{item.title}}</a>
+									</li>
                 {% endfor %}
               </ul>
             </nav>
@@ -33,7 +47,8 @@
         </div>
       </div>
     </div>
-    
+		
+		<!-- 在背景图上添加覆盖的颜色层 -->
     {% if site.cover_color %}
     <div class="panel-cover--overlay cover-{{site.cover_color}}"></div>
     {% else %}
