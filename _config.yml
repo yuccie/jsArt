@@ -5,7 +5,8 @@ welcome_message: <a href="https://yuccie.github.io/jsArt/" target="_blank">wecom
 description: go ahead man.
 creator: <a href="http://onev.cat">@onevcat</a>
 
-url: "https://yuccie.github.io/jsArt/"
+url: "https://yuccie.github.io/"
+baseurl: "/jsArt"
 
 permalink: /:year/:month/:title/
 
@@ -17,8 +18,8 @@ cover_color: red
 
 # The blog button should not be removed.
 blog_btns:
-    - {title: Blog, description: Visit blog, url: '/#blog'}
-    - {title: async, description: es6 async, url: '/#blog'}
+    - {title: Blog, description: Visit blog, url: '/jsArt/#blog'}
+    - {title: async, description: es6 async, url: '/jsArt/#blog'}
 
 # Navigation buttons in the front page.
 nav:
