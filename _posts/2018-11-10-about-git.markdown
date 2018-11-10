@@ -1,0 +1,180 @@
+---
+layout: post
+title: About git
+date: Sat Nov 10 2018 15:16:33 GMT+0800
+---
+
+参考：[阮一峰-常用git命令操作](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html) 
+
+参考：[阮一峰-远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html) 
+
+
+#### git 常用操作
+```bash
+# 丢弃工作区修改
+$ git checkout -- . 
+
+# 丢弃工作区某个文件修改
+$ git checkout -- xxx
+
+# 删除某个分支（强制删除：-D）
+$ git branch -d xxx
+
+# 删除远程分支
+$ git push origin -delete xxx
+```
+
+#### 命令行初始化一个仓库
+```bash
+echo "# test" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin git@xxx/xxx.git
+git push -u origin master
+```
+
+#### 添加一个已有的仓库
+```bash
+# 只是初始化一个仓库的后两个步骤
+git remote add origin git@xxx/xxx.git
+git push -u origin master
+```
+
+### git 远程主机常用操作
+```bash
+# 查看远程主机名(-v 查看远程主机的详细地址)
+$ git remote  
+// origin
+
+# 查看远程主机详细信息
+$ git remote show <主机名>
+
+# 添加远程主机
+$ git remote add <主机名> <仓库地址>
+
+# 删除远程主机
+$ git remote rm <主机名>
+
+# 重命名远程主机名
+$ git remote rename <原主机名> <新主机名>
+```
+
+### git fetch
+
+```bash
+# 获取指定远程主机上所有分支的更新
+$ git fetch <远程主机名>
+
+# 获取指定远程主机,指定分支上的更新
+$ git fetch <远程主机名> <分支名>
+
+# 获取的远程更新，需用 远程主机名/分支名 读取，切换到获取的更新master分支
+$ git checkout origin/master
+
+# 在获取的远程更新分支基础上新建分支
+$ git checkout -b newBranch origin/master
+
+# 将获取的远程master更新分支合并到当前分支
+$ git merge origin/master
+或者
+$ git rebase origin/master
+```
+
+
+### git pull
+
+```bash
+# 获取远程next分支的更新，然后合并到本地master分支
+# 若合并到本地当前分支，则省略冒号后面的部分
+$ git pull origin next:master
+
+# 上面操作等同于下面操作
+$ git fetch origin
+$ git merge origin/next
+
+# 在clone仓库时，git会自动在本地与远程同名分支之间，建立一种追踪关系（tracking）
+# 当然也可以手动建立追踪关系，如下本地master与远程next分支
+$ git branch --set-upstream master origin/next
+
+# 如果当前分支与 远程追踪分支 存在追踪关系，可以省略远程追踪分支名
+# 当前分支还可以同时追踪多个远程分支？？
+$ git pull origin
+
+# 如果当前分支只有一个追踪分支，主机名都可以省略
+$ git pull
+
+# 远程删除了某些分支，如果本地也想删除这些分支，可以如下：
+$ git pull -p
+```
+
+### git push
+
+```bash
+# 将本地master分支的更新推送到远程主机next分支上
+$ git push origin master:next
+
+# 省略远程分支名，则表示将本地分支推送到与之存在追踪关系的远程分支
+# 如果远程分支不存在，则会新建
+$ git push origin master
+
+# 如果省略本地分支，则表示删除指定的远程分支
+# 因为这等同于推送一个空的本地分支到远程
+$ git push origin  :master
+# 等同于
+$ git push origin  --delete master
+
+# 如果当前分支与 远程追踪分支 存在追踪关系，则可以省略本地及远程分支
+$ git push origin
+
+# 如果当前分支只有一个追踪分支，主机名都可以省略
+$ git push
+
+# 如果当前分支与多个主机存在追踪关系，则可以使用-u指定一个默认主机
+# 如下将本地master分支推送到origin主机，同时指定origin为默认主机
+$ git push -u origin master
+
+# 如果远程主机版本比本地版本新，推送时会报错，应该先pull再push
+# 如果强推则会覆盖远程，如下
+$ git push --force origin
+```
+
+### git rebase
+
+参考：[廖雪峰-git rebase解析](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/0015266568413773c73cdc8b4ab4f9aa9be10ef3078be3f000) 
+
+参考：[failed to push some refs to](https://blog.csdn.net/MBuger/article/details/70197532)
+```bash
+# 多人开发一个分支时，远程更新后，本地commit后直接push后会出错，此时若先pull后push，则提交记录会分叉
+# 为了让提交记录在一条直线上同时解决问题，可以如下，然后push即可
+$ git pull --rebase origin master
+```
+
+### bash 常用操作
+
+```bash
+# 查看别名命令的全称
+$ which gcam
+// gcam: aliased to git commit -a -m
+
+# 删除工作区指定文件修改
+$ which gcam
+
+```
+
+### oh my zsh 常用操作
+参考：[oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh/blob/master/plugins/git/git.plugin.zsh) 
+```bash
+# 查看所有别名
+$ alias
+
+# 管道符查看含gcam的别名
+$ alias | grep gcam
+// gcam='git commit -a -m'
+
+# 删除本地分支
+$ git branch -d xxx
+
+# 删除远程某个分支
+$ git push origin --delete xxx
+```
