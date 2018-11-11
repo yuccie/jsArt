@@ -153,28 +153,29 @@ $ git pull --rebase origin master
 ### bash 常用操作
 
 ```bash
-# 查看别名命令的全称
+# 用于查找并显示给定命令的绝对路径(),但mac下如下显示
 $ which gcam
 // gcam: aliased to git commit -a -m
 
-# 删除工作区指定文件修改
-$ which gcam
-
+# 对比一下alias
+$ alias gcam
+// gcam='git commit -a -m'
 ```
 
 ### oh my zsh 常用操作
 参考：[oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh/blob/master/plugins/git/git.plugin.zsh) 
 ```bash
-# 查看所有别名
+# 查看所有别名,当然除了oh-my-zsh的命令别名，还有系统级别的，比如ls
 $ alias
 
 # 管道符查看含gcam的别名
 $ alias | grep gcam
 // gcam='git commit -a -m'
 
-# 删除本地分支
-$ git branch -d xxx
+# 自定义别名命令,只是自定义，与命令是否真实存在无关
+# 比如查看alias ls => ls='ls -G'，所以自定义别名方式如下：
+$ alias 别名=命令
 
-# 删除远程某个分支
-$ git push origin --delete xxx
+# 取消别名
+$ unalias 别名
 ```
