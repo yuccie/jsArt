@@ -10,27 +10,44 @@ ECharts是百度关于数据可视化的库，对外暴露一些接口，用来�
 
 #### ECharts 基本用法
 现在的项目多是用webpack构建工具，因此直接如下：
-```bash
-# 安装echarts
-$ npm install echarts -S
+```js
+// # 安装echarts
+npm install echarts -S
 
-# 引入echarts，当然这是引入echarts的所有模块;如按需引入，需先引入主模块，然后再引入各个组件模块
-# import引入模块，若是自执行模块，可以省略文件名，如：import '自执行模块'
-$ import echarts from 'echarts'
+// 引入echarts，当然这是引入echarts的所有模块;如按需引入，需先引入主模块，然后再引入各个组件模块
+// import引入模块，若是自执行模块，可以省略文件名，如：import '自执行模块'
+import echarts from 'echarts'
 
-# echarts实例初始化
-# 一般情况会定义图表组件，然后图表组件有默认数据，然后父组件会通过props传递异步数据。图表组件watch props变化，然后更新。
-# 但第一次初始化props数据时，不能触发watch，因此可以手动触发watch，即mounted时给props添加属性触发watch；还可以将watch里的逻辑抽离，然后在mounted里执行一次。
-$ import echarts from 'echarts'
+// echarts实例化
+// 有三个参数，参数1是元素必填，参数2是主题，参数3是选项（设备像素比，渲染器，宽高）
+let newInstance = echarts.init(dom [,option])
 
+// echarts实例初始化
+// 一般情况会定义图表组件，然后图表组件有默认数据，然后父组件会通过props传递异步数据。图表组件watch props变化，然后更新。
+// 但第一次初始化props数据时，不能触发watch，因此可以手动触发watch，即mounted时给props添加属性触发watch；还可以将watch里的逻辑抽离，然后在mounted里执行一次。
+newInstance.setOption(option)
 
-
-=> hello world
-
-# 变量名通常为大写，比如输出默认的shell
-$ echo $SHELL
-=> /bin/zsh
+// 设置resize，echarts有自己的resize事件，无需自己控制。另外为resize时交互性更好，可以加节流
+// 节流是间隔运行，防抖类似电梯，若有人上则一直停止运行
+window.addEventLister('resize', throttle(() => {
+  newInstance.resize();
+}, 1000))
 ```
+
+#### 相关的知识点
+1. echarts其实也是类似ps的分层结构，series里的很多类型图表都可以叠加在一个echarts实例上
+2. 定义单个图表组件时
+	- 在vue的mounted钩子里通常会实例化，通常还会初始化（setOption），其实没有必要初始化，
+	- 因为第一次即使初始化也是假数据，没有意义。另外就是第一次初始化数据时也不会触发watch。
+	- 但可以将watch里的逻辑抽离，然后在mounted里判断一下，如果有新数据则执行抽离的逻辑
+3. 父子组件传值
+	- props方式，写默认数据啰嗦，不写又不明了
+	- vuex方式需要有清晰的逻辑，后续完善。。。
+4. 大数据块
+	- 在做关于地图类的图表时，option一般都需要很多很大的数据，可以将数据单独抽离成一个文件引入
+	- vue里data函数里定义的是响应式数据，如果不是页面响应式数据，可定义在实例外侧
+	
+
 
 但shell也泛指所有为用户提供操作系统的程序，因此可以分成两类：
 1. 命令行界面（CLI，command line interface）
