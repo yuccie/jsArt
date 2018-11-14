@@ -165,204 +165,70 @@ window.addEventLister('resize', throttle(() => {
 	```
 	9.5. 因此避免修改子组件的数据而影响到父组件的数据，那就用深拷贝吧。
 
+10. vw及vh及rem<br/>
+	10_1. rem代表html元素的font-size大小，vw是视口宽度的1/100，vh是视口高度的1/100<br/>
+	10_2. 设置rem基准值，设备像素又称物理像素，是设备能控制显示的最小单位；下面的设备独立像素暂可理解为屏幕一个方向的像素数，待完善！！！
+	```js
+	(function(){
+		'use strict';
+		/**
+		* 根节点
+		* @type {Element}
+		*/
+		var el = document.documentElement,
+			/**
+			* 事件类型，如果不存在旋转事件，则以reisze代替
+			* @type {String}
+			*/
+			eventType = 'orientationchange' in window ? 'orientationchange' : 'resize',
+			/**
+			* font size基准参考值
+			* @type {Number}
+			*/
+			size = 16,
+			/**
+			* 设备独立像素基准参考值，以 iPhone 6(s) 为基准
+			* @type {Number}
+			*/
+			dipWidth = 1600,
+			/**
+			* 设置根节点font-size
+			*/
+			setRootFontSize = function(){
+				el.style.fontSize = el.clientWidth / dipWidth * size + 'px';
+				window.$rootFontSize = el.style.fontSize.replace('px','')
+			};
+		setRootFontSize();
+		window.addEventListener(eventType, setRootFontSize, false);
+		// dom加载完毕后计算，而非文档加载完毕（load事件）
+		document.addEventListener('DOMContentLoaded', setRootFontSize, false);
+	})();
+	```
+	10_3. 屏幕缩放后页面要自适应，可以用vw，vh配合css的calc()函数进行页面布局，字体等通过rem来适配页面。<br/>
+	10_4. 在屏幕宽高变化时，echarts图表会resize，但图表的尺寸依据的是容器的宽还是高并不固定，而是依据屏幕分辨率比（也就是我们常说的16:9的屏幕宽高比），当大于临界值时取哪个，当小于临界值时取哪个。<br/>
+	```scss
+	// 当屏幕宽高比小于1.665时应用此样式，也就是高的值取自宽，也就是以宽为基准。 
+	// 这里子元素的宽高分别取之父元素的宽高，先calc()子元素宽高，然后将宽/高得出1.665。
+	// 此处横向有三个元素，要计算每个父元素的一半尺寸；如果有3rem单位，可手动转换成px如：3 * (clientWidth/dipWidth) * baseFontSize
+	@media screen and (max-aspect-ratio : 1665/1000){
+		.main .circle {
+			height: calc((34vw - 16px) / 3 * 0.5);
+			width: calc((34vw - 16px) / 3* 0.5);   
+		}
+	}
+	```
 
-
-
-
-
-
-如果动画正在执行时，数据发生更新应该如何处理？为看起来流畅，应该先等动画执行完，再更新数据，再开始动画，但又如何知道什么时候结束动画？如果不这样有没有其他方式？
-
-
-以后不能说不知道，先思考一下如何才能得到？不会先留着
-
-1. 支付逻辑
-2. 埋点逻辑
-3. docker
-4. 小程序
-5. 部署脚本
-6. 框架
-7. cas单点登录
-8. vue源码
-9. ts
-10. jenkins
-11. 数据结构及算法
-13. 微信sdk,授权，支付，分享
-14. 唤起app
-15. 
-
-#### 常用命令
-*一般情况下，命令都有很多参数或选项，可通过：man 命令 查看*
-```bash
-# echo命令
-# 用于输出字符串或变量的值，格式为：echo [字符串 | $变量]
-$ echo hello world
-=> hello world
-
-# 变量名通常为大写，比如输出默认的shell
-$ echo $SHELL
-=> /bin/zsh
-```
-
-```bash
-# date命令
-# 用于显示及设置系统的时间或格式，格式为：date [选项] [格式]
-$ date
-=> 2018年11月11日 星期日 13时09分13秒 CST
-
-# 当前具体时间
-$ date "+%Y-%m-%d %H:%M:%S"
-=> 2018-11-11 13:09:31
-
-# 查看今天是当前中第几天
-$ date "+%j"
-=> 315
-```
-
-```bash
-# reboot命令
-# 用于重启系统，格式为：reboot
-$ reboot
-
-# poweroff命令
-# 用于关闭系统，格式为：poweroff
-$ poweroff
-
-# ps命令，常结合管道符命令使用
-# 用于查看系统中的进程状态，格式为：ps
-$ ps
-
-# top命令
-# 用于动态实时监视进程活动与系统负载信息，格式为：top
-$ top
-```
-
-```bash
-# lsof（list open files）命令
-# 用于列出当前系统打开的文件，常用查看端口占用情况如下：
-$ lsof -i tcp:4000
-=> ruby    66206 finup   10u  IPv4 0x1179df194c90da5b      0t0  TCP localhost:terabase (LISTEN)
-```
-
-```bash
-# kill命令
-# 用于终止某个指定PID的服务进程，格式为：kill [参数] [PID]，如下默认是强删
-$ kill 1234
-
-# killall命令
-# 用于终止某个指定名称的服务所对应的全部进程，格式为：kill [参数] [服务名]
-$ killall node
-```
-
-```bash
-# wget命令
-# 用于在终端下载网络文件，格式为：wget [参数] 下载地址（省略则下载到当前目录）
-$ wget http://www.linuxprobe.com/docs/LinuxProbe.pdf 
-```
-
-系统状态监测命令
-```bash
-# ifconfig命令
-# 用于获取网卡配置与网络状态，格式为：ifconfig [网络设备] [参数]
-$ ifconfig
-
-# uname命令
-# 用于查看系统内核与系统版本等信息，格式为：uname [选项]
-$ uname -a 
-=> Darwin xxx.local 16.7.0 Darwin Kernel Version 16.7.0: Thu Jun 15 17:36:27 PDT 2017; root:xnu-3789.70.16~2/RELEASE_X86_64 x86_64
-
-# uptime命令
-# 用于查看系统的负载信息，格式为：uptime
-$ uptime 
-=> 13:50  up 22:53, 3 users, load averages: 2.28 2.69 2.46
-
-# who命令
-# 用于查看当前登入主机的用户终端信息，格式为：who [选项]
-$ who
-
-# history命令，默认显示近1000条
-# 用于显示历史执行过的命令，格式为：history [选项]
-$ history 
-```
-
-工作目录切换命令
-```bash
-# pwd命令
-# 用于显示当前用户所处的工作目录，格式为：pwd [选项]
-$ pwd
-=> /etc
-
-# cd命令
-# 用于切换工作路径，格式为：cd [工作目录]
-# 切换到家目录（其他用户家目录：~username）
-$ cd ~
-
-# ls命令
-# 用于显示目录中的文件信息，格式为：ls [选项][文件]
-# -a参数查看全部文件（含隐藏），-l查看文件属性，大小的等详细信息
-$ ls -al
--r--------     1 finup  staff         9  6 19  2017 .CFUserTextEncoding
--rw-r--r--@    1 finup  staff     34820 11  8 17:24 .DS_Store
-...
-```
-
-文件目录管理命令
-```bash
-# touch命令
-# 用于创建空白文件或设置文件的时间，格式为：touch [选项] [文件]
-$ touch
-
-# mkdir命令
-# 用于创建空白的目录，格式为：mkdir [选项] 目录，-p选项是递归嵌套
-$ mkdir -p a/b/c/d
-
-# cp命令
-# 用于复制文件或目录，格式为：cp [选项] 源文件 目标文件
-# 如果目标文件是目录，则会把源文件复制到该目录中
-# 如果目标文件也是普通文件，则会询问是否要覆盖它
-# 如果目标文件不存在，则执行正常的复制操作
-$ cp
-
-# mv命令
-# 用于剪切文件或将文件重命名，格式为：mv[选项] 源文件 [目标路径|目标文件名]
-$ mv
-
-# rm命令
-# 用于删除文件或目录，格式为：rm [选项] 文件
-$ rm test.log
-
-# file命令
-# 用于查看文件的类型，格式为：file 文件名
-$ file test
-=> test: directory
-
-# tar命令
-# 用于对文件进行打包压缩或解压，格式为：tar [选项] [文件]
-# -c   创建压缩文件
-# -x   解开压缩文件
-# -t   查看压缩包内有哪些文件
-# -z   用 Gzip 压缩或解压
-# -j   用 bzip2 压缩或解压
-# -v   显示压缩或解压的过程
-# -f   目标文件名
-# -p   保留原始的权限与属性
-# -P   使用绝对路径来压缩
-# -C   指定解压到的目录
-
-# 把/etc 目录通 过 gzip 格式进行打包压缩，并把文件命名为 etc.tar.gz
-$ tar -czvf etc.tar.gz /etc
-
-# 打包后的压缩包文件指定解压到/root/etc 目录中
-$ tar xzvf etc.tar.gz -C /root/etc
-
-# grep命令
-# 用于在文本中执行关键词搜索，并显示匹配的结果，格式为：grep [选项][文件]
-$ grep 
-
-# find命令
-# 用于按照指定条件来查找文件，格式为：find [查找路径] 寻找条件 操作
-# 获取etc目录中所有以 host 开头的文件列表
-find /etc -name "host*" -print
-```
+11. LED字体 <br/>
+	11_1. @font-face 的CSS @规则 ，它允许网页开发者为其网页指定在线字体。意味着你可以为网页定制各种字体
+	```scss
+	// 下载需要的字体，然后定义字体，font-family即是名字，使用时将定义的字体导入，直接使用即可
+	// TrueType是苹果与微软开发的字体格式,扩展名为：.ttf
+	@font-face{
+		font-family: "Digital7Mono";
+		src:url("~assets/xxx/Digital-7Mono-font.ttf") format("truetype");
+		font-style: normal;
+		font-weight: normal;
+	}
+	```
 
 
