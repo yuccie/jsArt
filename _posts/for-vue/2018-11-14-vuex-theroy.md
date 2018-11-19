@@ -120,4 +120,86 @@ var store = {
 ```
 需要注意，所有 store 中 state 的改变，都放置在 store 自身的 action 中去管理。这种集中式状态管理能够被更容易地理解哪种类型的 mutation 将会发生，以及它们是如何被触发。当错误出现时，我们现在也会有一个 log 记录 bug 之前发生了什么。
 
-*注意：*因为某个store中的数据改变只有一种方式可以改变，也就是store中的action，其实这个debug模式，只是说，当开启debug模式后，
+*注意：*因为某个store中的数据改变只有一种方式可以改变，也就是store中的action，其实这个debug模式，只是说，当开启debug模式后，可以跟踪newValue的变化？ 但话又说回来，即使不开启debug也可以打印有关newValue的值啊？？
+
+
+#### state
+单一状态树
+```js
+// 这里用函数是保证每次都返回新的对象
+const state = () => ({
+  loanData: {},
+  pointData: [],
+  currentLoanData: []
+});
+```
+
+#### Getter
+有时候需要从store的state里派生一些状态
+```js
+const store = new Vuex.Store({
+  state: {
+    todos: [
+      { id: 1, text: '...', done: true },
+      { id: 2, text: '...', done: false }
+    ]
+  },
+	// 其实可以理解为计算属性
+  getters: {
+    doneTodos: state => {
+      return state.todos.filter(todo => todo.done)
+    }
+  }
+})
+```
+
+#### Mutation
+更改vuex中的store中的状态的唯一方法是提交mutation。但这里的mutation handler更像是注册事件，并不能直接执行，而是需要触发。。。类似`window.addEventListener('eventType', handler)`
+另外，handler接受两个参数，参数一是state，参数二是payload
+```js
+const store = new Vuex.Store({
+  state: {
+    count: 1
+  },
+	// 这里的increment其实就是函数名，因为increment不能直接调用，因此常将函数名改为常量，然后单独抽离出来，便于多人维护开发
+  mutations: {
+    increment (state) {
+      // 变更状态
+      state.count++
+    }
+		// 如下,将mutation事件类型变为常量
+		// 但务必注意，mutation事件里执行的都是同步代码
+		[mutationTypes.SET_INCREMENT_DATA](state){
+			state.count++
+		}
+  }
+})
+```
+
+#### Action
+Action 类似于 Mutation，不同在于：
+- Action提交的是Mutation，而不是直接变更state状态
+- Action可以包含任何的异步操作
+```js
+const store = new Vuex.Store({
+  state: {
+    count: 0
+  },
+	// 直接变更state状态
+  mutations: {
+    increment (state) {
+      state.count++
+    }
+  },
+	// 提交Mutation，让Mutation改变state
+	// 这里的context是与store实例具有相同属性和方法的上下文对象，意味着可以借助这个对象来调用store上的api
+	// 比如常用commit(提交mutation),dispath(分发action，其实相当于调用mutation的handler，可接受参数)
+  actions: {
+    increment (context) {
+      context.commit('increment')
+    },
+		// context是对象，上面挂载有commit，dispath的api，可以用解构赋值
+  },
+	
+})
+```

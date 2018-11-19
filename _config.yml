@@ -23,10 +23,9 @@ blog_btns:
 
 # Navigation buttons in the front page.
 nav:
-    - {title: github, description: My github, url: 'https://yuccie.github.io/jsArt/'}
+    - {title: github, description: My github, url: 'https://github.com/yuccie'}
 
-
-# Pagination
+# gems是插件管理器，如下jekyll-paginate是一个分页插件
 gems: [jekyll-paginate]
 paginate: 10
 paginate_path: "page/:num/"
