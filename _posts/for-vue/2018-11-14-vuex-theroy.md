@@ -44,6 +44,10 @@ React 只是 DOM 的一个抽象层，并不是 Web 应用的完整解决方案�
 - 一个组件需要改变全局状态
 - 一个组件需要改变另一个组件的状态
 
+现在社区由又出现新的状态管理机制Mobx。React 提供了优化UI渲染的机制， 这种机制就是通过使用虚拟DOM来减少昂贵的DOM变化的数量。MobX 提供了优化应用状态与 React 组件同步的机制，这种机制就是使用响应式虚拟依赖状态图表，它只有在真正需要的时候才更新并且永远保持是最新的。
+综合：Mobx数据流太随意，不易追踪，适合小项目，大项目还是用redux等
+参考[Mobx](https://cn.mobx.js.org/)
+
 #### vuex
 知道了数据状态管理的作用以及由来，我们对vuex就更容易理解了，只是vuex是为vue量身定制的状态管理器，它采用集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。Vuex 也集成到 Vue 的官方调试工具 devtools extension，提供了诸如零配置的 time-travel 调试、状态快照导入导出等高级调试功能。
 另外对于Redux 事实上无法感知视图层，所以它能够轻松的通过一些简单绑定和 Vue 一起使用。
@@ -122,6 +126,7 @@ var store = {
 
 *注意：*因为某个store中的数据改变只有一种方式可以改变，也就是store中的action，其实这个debug模式，只是说，当开启debug模式后，可以跟踪newValue的变化？ 但话又说回来，即使不开启debug也可以打印有关newValue的值啊？？
 
+### store中的各个属性
 
 #### state
 单一状态树
@@ -134,8 +139,9 @@ const state = () => ({
 });
 ```
 
+
 #### Getter
-有时候需要从store的state里派生一些状态
+有时候需要从store的state里派生一些状态，其实就可以理解为计算属性，而getters的参数就是state
 ```js
 const store = new Vuex.Store({
   state: {
@@ -144,7 +150,6 @@ const store = new Vuex.Store({
       { id: 2, text: '...', done: false }
     ]
   },
-	// 其实可以理解为计算属性
   getters: {
     doneTodos: state => {
       return state.todos.filter(todo => todo.done)
@@ -153,53 +158,167 @@ const store = new Vuex.Store({
 })
 ```
 
+
 #### Mutation
-更改vuex中的store中的状态的唯一方法是提交mutation。但这里的mutation handler更像是注册事件，并不能直接执行，而是需要触发。。。类似`window.addEventListener('eventType', handler)`
+更改vuex中的store中的状态的唯一方法是提交mutation。但这里的mutation handler更像是注册事件，并不能直接执行，而是需要触发。。。类似`window.addEventListener('eventType', handler)`只是注册了事件。
 另外，handler接受两个参数，参数一是state，参数二是payload
 ```js
 const store = new Vuex.Store({
-  state: {
-    count: 1
-  },
-	// 这里的increment其实就是函数名，因为increment不能直接调用，因此常将函数名改为常量，然后单独抽离出来，便于多人维护开发
-  mutations: {
-    increment (state) {
-      // 变更状态
-      state.count++
-    }
-		// 如下,将mutation事件类型变为常量
-		// 但务必注意，mutation事件里执行的都是同步代码
-		[mutationTypes.SET_INCREMENT_DATA](state){
-			state.count++
-		}
-  }
+ state: {
+	count: 1
+ },
+// 这里的increment其实就是函数名，因为increment不能直接调用，因此常将函数名改为常量，然后单独抽离出来，便于多人维护开发
+ mutations: {
+	increment (state) {
+		// 变更状态
+		state.count++
+	},
+	// 如下,将mutation事件类型定义为常量，可以将这些常量单独放在一个文件里，都挂载在mutationTypes上
+	// 但务必注意，mutation事件里执行的都是同步代码
+	[mutationTypes.SET_INCREMENT_DATA](state){
+		state.count++
+	}
+ }
 })
 ```
+
 
 #### Action
 Action 类似于 Mutation，不同在于：
 - Action提交的是Mutation，而不是直接变更state状态
 - Action可以包含任何的异步操作
+
 ```js
 const store = new Vuex.Store({
-  state: {
-    count: 0
-  },
-	// 直接变更state状态
-  mutations: {
-    increment (state) {
-      state.count++
-    }
-  },
-	// 提交Mutation，让Mutation改变state
-	// 这里的context是与store实例具有相同属性和方法的上下文对象，意味着可以借助这个对象来调用store上的api
-	// 比如常用commit(提交mutation),dispath(分发action，其实相当于调用mutation的handler，可接受参数)
-  actions: {
-    increment (context) {
-      context.commit('increment')
-    },
-		// context是对象，上面挂载有commit，dispath的api，可以用解构赋值
-  },
-	
+state: {
+	count: 0
+},
+// 直接变更state状态
+mutations: {
+	increment (state) {
+		state.count++
+	}
+},
+// 提交Mutation，让Mutation改变state
+// 这里的context是与store实例具有相同属性和方法的上下文对象，意味着可以借助这个对象来调用store上的api
+// 比如常用的commit(提交mutation),dispath(分发action，其实相当于调用mutation的handler，可接受参数)
+actions: {
+	increment (context) {
+		context.commit('increment')
+	},
+	// context是对象，上面挂载有commit，dispath的api，可以用解构赋值，如下
+	// 尤其是当多次提交mutations的时候
+	increment ( {commit} ) {
+		commit('increment')
+	}
+},
 })
 ```
+上面我们在actions里通过store对象上挂载的commit来提交mutation，进而触发变更state。那**action应该如何触发呢**？
+```js
+// action通过store.dispatch触发，参数二可以有，是载荷
+store.dispatch('increment' [, payload])
+// 还可以以对象方式
+store.dispatch({
+	type: 'increment',
+	key: value
+})
+```
+
+
+#### 定义在vuex中的*state，mutations, actions*如何在页面方便使用呢？
+你或许这样使用
+```js
+this.$store.commit('key',value) //提交的mutation，其实就是让mutation里对应逻辑执行
+this.$store.dispatch('action') //提交的action，其实就是让action里对应逻辑执行
+```
+但还可以更方便的利用组件的辅助方法`mapState,mapGetters,mapMutations,mapActions`引入组件内使用，当然首先需要
+```js
+import { mapState,mapGetters,mapMutations,mapActions } form 'vuex'
+```
+这些辅助方法有对应的参数，可以接受不同的参数，从而实现**不同形式的引入方式**。
+
+**方式一：**当我们想在组件内使用自定义的名称时，可以传入对象，如下：
+```js
+computed: {
+// 以下是将state里值引入到页面中
+ ...mapState({
+	// 箭头函数可使代码更简练
+	count: state => state.count,
+
+	// 传字符串参数 'count' 等同于 `state => state.count`
+	countAlias: 'count',
+
+	// 为了能够使用 `this` 获取局部状态，必须使用常规函数
+	countPlusLocalState (state) {
+		return state.count + this.localCount
+	}
+ })
+},
+methods: {
+ ...mapMutations([
+	'increment', // 将 `this.increment()` 映射为 `this.$store.commit('increment')`
+
+	// `mapMutations` 也支持载荷：
+	'incrementBy' // 将 `this.incrementBy(amount)` 映射为 `this.$store.commit('incrementBy', amount)`
+ ]),
+
+ ...mapActions([
+	'foo', // -> this.foo()
+	'bar' // -> this.bar()
+ ]),
+
+ ...mapMutations({
+	add: 'increment' // 将 `this.add()` 映射为 `this.$store.commit('increment')`
+ }),
+}
+```
+上面我们看到mutation与action都是在methods里使用对象展开运算符引入到页面内的，因为二者其实都是方法，只是mutation是同步的，而action一般执行异步操作的情况。
+
+**方式二：**当我们在组件内使用的名称与state里的名称一致时，可以传入数组：
+```js
+computed: {
+  // 映射 this.count 为 store.state.count
+  ...mapState(['count'])
+}
+```
+
+**方式三：**当我们将store中的状态分模块后，也就相当于每个模块就是命令空间了，因此可以只引入某个命名空间下的状态：
+```js
+computed: {
+  // 此时引入的全是module模块里的state
+  ...mapState('some/nested/module', {
+    a: state => state.a,
+    b: state => state.b
+  })
+},
+methods: {
+  // 此时引入的全是module模块里的actions
+  ...mapActions('some/nested/module', [
+    'foo', // -> this.foo()
+    'bar' // -> this.bar()
+	]),
+}
+```
+
+#### 使用vuex的目录结构
+使用vuex一般有一定的目录结构，可以参考如下：
+```
+src
+  |--views
+  |  |--pages1
+  |  |--pages2
+  |  |--pages3
+  |--vuex
+  |  |--index.js              主store文件
+  |  |--mutations-types.js    mutation常量方法名
+  |  |--modules               各个数据模块
+  |  |  |--moduleOne.js
+  |  |  |--moduleTwo.js
+  |  |  |--moduleThree.js
+  |--app.js
+  |--...
+  ...
+
+```
+
