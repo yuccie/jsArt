@@ -31,24 +31,25 @@ module.exports = {
     new UglifyJsPlugin({
       uglifyOptions: {
         compress: {
-					// 构建过程中不显示各种警告或错误信息
+          // 构建过程中不显示各种警告或错误信息
           warnings: false
-				},
-			},
-			
-			sourceMap: true,
-			// 可理解多进程，true时为os.cpus().length - 1
-		  // 还可以为具体的number类型，效果的话小项目感觉不出来。。。
+        },
+      },
+      sourceMap: true,
+      
+      // 可理解多进程，true时为os.cpus().length - 1
+      // 还可以为具体的number类型，效果的话小项目感觉不出来。。。
       parallel: true
     }),
   ]
 }
 ```
 
+
 // 实例化插件
 
 ```js
-
+const a = 'test'
 ```
 
 
