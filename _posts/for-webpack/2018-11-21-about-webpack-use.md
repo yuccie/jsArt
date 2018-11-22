@@ -226,7 +226,7 @@ module:{
               if(env === 'development'){
                 return '[path][name].[ext]'
               }
-							// hash默认算法是md5,处理的值是文件内容，意味着不是每次编译都变，因为内容不变
+              // hash默认算法是md5,处理的值是文件内容，意味着不是每次编译都变，因为内容不变
               return '[hash].[ext]'
             }
           }
@@ -315,6 +315,7 @@ module.exports = {
 ```
 经过[html-webpack-plugin][htmlWebpackPluginUrl]插件的处理，不但修复了使用分离css插件后[style-loader][styleLoaderUrl]失效的问题，还每次都重新生成index.html。因此这时把整个dist目录删除了也没问题了。而且生成的index.html就已经包含了各种标签。。。
 
+#### **定制输出模板**
 到这里你应该思考，这个`index.html`应该是某个模板文件生成，那既然如此，是不是可以定制这个模板呢，没错就是[html-webpack-template][htmlWebpackTemplateUrl],安装然后增加配置如下即可使用：
 
 ```js
@@ -342,6 +343,7 @@ module.exports = {
 ```
 **注意：**这样意味着，可以根据业务需求自定义模板，可以灵活加以应用。。。
 
+#### **插件删除dist目录**
 到目前为止，dist目录里的文件，一直都是手动删除，这不符合程序猿懒的特质，因此[clean-webpack-plugin][cleanWebpcakPluginUrl]需要了解一下：
 ```js
 const CleanWebpackPlugin = require('clean-webpack-plugin')
@@ -358,9 +360,85 @@ module.exports = {
 }
 ```
 
+#### **webpack管理资源的原理**
+你可能会感兴趣，webpack及其插件似乎“知道”应该哪些文件生成。答案是，通过 manifest，webpack 能够对「你的模块映射到输出 bundle 的过程」保持追踪。这里我们只需知道，webpack背后通过一定的策略来控制模块间的交互。。。（待完善）
 
 
+#### **开发环境配置**
+1. scource map
+2. webpack's Watch Mode 
+3. webpack-dev-server
+4. webpack-dev-middleware
 
+以上我们在修改一个文件以后，需要重新构建，然后刷新浏览器才能看到效果，这在开发环境下无疑是繁琐且笨拙的，这里我们说说开发环境配置。。。
+
+**1. [scource map][sourceMapUrl]** <br/>
+当使用webpack打包文件以后，一般会将很多模块打包到一个文件里，因此当具体某个文件错误时，只能粗略的指向打包出来的那个大文件，而无法准确定位到源代码的具体位置，因此`scource map`就需要了解一下，只需在webpack.config.js添加下面代码即可
+
+```js
+module.exports = {
+  // devtool有很多选项,这里说几项，详情参考：https://webpack.docschina.org/configuration/devtool
+  // inline-source-map可以定位到源代码的具体位置
+  devtool: 'inline-source-map'
+
+  // source-map同样可以定位到源代码的具体位置，
+  devtool: 'source-map'
+
+  // 待完善？？？
+}
+```
+更多请参考：<br/>
+[滴滴出行说devtool的几种模式][didiDevtoolUrl]<br/>
+[阮一峰-sourceMap详解][ruanyifeng-sourceMapUrl]<br/>
+
+**2. [webpack's Watch Mode]** <br/>
+现在我们每次修改都需要重新构建，并刷新浏览器才能看到结果，这在开发过程中很繁琐，因此我们可以添加watch模式，也就是webapck会自动开启watch模式观察依赖图中的所有的文件，当文件发生变化时，就自动重新构建。。。
+
+修改package.json的scripts如下，然后运行`npm run watch`即可：
+```json
+{
+  "scripts": {
+    "watch": "webapck --watch",
+    "build": "webpack"
+  },
+}
+```
+
+**3. [webpack-dev-server][webpackDevServerUrl]** <br/>
+在watch模式下，虽然可以监听文件的变动并自动构建，但需要刷新浏览器才可以，因此我们需要借助[webpack-dev-server][webpackDevServerUrl]来帮我们自动刷新浏览。(可以先思考一下，watch模式下，webpack监视的原理是什么？)
+
+[webpack-dev-server][webpackDevServerUrl]提供了一个web服务器，并能够自动重新加载，同样需要先安装
+```bash
+npm i -D webpack-dev-server 
+```
+然后配置这个webpack服务器监视哪个目录下的文件变动，因为watch模式下已经将变化的文件重新构建并输出到dist目录了，当然devServer肯定集成了watch。。。增加配置文件如下：
+```js
+// 和entry等同等级
+devServer: {
+  // 推荐用绝对路径;值为false时表示禁用(此时遍历的目录是？);数组时表示多个目录
+  contentBase: path.join(__dirname, "dist"),
+  // 当启用 lazy 时，dev-server 只有在请求时才编译包(bundle)。这意味着 webpack 不会监视任何文件改动。
+  lazy: true
+  // 使用 filename，可以只在某个文件被请求时编译。
+  filename:'boundle.js',
+  
+  // 在所有响应中添加首部内容：
+  headers: {
+  "X-Custom-Foo": "bar"
+}
+},
+```
+再修改package.json文件如下：
+```json
+{
+  "scripts": {
+    "dev": "webpack-dev-server --open",
+    "watch": "webapck --watch",
+    "build": "webpack"
+  },
+}
+```
+上面的配置--open是说当第一次构建时，自动打开浏览器，当后续修改文件了，会自动构建并重新刷新浏览器。。。**注意：**这里的构建只是发生在内存中，并没有dist目录生成，这些看不见的工作webpack在后台处理(详情看devServer原理)。
 
 
 
@@ -381,3 +459,7 @@ module.exports = {
 [htmlWebpackPluginUrl]: https://github.com/jantimon/html-webpack-plugin
 [htmlWebpackTemplateUrl]: https://github.com/jaketrent/html-webpack-template
 [cleanWebpcakPluginUrl]: https://www.npmjs.com/package/clean-webpack-plugin
+[sourceMapUrl]: https://webpack.docschina.org/configuration/devtool
+[didiDevtoolUrl]: https://juejin.im/post/58293502a0bb9f005767ba2f
+[ruanyifeng-sourceMapUrl]: http://www.ruanyifeng.com/blog/2013/01/javascript_source_map.html
+[webpackDevServerUrl]: https://www.webpackjs.com/configuration/dev-server/
