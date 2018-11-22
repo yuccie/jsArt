@@ -3,6 +3,11 @@ layout: post
 title: webpack使用
 date: Tue Nov 20 2018 16:48:56 GMT+0800 (中国标准时间)
 ---
+#### webpack中文文档
+1. [老版本][oldWebpackUrl]
+2. [v4.15.1版本][v4.15.1WebpackUrl]
+3. [v4.26.0版本(最新)][v4.26.0WebpackUrl]
+
 
 #### webpack管理pageage的好处
 很早之前，我们引用第三方依赖的方式，是通过script标签引入，这会有以下几个问题：
@@ -106,15 +111,15 @@ module.exports = {
 
 **注意**：webpack编译的文件入口是js文件，不支持其他类型的文件， 因此要编译style文件，需要将其导入到js文件中然后再编译。但这样会造成一个问题，就是*此时无论修改style文件还是js文件，都会导致chunkhash改变*，因此此时需要配合插件`extract-text-webpack-plugin`提供的`contenthash`来解决，表示文本内容的hash值，也就是只有style文件hash值。
 
-#### webpack管理资源
+#### **webpack管理资源**
 在webpack之前，我们利用grunt和gulp来处理资源，并将它们从 /src 文件夹移动到 /dist 或 /build 目录中。同样方式也被用于 JavaScript 模块，但是，像 webpack 这样的工具，将动态打包(dynamically bundle)所有依赖项（创建所谓的依赖图(dependency graph)）。这是极好的创举，因为现在每个模块都可以明确表述它自身的依赖，我们将避免打包未使用的模块。
 
 还可以通过loader来引入任何其他类型的文件
 
-#### 处理css等样式文件
-[参考1](https://github.com/zhengweikeng/blog/issues/9)
-[参考2](https://blog.csdn.net/u010982507/article/details/81337529)
-[现在推荐使用mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)
+#### **处理css等样式文件**
+[参考1](https://github.com/zhengweikeng/blog/issues/9) <br/>
+[参考2](https://blog.csdn.net/u010982507/article/details/81337529)<br/>
+[现在推荐使用mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)<br/>
 [webpack加载css,sass,less等资源并集成postcss](https://github.com/iSpring/babel-webpack-react-redux-tutorials/blob/master/tutorials/load-css-with-webpack/README.md)
 
 我们要知道，webpack从入口文件开始解析，然后遇到各种类型的资源会尝试寻找对应的loader规则，匹配上了就使用相应的loader处理，处理完再输出到指定目录。然后我们的页面引用的最终文件也是打包完成的。。。
@@ -135,9 +140,9 @@ module:{
 ```
 3. 编辑css文件，引入并使用
 
-其中`style-loader`插件作用是在最终页面插入`style`标签，同时自动引入对应的css文件。而且还要在页面中查看（不要检查页面源代码，因为它不会显示结果），查看head标签，就可以看到style标签。
+其中[style-loader][styleLoaderUrl]插件作用是在最终页面插入`style`标签，同时自动引入对应的css文件。而且还要在页面中查看（不要检查页面源代码，因为它不会显示结果），查看head标签，就可以看到style标签。
 
-**疑问？**在不使用分离插件时，css文件被打包到了main.js文件里，👆的过程是如何实现的？
+**疑问？**在不使用分离插件时，css文件被打包到了main.js文件里，👆的过程是如何实现的？<br/>
 答：将原生的css文件打包成js文件时，会在js文件中生成很多额外的函数，用于在运行时将css注入到style标签里。这就会造成文件臃肿，如一个1KB的未被压缩的CSS文件生成的对应的JavaScript文件大约有16KB，这导致了输出文件过于庞大，影响传输速度。
 
 先来看看如何分离css,这里用到插件`extract-text-webpack-plugin`,因此先安装，然后增加配置如下：
@@ -165,7 +170,8 @@ module.exports = {
   ]
 }
 ```
-**注意**在webpack4中，若直接`npm i -D extract-text-webpack-plugin`,然后配置如上，构建时会报错`Error: Chunk.entrypoints: Use Chunks.groupsIterable and filter by instanceof Entrypoint instead`。可以安装时添加`@next`解决(因为当前版本不支持webpack4.0.0以上版本)。
+**注意**在webpack4中，若直接`npm i -D extract-text-webpack-plugin`,然后配置如上，构建时会报错`Error: Chunk.entrypoints: Use Chunks.groupsIterable and filter by instanceof Entrypoint instead`。<br/>
+答：可以安装时添加`@next`解决(因为当前版本不支持webpack4.0.0以上版本)。
 
 如上处理时优缺点如下：
 ```
@@ -181,13 +187,15 @@ module.exports = {
 缺点    ...
 ```
 `extract-text-webpack-plugin`插件还有不同的参数选项，[点击查看插件详情][extractTextWebpackPluginUrl]
-当然插件`extract-text-webpack-plugin`可以分离各种被匹配的资源，但经过上面处理后，文件是被分离出来了，**但style-loader失效了？？？**
+当然插件`extract-text-webpack-plugin`可以分离各种被匹配的资源，但经过上面处理后，文件是被分离出来了，**但style-loader失效了？？？**<br/>
+答：单纯使用分离插件会使得热更新失效，因为每次生成的文件名都会变(这句说辞待完善)，因此要么手动每次引入，还有就是借助[html-webpack-plugin][htmlWebpackPluginUrl]插件
 
 
-#### 处理图片类文件
+#### **处理图片类文件**
 页面需要的图片类文件一般都是用相对路径引用，或使用[vue中的资源路径处理][vueHandleAssetsPath]。
 
-先来看看webpack上关于解析图片路径的原理：当使用 `import myImg from './xxx/my-img.png`引入图像时，webpack会利用`file-loader`处理图片并输出到output目录，并且用`myImg`变量指向该图像在处理后的最终url。当使用 css-loader 时，如上所示，你的 CSS 中的 url('./my-img.png') 会使用类似的过程去处理。loader 会识别这是一个本地文件，并将 './my-image.png' 路径，替换为输出目录中图像的最终路径。html-loader 以相同的方式处理 <img src="./my-image.png" />。
+先来看看webpack上关于解析图片路径的原理：<br/>
+当使用 `import myImg from './xxx/my-img.png`引入图像时，webpack会利用[file-loader][fileLoaderUrl]处理图片并输出到output目录，并且用`myImg`变量指向该图像在处理后的最终url。当使用 [css-loader][cssLoaderUrl] 时，如上所示，你的 CSS 中的 url('./my-img.png') 会使用类似的过程去处理。loader 会识别这是一个本地文件，并将 './my-image.png' 路径，替换为输出目录中图像的最终路径。[html-loader][htmlLoaderUrl] 以相同的方式处理 `<img src="./my-image.png" />`。
 
 `file-loader`生成的文件名就是文件内容的md5哈希值并会保留所引用资源的原始扩展名。
 
@@ -205,15 +213,20 @@ createElement('img', { attrs: { src: require('../image.png') }})
 module:{
   rules:[
     {
-      test: /\.(png|svg|jpg|gif)$/,
+      // 要熟记常用正则的用法
+      test: /\.(png|svg|jpe?g|gif)$/,
+      // use是数组，子元素可以是字符串，可以是对象
       use: [
         {
           loader: 'file-loader',
           options: {
             name (file){
+              // [name] type: String default: file.basename
+              // [path] type: String default: file.dirname
               if(env === 'development'){
                 return '[path][name].[ext]'
               }
+							// hash默认算法是md5,处理的值是文件内容，意味着不是每次编译都变，因为内容不变
               return '[hash].[ext]'
             }
           }
@@ -232,16 +245,16 @@ const newImg = new Image()
 newImg.src = myImg
 document.appendChild(newImg)
 ```
-**注意**在上述操作后，图片路径少个`/dist/`，因此找不到图片...
+**注意**在上述操作后，图片路径少个`/dist/`，因此找不到图片... <br/>
 答：index.html的位置应该和dist在同一个目录
 
-上面说到file-loader，其实还有url-loader，这两个loader功能相似，只是后者可以设置阈值，当小于阈值时返回DataURL格式的路径。其实DataURL是没有路径可言的，本身就是一个图片资源。
+上面说到[file-loader][fileLoaderUrl]，其实还有[url-loader][urlLoaderUrl]，这两个loader功能相似，只是后者可以设置阈值，当小于阈值时返回DataURL格式的路径。其实DataURL是没有路径可言的，本身就是一个图片资源。
 
 配置如下:
 ```js
 module: [
   {
-    test: /\.(png|jpg|svg|gif)$/,
+    test: /\.(png|jpe?g|svg|gif)$/,
     // use是数组，子元素可以传入对象
     use: [
       {
@@ -255,13 +268,118 @@ module: [
           mimetype: 'image/png',
           // 大于limit的先经过fallback处理，若无fallback则交由file-loader处理
           fallback: 'responsive-loader'
+          //  还可以设置处理的质量
+          quality: 85,
+          // 可以设置name
+          name: '[hash:8].[ext]'
         }
       }
     ]
   }
 ]
 ```
+上面分别显式的，分别使用了[file-loader][fileLoaderUrl]或者[url-loader][urlLoaderUrl]，如果二者同时使用，则会把[url-loader][urlLoaderUrl]处理的结果再输出到dist目录，也就是说，[url-loader][urlLoaderUrl]处理生成的图片(普通url)或dataURL图片，[file-loader][fileLoaderUrl]会将这些详细信息再输出到dist目录。
+
+**注意：**上面操作生效的前提是，在配置文件里[file-loader][fileLoaderUrl]优先配置，也就是说和顺序有关。
+
+比如：[url-loader][urlLoaderUrl]处理生成的图片文件名为：`020f95e5.png`
+然后经过[file-loader][fileLoaderUrl]处理会输出一个新文件如：`1bae1637.png`,图片里的内容为：`module.exports = __webpack_public_path__ + "020f95e5.png";`
+注意文件名
+
+**注意：**经过上面的处理，文件内容编程了代码，就不是有效的图片格式，也就打不开了。
+
+
+**综上：**
+上面处理了css，图片等文件类型，其实还可以加载字体类型，数据类型(如：json文件，csv,tsv和xml等)，原理都是相似的。类似于 NodeJS，JSON 支持实际上是内置的，也就是说 import Data from './data.json' 默认将正常运行。要导入 CSV、TSV 和 XML，你可以使用 [csv-loader][csvLoaderUrl] 和 [xml-loader][xmlLoaderUrl]。
+
+
+#### **自动更新引入的文件**
+上面我们在index.html写死了引入的文件名如`<script src="main.js"></script>`,但如果我们更改了入口名或增加了入口数量，那岂不是每次都得手动改这个index.html。。。
+
+通过[html-webpack-plugin][htmlWebpackPluginUrl]解决上面的问题
+
+引入插件步骤：
+1. `npm i -D html-webpack-plugin`
+2. 增加`webpack.config.js`配置如下
+```js
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+module.exports = {
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'output Management',
+      // 默认index.html，还可以加子目录：assets/admin.html
+      filename: 'my-index.html'
+    })
+  ]
+}
+```
+经过[html-webpack-plugin][htmlWebpackPluginUrl]插件的处理，不但修复了使用分离css插件后[style-loader][styleLoaderUrl]失效的问题，还每次都重新生成index.html。因此这时把整个dist目录删除了也没问题了。而且生成的index.html就已经包含了各种标签。。。
+
+到这里你应该思考，这个`index.html`应该是某个模板文件生成，那既然如此，是不是可以定制这个模板呢，没错就是[html-webpack-template][htmlWebpackTemplateUrl],安装然后增加配置如下即可使用：
+
+```js
+const HtmlWebpackTemplatePlugin = require('html-webpack-template')
+module.exports = {
+  plugins: [
+    new HtmlWebpackPlugin({
+      // required 必填选项
+      inject: false,
+      template: HtmlWebpackTemplatePlugin
+      // template: './src/index.html' //还可以自定义模板
+
+      // Optional 选填选项
+      title: 'output Management',
+      filename: 'my-index.html',
+      meta: [
+        {
+          name: 'description',
+          content: 'A better default template for html-webpack-plugin.'
+        }
+      ],
+    })
+  ]
+}
+```
+**注意：**这样意味着，可以根据业务需求自定义模板，可以灵活加以应用。。。
+
+到目前为止，dist目录里的文件，一直都是手动删除，这不符合程序猿懒的特质，因此[clean-webpack-plugin][cleanWebpcakPluginUrl]需要了解一下：
+```js
+const CleanWebpackPlugin = require('clean-webpack-plugin')
+module.exports = {
+  plugins: [
+    // new CleanWebpackPlugin(paths [, {options}]) 
+    // 参数一：paths是数组或字符串，数组的话可以匹配多个
+    // 参数二：paths配置相关的配置
+    new CleanWebpackPlugin(['dist','build/*.*','web/*.js'],{
+      // __dirname脚本执行的目录
+      root:  __dirname
+    })
+  ]
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 [vueHandleAssetsPath]: https://vue-loader-v14.vuejs.org/zh-cn/configurations/asset-url.html
 [extractTextWebpackPluginUrl]: https://webpack.docschina.org/plugins/extract-text-webpack-plugin/
+[cssLoaderUrl]: https://github.com/webpack-contrib/css-loader
+[styleLoaderUrl]: https://github.com/webpack-contrib/style-loader
+[fileLoaderUrl]: https://github.com/webpack-contrib/file-loader
+[urlLoaderUrl]: https://github.com/webpack-contrib/url-loader
+[htmlLoaderUrl]: https://github.com/webpack-contrib/html-loader
+[oldWebpackUrl]: https://zhaoda.net/webpack-handbook/
+[v4.15.1WebpackUrl]: https://webpack.css88.com/loaders/node-loader.html
+[v4.26.0WebpackUrl]: https://www.webpackjs.com/configuration/target/
+[csvLoaderUrl]: https://github.com/theplatapi/csv-loader
+[xmlLoaderUrl]: https://github.com/gisikw/xml-loader
+[htmlWebpackPluginUrl]: https://github.com/jantimon/html-webpack-plugin
+[htmlWebpackTemplateUrl]: https://github.com/jaketrent/html-webpack-template
+[cleanWebpcakPluginUrl]: https://www.npmjs.com/package/clean-webpack-plugin
