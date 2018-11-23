@@ -11,6 +11,12 @@ date: Sat Nov 10 2018 15:16:33 GMT+0800
 工作区：就是我们本地的目录，还没有被git管理
 暂存区：git开始管理，只是还没有提交到分支上
 commit: commit后就将暂存区的内容提到分支上了，如果此时在git push则把本地修改同步到远程
+#### git 查看终端帮助文档
+```bash
+# 比如查看git commit相关，可以如下
+$ git help commit
+```
+
 #### git 常用操作
 ```bash
 # 丢弃暂存区修改,注意这里是已经被跟踪的文件
@@ -161,6 +167,11 @@ $ git pull --rebase origin master
 ### bash 常用操作
 
 ```bash
+# 查看gcam中每个参数的意义
+$ git help commit
+// -a, --all
+// Tell the command to automatically stage files that have been modified and deleted, but new files you have not told Git about are not affected.
+
 # 用于查找并显示给定命令的绝对路径(),但mac下如下显示
 $ which gcam
 // gcam: aliased to git commit -a -m
@@ -187,3 +198,6 @@ $ alias 别名=命令
 # 取消别名
 $ unalias 别名
 ```
+
+
+
