@@ -17,6 +17,12 @@ $ git checkout -- .
 # 丢弃工作区某个文件修改
 $ git checkout -- xxx
 
+# 丢弃未追踪(untracked)的文件
+$ git clean -f
+
+# 连untracked的目录也一块删掉
+$ git clean -fd
+
 # 删除某个分支（强制删除：-D）
 $ git branch -d xxx
 
