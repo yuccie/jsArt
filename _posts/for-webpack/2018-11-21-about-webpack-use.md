@@ -425,7 +425,7 @@ devServer: {
   // 在所有响应中添加首部内容：
   headers: {
   "X-Custom-Foo": "bar"
-}
+  }
 },
 ```
 再修改package.json文件如下：
