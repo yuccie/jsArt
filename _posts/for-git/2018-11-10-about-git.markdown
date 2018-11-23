@@ -8,19 +8,21 @@ date: Sat Nov 10 2018 15:16:33 GMT+0800
 
 参考：[阮一峰-远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html) 
 
-
+工作区：就是我们本地的目录，还没有被git管理
+暂存区：git开始管理，只是还没有提交到分支上
+commit: commit后就将暂存区的内容提到分支上了，如果此时在git push则把本地修改同步到远程
 #### git 常用操作
 ```bash
-# 丢弃工作区修改
+# 丢弃暂存区修改,注意这里是已经被跟踪的文件
 $ git checkout -- . 
 
-# 丢弃工作区某个文件修改
+# 丢弃暂存某个文件修改
 $ git checkout -- xxx
 
-# 丢弃未追踪(untracked)的文件
-$ git clean -f
+# 丢弃未追踪(untracked)的文件（也就是工作区）,后可跟具体文件，不跟则全部删除
+$ git clean -f 
 
-# 连untracked的目录也一块删掉
+# 连untracked的目录（工作区）也一块删掉
 $ git clean -fd
 
 # 删除某个分支（强制删除：-D）
