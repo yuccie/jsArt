@@ -73,7 +73,7 @@ module.exports = {
 ```
 **综上**：默认情况下会构建出一个名为main的js文件，除非自定义文件名(如上的mainName)。然后在output里面[name]就是取自entry定义的名字。
 
-上面的 [name] 其实就是内置的name变量，这时可以把它看作一个字符串模板函数，每个要输出的文件（也叫chunk）都会通过这个函数去拼接处要输出的文件名称。
+上面的 [name] 其实就是内置的name变量，这时可以把它看作一个字符串模板函数，每个要输出的文件（也叫chunk）都会通过这个函数去拼接出要输出的文件名称。
 
 内置变量除了上面的name，还有下面几个：
 - id : chunk的唯一标识，从0开始(但我这里打印的依然是:main)
@@ -83,11 +83,11 @@ module.exports = {
 其中hash和chunkhash的长度是可指定的，[hash:8]代表8位的hash值，默认是20位。
 
 **注意**：hash与chunkhash的区别，[参考](https://www.cnblogs.com/ihardcoder/p/5623411.html)
-1. [hash] is replaced by the hash of the compilation.
+1. [hash] `is replaced by the hash of the compilation.`
   - compilation对象针对的是随时可变的项目文件，只要文件有变动，就会重建
   - hash是compilation对象计算所得，可以理解为项目总体文件的hash值
-  - 因此当输出很多文件时，你肯定不想因为一个文件的改变，把所有其他文件都改变了。。。
-2. [chunkhash] is replaced by the hash of the chunk.
+  - 因此当输出很多文件时，你肯定不想因为一个文件的改变，把所有其他文件的文件名都改变了。。。
+2. [chunkhash] `is replaced by the hash of the chunk.`
   - 代表具体模块(chunk)的hash值
   - 当输出多文件，同时想利用缓存，[chunkhash]无疑是最佳选择
 
@@ -143,7 +143,7 @@ module:{
 其中[style-loader][styleLoaderUrl]插件作用是在最终页面插入`style`标签，同时自动引入对应的css文件。而且还要在页面中查看（不要检查页面源代码，因为它不会显示结果），查看head标签，就可以看到style标签。
 
 **疑问？**在不使用分离插件时，css文件被打包到了main.js文件里，👆的过程是如何实现的？<br/>
-答：将原生的css文件打包成js文件时，会在js文件中生成很多额外的函数，用于在运行时将css注入到style标签里。这就会造成文件臃肿，如一个1KB的未被压缩的CSS文件生成的对应的JavaScript文件大约有16KB，这导致了输出文件过于庞大，影响传输速度。
+**答:**将原生的css文件打包成js文件时，会在js文件中生成很多额外的函数，用于在运行时将css注入到style标签里。这就会造成文件臃肿，如一个1KB的未被压缩的CSS文件生成的对应的JavaScript文件大约有16KB，这导致了输出文件过于庞大，影响传输速度。
 
 先来看看如何分离css,这里用到插件`extract-text-webpack-plugin`,因此先安装，然后增加配置如下：
 
@@ -171,7 +171,7 @@ module.exports = {
 }
 ```
 **注意**在webpack4中，若直接`npm i -D extract-text-webpack-plugin`,然后配置如上，构建时会报错`Error: Chunk.entrypoints: Use Chunks.groupsIterable and filter by instanceof Entrypoint instead`。<br/>
-答：可以安装时添加`@next`解决(因为当前版本不支持webpack4.0.0以上版本)。
+**答:**可以安装时添加`@next`解决(因为当前版本不支持webpack4.0.0以上版本)。
 
 如上处理时优缺点如下：
 ```
@@ -188,7 +188,7 @@ module.exports = {
 ```
 `extract-text-webpack-plugin`插件还有不同的参数选项，[点击查看插件详情][extractTextWebpackPluginUrl]
 当然插件`extract-text-webpack-plugin`可以分离各种被匹配的资源，但经过上面处理后，文件是被分离出来了，**但style-loader失效了？？？**<br/>
-答：单纯使用分离插件会使得热更新失效，因为每次生成的文件名都会变(这句说辞待完善)，因此要么手动每次引入，还有就是借助[html-webpack-plugin][htmlWebpackPluginUrl]插件
+**答:**单纯使用分离插件会使得热更新失效，因为每次生成的文件名都会变(这句说辞待完善)，因此要么手动每次引入，还有就是借助[html-webpack-plugin][htmlWebpackPluginUrl]插件
 
 
 #### **处理图片类文件**
@@ -246,7 +246,7 @@ newImg.src = myImg
 document.appendChild(newImg)
 ```
 **注意**在上述操作后，图片路径少个`/dist/`，因此找不到图片... <br/>
-答：index.html的位置应该和dist在同一个目录
+**答:**index.html的位置应该和dist在同一个目录
 
 上面说到[file-loader][fileLoaderUrl]，其实还有[url-loader][urlLoaderUrl]，这两个loader功能相似，只是后者可以设置阈值，当小于阈值时返回DataURL格式的路径。其实DataURL是没有路径可言的，本身就是一个图片资源。
 
@@ -373,23 +373,38 @@ module.exports = {
 以上我们在修改一个文件以后，需要重新构建，然后刷新浏览器才能看到效果，这在开发环境下无疑是繁琐且笨拙的，这里我们说说开发环境配置。。。
 
 **1. [scource map][sourceMapUrl]** <br/>
-当使用webpack打包文件以后，一般会将很多模块打包到一个文件里，因此当具体某个文件错误时，只能粗略的指向打包出来的那个大文件，而无法准确定位到源代码的具体位置，因此`scource map`就需要了解一下，只需在webpack.config.js添加下面代码即可
+当使用webpack打包文件以后，一般会将很多模块打包到一个文件里，因此当具体某个文件错误时debug将变得异常困难，只能粗略的指向打包出来的那个大文件，而无法准确定位到源代码的具体位置，因此`scource map`就需要了解一下
 
+当然需要先了解一下source map,它是一个信息文件,里面存储着位置信息。也就是说，转换后的代码的每一个位置，所对应的转换前的位置。不过目前好像只有chrome浏览器支持（在开发者工具的`setting`中开启`Enable source maps`）
+
+在开启source map后，打包出来的文件底部会有类似`//@ sourceMappingURL=/path/to/file.js.map`这样的内容，意思是说，具体的map文件在/path/to/file.js.map这里。
+
+只需在webpack.config.js添加下面代码即可
 ```js
 module.exports = {
   // devtool有很多选项,这里说几项，详情参考：https://webpack.docschina.org/configuration/devtool
-  // inline-source-map可以定位到源代码的具体位置
-  devtool: 'inline-source-map'
 
-  // source-map同样可以定位到源代码的具体位置，
+  // 打包出来的文件底部有sourceMappingURL字样，点击错误定位到的是没经处理的源码位置
   devtool: 'source-map'
 
-  // 待完善？？？
+  // 打包出来的文件底部没有sourceMappingURL字样，点击错误定位到的是压缩后的代码位置
+  // 此时dist目录里有map文件
+  devtool: 'hidden-source-map'
+
+  // 和上面不同的是，该模式生成的文件不但有sourceMappingURL字样，而且把具体的map文件内容内联在打包的文件里了，而前两者sourceMappingURL的值只是一个地址
+  // 注意此时dist目录没有map文件，但这样会使得打包出来的文件变大
+  devtool: 'inline-source-map'
 }
 ```
 更多请参考：<br/>
 [滴滴出行说devtool的几种模式][didiDevtoolUrl]<br/>
 [阮一峰-sourceMap详解][ruanyifeng-sourceMapUrl]<br/>
+
+
+当然打包处理后的代码有很多优点：
+1. 压缩混淆
+2. 多个文件合并，减少http请求
+3. 将其他类型文件编译成js，如ts
 
 **2. [webpack's Watch Mode]** <br/>
 现在我们每次修改都需要重新构建，并刷新浏览器才能看到结果，这在开发过程中很繁琐，因此我们可以添加watch模式，也就是webapck会自动开启watch模式观察依赖图中的所有的文件，当文件发生变化时，就自动重新构建。。。
@@ -405,9 +420,11 @@ module.exports = {
 ```
 
 **3. [webpack-dev-server][webpackDevServerUrl]** <br/>
+
 在watch模式下，虽然可以监听文件的变动并自动构建，但需要刷新浏览器才可以，因此我们需要借助[webpack-dev-server][webpackDevServerUrl]来帮我们自动刷新浏览。(可以先思考一下，watch模式下，webpack监视的原理是什么？)
 
-[webpack-dev-server][webpackDevServerUrl]提供了一个web服务器，并能够自动重新加载，同样需要先安装
+[webpack-dev-server][webpackDevServerUrl]提供了一个web服务器，并能够自动重新加载，同样需要先安装。
+**注意：**此时是重新加载也就是liveReload，是重新加载整个页面。。。
 ```bash
 npm i -D webpack-dev-server 
 ```
@@ -440,6 +457,115 @@ devServer: {
 ```
 上面的配置--open是说当第一次构建时，自动打开浏览器，当后续修改文件了，会自动构建并重新刷新浏览器。。。**注意：**这里的构建只是发生在内存中，并没有dist目录生成，这些看不见的工作webpack在后台处理(详情看devServer原理)。
 
+**[模块热替换(Hot Module Replacement 或 HMR)][hotModuleReplacementUrl]** <br/>
+HMR也就是在程序运行的时候替换，添加或删除模块，而无需重新加载整个页面。。。相比LiveReload而言，只刷新改变的部分。
+
+开启HMR的方式：
+1. 当使用了webapck-dev-server后，可以在配置了`hot:true`以后，还需要实例化`HotModuleReplacementPlugin`插件，这是webpack内置插件
+```js
+plugins: [
+  // 为了更容易查看要修补(patch)的依赖
+  new webpack.NamedModulesPlugin(),
+  new webpack.HotModuleReplacementPlugin()
+]
+```
+2. 通过命令行实现，如修改脚本`webpack-dev-server --open`
+
+哪些方式加快开发速度：
+- 保留在完全重新加载页面时丢失的应用程序状态。
+- 只更新变更内容，以节省宝贵的开发时间。
+- 调整样式更加快速 - 几乎相当于在浏览器调试器中更改样式。
+
+**HMR监听js文件变动** <br/>
+HMR是热模块替换，当主文件引用了另一个js文件，当这个js文件发生变化时，可以将这个变化的文件传递给[module.hot][moduleHotUrl]这个属性下的`accept`接口。也就是说，通过[HotModuleReplacementPlugin][hotModuleReplacementUrl]插件开启了HMR以后，同时还提供一些相关接口，这些接口可以接受依赖模块的更新，并触发一个回调函数。还可以获取模块热替换进程的状态等信息。。。如下：
+```js
+if(module.hot){
+  // 当更新lazy.js文件后，会在控制台打印module is updated...
+  module.hot.accept('./views/lazy',function(){
+    console.log('module is updated...');
+  })
+}
+```
+
+**注意：**监听的这个js文件不能作为入口，参考[启用HMR](https://www.webpackjs.com/guides/hot-module-replacement/#%E5%90%AF%E7%94%A8-hmr)
+
+
+**HMR监听样式文件变动** <br/>
+此前说过style-loader，其实当更新css依赖模块时，此loader在后台使用[module.hot.accept][moduleHotUrl]来修补**(patch)** `<style>`标签。
+
+此处出现了patch，意思是修补，可以理解为更新的意思。另外如果此时像监听js一样监听css,则不会触发如下：
+```js
+if(module.hot){
+  // 此时更新style.css，则不会触发回调。。。猜测是被style-loader拦截了
+  module.hot.accept('./views/style.css',function(){
+    console.log('css module is updated...');
+  })
+}
+```
+综上：
+>HMR 是可选功能，只会影响包含 HMR 代码的模块。举个例子，通过 style-loader 为 style 样式追加补丁。 为了运行追加补丁，style-loader 实现了 HMR 接口；当它通过 HMR 接收到更新，它会使用新的样式替换旧的样式。
+
+>类似的，当在一个模块中实现了 HMR 接口，你可以描述出当模块被更新后发生了什么。然而在多数情况下，不需要强制在每个模块中写入 HMR 代码。如果一个模块没有 HMR 处理函数，更新就会冒泡。这意味着一个简单的处理函数能够对整个模块树(complete module tree)进行更新。如果在这个模块树中，一个单独的模块被更新，那么整组依赖模块都会被重新加载。
+
+**4. [webpack-dev-middleware][webpackDevMiddlewareUrl]** <br/>
+`webpack-dev-middleware` 是一个容器(wrapper)，他可以把webpack处理后的文件传递给一个服务器(server)。webpack-dev-server在内部使用了它，它也可以作为一个单独的包来使用，接下来我们配合express来使用它。
+
+1. `npm i -D express webpack-dev-middleware`
+2. 增加webpack.config.js里output的publicPath
+
+```js
+output: {
+  filename: '[name].js',
+  // 这个只是本地硬盘上的路径
+  path: path.resolve(__dirname, 'dist'),
+  // 所有通过html-webpack-plugin插件插入到页面的资源，前缀都会添加/spa/,如果是/spa，则是/spaxxx
+  // 绝对路径则会拼接上服务名，很少用相对路径
+  // 完整的路径如https://www.baidu.com一般是将资源托管到第三方平台
+  publicPath: '/spa/'
+}
+```
+
+3. 增加服务器文件。
+
+```js
+const express = require('express')
+const webpack = require('webpack')
+const webpackDevMiddleware = require('webpack-dev-middleware')
+
+const app = express()
+const config = require('./webpack.config.js')
+const compiler = webpack(config)
+
+// 将webpackDevMiddleware插件挂载在express上，用webpack.config.js的配置路径来配置服务器的地址
+app.use(webpackDevMiddleware(compiler, {
+  publicPath: config.output.publicPath
+}))
+
+app.listen(3000, function(){
+  console.log('server is running : http://localhost:3000')
+})
+```
+
+4. 在package.json里增加
+
+```json
+"scripts": {
+  "server": "node server.js"
+}
+```
+5. 启动服务`npm run server`
+
+这时你会发现访问`http://localhost:3000`失败，因为我们给服务配置了`publicPath`,因此需要访问`http://localhost:3000/spa/`
+
+**总结**
+[webpack-dev-middleware][webpackDevMiddlewareUrl]的作用是生成一个与wabpack的compiler绑定的中间件，然后再express启动的服务商调用这个中间件。
+作用主要有三点：
+1. 通过watch mode，监听资源的变更，然后自动打包
+2. 快速编译，走内存
+3. 返回中间件，支持express的use格式
+
+**特别注明：**webpack明明可以用watch mode，可以实现一样的效果，但是为什么还需要这个中间件呢？<br/>
+**答:**，第二点所提到的，采用了内存方式。如果，只依赖webpack的watch mode来监听文件变更，自动打包，每次变更，都将新文件打包到本地，就会很慢。
 
 
 
@@ -463,3 +589,6 @@ devServer: {
 [didiDevtoolUrl]: https://juejin.im/post/58293502a0bb9f005767ba2f
 [ruanyifeng-sourceMapUrl]: http://www.ruanyifeng.com/blog/2013/01/javascript_source_map.html
 [webpackDevServerUrl]: https://www.webpackjs.com/configuration/dev-server/
+[hotModuleReplacementUrl]: https://webpack.docschina.org/guides/hot-module-replacement
+[moduleHotUrl]: https://www.webpackjs.com/api/hot-module-replacement/
+[webpackDevMiddlewareUrl]: https://www.webpackjs.com/api/hot-module-replacement/
