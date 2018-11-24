@@ -3,322 +3,117 @@ layout: post
 title: 框架思想
 date: Wed Nov 14 2018 13:42:14 GMT+0800
 ---
-参考：
-[React，flux，redux](https://juejin.im/entry/576cb79a2e958a0078d08b67)
-[阮一峰说redux](http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_one_basic_usages.html)
-[阮一峰说flux](http://www.ruanyifeng.com/blog/2016/01/flux.html)
-#### 状态管理的由来
-一般来说，程序猿们大部分时间关注的可能不是研发某个具体算法，这是算法工程师／数学家们擅长的东东。程序猿的工作主要是通过调用编程环境中现成的工具函数或接口来实现具体的应用功能，将各个底层接口或算法模块用代码有秩序地拼装联接起来，实现酷炫好用的产品功能，如同组装一件乐高玩具一样。
 
-也就是说程序猿的很多工作往往不是围绕某个高大上的具体算法（“我们不生产算法，我们只是算法的搬运工”），而是像代码界的城管、或者清洁工一样，关注怎样组织文件结构，怎样理清编程思路，怎样命名变量，怎样降低代码耦合度，怎样提高代码的复用性和一致性，提高代码的可读性和健壮性，怎样优化分工协作、减少沟通成本等等。不管是`OOP、FP`等编程思想，还是`MVC`等设计模式、或是各种编程语言下的应用开发框架，很多都是为了帮助程序猿完成这些脏活、累活儿。
+#### 框架
+框架分好多种，比如说ui框架负责渲染ui层面，而像react，vue是数据到视图的映射，而angular不但有数据到视图的映射，还有自己路由等。。。每种框架做的东西不同，但各有特点，需要根据业务需要来选择。
 
-在早期网页开发时，页面几乎不需要什么交互，前端只需要将后台提供的网页内容排版呈现出来即可。用户的交互行为一般仅限于填写一个表单，然后把数据提交到服务器，提交成功后，**直接刷新整个页面**。
-
-然而，当页面交互变得复杂后，这种基于服务器维护数据（等价于state），然后整体刷新页面的方式存在以下两个缺陷
-1. 反复刷新页面
-2. 由交互产生的很多细腻的前端数据，其实也很难交给后台处理，因为这是我们无处安放的临时状态。例如一个菜单是收起还是打开，一个面板是隐藏还是弹出，如果前端不去记录这些view对应的状态，那么后台就要记录这些状态，否则页面刷新后，这些状态信息就会丢失。
-
-#### Flux及redux
-React 只是 DOM 的一个抽象层，并不是 Web 应用的完整解决方案。有两个方面，它没涉及。如下:
-1. 代码结构
-2. 组件之间的通信
-对于大型应用，这两方面恰恰是最关键的。
-
-为了解决这个问题，2014年 Facebook 提出了 Flux 架构的概念，引发了很多的实现。
-简单说，`Flux`是一种架构思想，专门解决软件的结构问题。它跟`MVC`架构是同一类东西，但是更加简单和清晰。
-
-2015年，Redux 出现，将 Flux 与函数式编程结合一起，很短时间内就成为了最热门的前端架构。
-
-但我们需要知道redux是一个有用的框架，但是并不是非用不可，其实在大多数情况下，我们并不需要。。。那什么时候需要呢，也就是当你遇到实在解决不了的问题时，你才需要。
-
-当以下情况才考虑使用redux
-1. 用户的使用方式复杂
-2. 不同身份的用户有不同的使用方式（比如普通用户和管理员）
-3. 多个用户之间可以协作
-4. 与服务器大量交互，或者使用了WebSocket
-5. View要从多个来源获取数据
-
-从组件角度考虑，当应用中有一下情景时，可以考虑用redux
-- 某个组件的状态，需要共享
-- 某个状态需要在任何地方都可以拿到
-- 一个组件需要改变全局状态
-- 一个组件需要改变另一个组件的状态
-
-现在社区由又出现新的状态管理机制Mobx。React 提供了优化UI渲染的机制， 这种机制就是通过使用虚拟DOM来减少昂贵的DOM变化的数量。MobX 提供了优化应用状态与 React 组件同步的机制，这种机制就是使用响应式虚拟依赖状态图表，它只有在真正需要的时候才更新并且永远保持是最新的。
-综合：Mobx数据流太随意，不易追踪，适合小项目，大项目还是用redux等
-参考[Mobx](https://cn.mobx.js.org/)
-
-#### vuex
-知道了数据状态管理的作用以及由来，我们对vuex就更容易理解了，只是vuex是为vue量身定制的状态管理器，它采用集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。Vuex 也集成到 Vue 的官方调试工具 devtools extension，提供了诸如零配置的 time-travel 调试、状态快照导入导出等高级调试功能。
-另外对于Redux 事实上无法感知视图层，所以它能够轻松的通过一些简单绑定和 Vue 一起使用。
-
-如下一个简单的例子：
-```js
-new Vue({
-  // state
-  data () {
-    return {
-      count: 0
-    }
-  },
-  // view
-  template: `
-    <div>{{ count }}</div>
-  `,
-  // actions
-  methods: {
-    increment () {
-      this.count++
-    }
-  }
-})
-```
-这个状态自管理应用包含以下几个部分：
-- state，驱动应用的数据源；
-- view，以声明方式将 state 映射到视图；
-- actions，响应在 view 上的用户输入导致的状态变化。
-
-![mini-program-logo](/jsArt/assets/images/vuex/dataDirection.png)
-上图是一个单向数据流理念的极简示意图，但是，当我们的应用遇到多个组件共享状态时，单向数据流的简洁性很容易被破坏：
-- 多个视图依赖于同一状态。
-- 来自不同视图的行为需要变更同一状态。
-
->对于问题一，传参的方法对于多层嵌套的组件将会非常繁琐，并且对于兄弟组件间的状态传递无能为力。对于问题二，我们经常会采用父子组件直接引用或者通过事件来变更和同步状态的多份拷贝。以上的这些模式非常脆弱，通常会导致无法维护的代码。
-
->因此，我们为什么不把组件的共享状态抽取出来，以一个全局单例模式管理呢？在这种模式下，我们的组件树构成了一个巨大的“视图”，不管在树的哪个位置，任何组件都能获取状态或者触发行为！
-
->另外，通过定义和隔离状态管理中的各种概念并强制遵守一定的规则，我们的代码将会变得更结构化且易维护。
-
->这就是 Vuex 背后的基本思想，借鉴了 Flux、Redux、和 The Elm Architecture。与其他模式不同的是，Vuex 是专门为 Vue.js 设计的状态管理库，以利用 Vue.js 的细粒度数据响应机制来进行高效的状态更新。
-
-经常被忽略的是，Vue应用中原始数据对象的实际来源，当访问数据对象时，一个vue实例只是简单的代理访问。所以，如果你有一处需要被多个实例间共享的状态，可以简单地通过维护一份数据来实现共享
-```js
-const sourceOfTruth = {}
-
-const vmA = new Vue({
-  data: sourceOfTruth
-})
-
-const vmB = new Vue({
-  data: sourceOfTruth
-})
-```
-现在当 sourceOfTruth 发生变化，vmA 和 vmB 都将自动的更新引用它们的视图。子组件们的每个实例也会通过 this.$root.$data 去访问。现在我们有了唯一的数据来源，但是，调试将会变为噩梦。任何时间，我们应用中的任何部分，在任何数据改变后，都不会留下变更过的记录。
-
-为了解决这个问题，我们采用一个简单的 store 模式：
-```js
-var store = {
-  debug: true,
-  state: {
-    message: 'Hello!'
-  },
-  setMessageAction (newValue) {
-    if (this.debug) console.log('setMessageAction triggered with', newValue)
-    this.state.message = newValue
-  },
-  clearMessageAction () {
-    if (this.debug) console.log('clearMessageAction triggered')
-    this.state.message = ''
-  }
-}
-```
-需要注意，所有 store 中 state 的改变，都放置在 store 自身的 action 中去管理。这种集中式状态管理能够被更容易地理解哪种类型的 mutation 将会发生，以及它们是如何被触发。当错误出现时，我们现在也会有一个 log 记录 bug 之前发生了什么。
-
-*注意：*因为某个store中的数据改变只有一种方式可以改变，也就是store中的action，其实这个debug模式，只是说，当开启debug模式后，可以跟踪newValue的变化？ 但话又说回来，即使不开启debug也可以打印有关newValue的值啊？？
-
-### store中的各个属性
-
-#### state
-单一状态树
-```js
-// 这里用函数是保证每次都返回新的对象
-const state = () => ({
-  loanData: {},
-  pointData: [],
-  currentLoanData: []
-});
-```
+像我们常说的react和vue，他们核心虽然只解决一个很小的问题，但他们有各自的生态圈及配套的可选工具，当把这些工具一一加进来的时候，就可以组合成非常强大的栈，就可以涵盖其他的那些更完整的框架所涵盖的问题。
 
 
-#### Getter
-有时候需要从store的state里派生一些状态，其实就可以理解为计算属性，而getters的参数就是state
-```js
-const store = new Vuex.Store({
-  state: {
-    todos: [
-      { id: 1, text: '...', done: true },
-      { id: 2, text: '...', done: false }
-    ]
-  },
-  getters: {
-    doneTodos: state => {
-      return state.todos.filter(todo => todo.done)
-    }
-  }
-})
-```
+#### MVVM由来
+在html5还没火起来的时候，MVC作为web应用的最佳实践是ok的。这时web应用的view层相对简单，前端所需要的数据在后端基本上已经处理好了，view做一下展示就好，那时提倡的是controller来处理复杂的业务逻辑，view层相对轻量。
+
+等到html5大火以后，相对html4，html5最大的亮点是为**移动设备提供了一些非常有用的功能，使得 HTML5 具备了开发App的能力**，另外就是**跨平台、快速迭代和上线，节省人力成本和提高效率**，因此很多企业开始对传统app进行改造，逐渐在app里使用了大量的h5页面。
+
+既然要用h5来构建app，那view层做的事情，就不仅仅是简单的数据展示，它不仅**要管理复杂的数据状态，还要处理移动设备上各种操作行为等**，因此前端也需要工程化，一个类似MVC的框架来管理这些复杂的逻辑。但相对之前的MVC发生了点变化如下：
+
+传统MVC:
+>1. View 用来把数据以某种方式呈现给用户。
+2. Model 其实就是数据。
+3. Controller 接收并处理来自用户的请求，并将 Model 返回给用户。
 
 
-#### Mutation
-更改vuex中的store中的状态的唯一方法是提交mutation。但这里的mutation handler更像是注册事件，并不能直接执行，而是需要触发。。。类似`window.addEventListener('eventType', handler)`只是注册了事件。
-另外，handler接受两个参数，参数一是state，参数二是payload
-```js
-const store = new Vuex.Store({
- state: {
-	count: 1
- },
-// 这里的increment其实就是函数名，因为increment不能直接调用，因此常将函数名改为常量，然后单独抽离出来，便于多人维护开发
- mutations: {
-	increment (state) {
-		// 变更状态
-		state.count++
-	},
-	// 如下,将mutation事件类型定义为常量，可以将这些常量单独放在一个文件里，都挂载在mutationTypes上
-	// 但务必注意，mutation事件里执行的都是同步代码
-	[mutationTypes.SET_INCREMENT_DATA](state){
-		state.count++
-	}
- }
-})
-```
+变化后的MVC:
+>1. View UI布局，展示数据。
+2. Model 管理数据。
+3. Controller 响应用户操作，并将 Model 更新到 View 上。
+
+变化后的MVC架构对于简单的应用来说是ok的，也符合软件架构的分层思想。但随着h5的发展，人们更希望使用H5 开发的应用能和Native 媲美，或者接近于原生App 的体验效果，于是前端应用的复杂程度已不同往日，今非昔比。这时前端开发就暴露出了三个痛点问题：
+1. 开发者在代码中大量调用相同的 DOM API, 处理繁琐 ，操作冗余，使得代码难以维护。
+2. 大量的DOM 操作使页面渲染性能降低，加载速度变慢，影响用户体验。
+3. 当 Model 频繁发生变化，开发者需要主动更新到View ；当用户的操作导致 Model 发生变化，开发者同样需要将变化的数据同步到Model 中，这样的工作不仅繁琐，而且很难维护复杂多变的数据状态。
+
+其实，早期jquery 的出现就是为了前端能更简洁的操作DOM 而设计的(也解决了原生DOM api兼容问题)，但它只解决了第一个问题，另外两个问题始终伴随着前端一直存在。
+
+#### MVVM原理
+MVVM 由 Model,View,ViewModel 三部分构成，Model 层代表数据模型，也可以在Model中定义数据修改和操作的业务逻辑；View 代表UI 组件，它负责将数据模型转化成UI 展现出来，ViewModel 是一个同步View 和 Model的对象。
+
+在MVVM架构下，View 和 Model 之间并没有直接的联系，而是通过ViewModel进行交互，**Model 和 ViewModel 之间的交互是双向的**，而 **View 与 ViewModel 之间是双向数据绑定**， 因此View 数据的变化会同步到Model中，而Model 数据的变化也会立即反应到View 上。而这一切都是通过框架的VM模型实现。。。
+
+#### Vue.js
+可以说Vue.js是MVVM架构的最佳实践，专注于MVVM中的VM，不仅做到了双向数据绑定，而且还是相对轻量级的js库。
+
+几个名词：
+>1. Observer 数据监听器，能够对数据对象的所有属性进行监听，如有变动可拿到最新值并通知订阅者，内部采用Object.defineProperty的getter和setter来实现。
+2. Compile 指令解析器，它的作用对每个元素节点的指令进行扫描和解析，根据指令模板替换数据，以及绑定相应的更新函数。
+3. Watcher 订阅者， 作为连接 Observer 和 Compile 的桥梁，能够订阅并收到每个属性变动的通知，执行指令绑定的相应回调函数。
+4. Dep 消息订阅器，内部维护了一个数组，用来收集订阅者（Watcher），数据变动触发notify 函数，再调用订阅者的 update 方法。
+
+当执行 new Vue() 时，Vue 就进入了初始化阶段，一方面Vue 会遍历 data 选项中的属性，并用 Object.defineProperty 将它们转为 getter/setter，实现数据变化监听功能；另一方面，Vue 的指令编译器Compile 对元素节点的指令进行扫描和解析，初始化视图，并订阅Watcher 来更新视图， 此时Wather 会将自己添加到消息订阅器中(Dep),初始化完毕。
+
+当数据发生变化时，Observer 中的 setter 方法被触发，setter 会立即调用Dep.notify()，Dep 开始遍历所有的订阅者，并调用订阅者的 update 方法，订阅者收到通知后对视图进行相应的更新。
 
 
-#### Action
-Action 类似于 Mutation，不同在于：
-- Action提交的是Mutation，而不是直接变更state状态
-- Action可以包含任何的异步操作
-
-```js
-const store = new Vuex.Store({
-state: {
-	count: 0
-},
-// 直接变更state状态
-mutations: {
-	increment (state) {
-		state.count++
-	}
-},
-// 提交Mutation，让Mutation改变state
-// 这里的context是与store实例具有相同属性和方法的上下文对象，意味着可以借助这个对象来调用store上的api
-// 比如常用的commit(提交mutation),dispath(分发action，其实相当于调用mutation的handler，可接受参数)
-actions: {
-	increment (context) {
-		context.commit('increment')
-	},
-	// context是对象，上面挂载有commit，dispath的api，可以用解构赋值，如下
-	// 尤其是当多次提交mutations的时候
-	increment ( {commit} ) {
-		commit('increment')
-	}
-},
-})
-```
-上面我们在actions里通过store对象上挂载的commit来提交mutation，进而触发变更state。那**action应该如何触发呢**？
-```js
-// action通过store.dispatch触发，参数二可以有，是载荷
-store.dispatch('increment' [, payload])
-// 还可以以对象方式
-store.dispatch({
-	type: 'increment',
-	key: value
-})
-```
+参考：
+- [mvvm由来][MVVMFromUrl]
+- [阮一峰MVVM][MVVM-阮一峰-Url]
+- [mvvm是什么][MVVM-廖雪峰-Url]
+- [浅谈mvvm][MVVM-other1-Url]
 
 
-#### 定义在vuex中的*state，mutations, actions*如何在页面方便使用呢？
-你或许这样使用
-```js
-this.$store.commit('key',value) //提交的mutation，其实就是让mutation里对应逻辑执行
-this.$store.dispatch('action') //提交的action，其实就是让action里对应逻辑执行
-```
-但还可以更方便的利用组件的辅助方法`mapState,mapGetters,mapMutations,mapActions`引入组件内使用，当然首先需要
-```js
-import { mapState,mapGetters,mapMutations,mapActions } form 'vuex'
-```
-这些辅助方法有对应的参数，可以接受不同的参数，从而实现**不同形式的引入方式**。
 
-**方式一：**当我们想在组件内使用自定义的名称时，可以传入对象，如下：
-```js
-computed: {
-// 以下是将state里值引入到页面中
- ...mapState({
-	// 箭头函数可使代码更简练
-	count: state => state.count,
+#### 原生dom操作与框架
+框架的意义在于为你掩盖底层的dom操作，让你用更声明式的方式来描述你的目的，从而让你的代码更容易维护。
+没有任何框架可以比纯手动的优化 DOM 操作更快，因为框架的 DOM 操作层需要应对任何上层 API 可能产生的操作，它的实现必须是普适的。框架给你的保证是，你在不需要手动优化的情况下，依然可以给你提供过得去的性能。
 
-	// 传字符串参数 'count' 等同于 `state => state.count`
-	countAlias: 'count',
 
-	// 为了能够使用 `this` 获取局部状态，必须使用常规函数
-	countPlusLocalState (state) {
-		return state.count + this.localCount
-	}
- })
-},
-methods: {
- ...mapMutations([
-	'increment', // 将 `this.increment()` 映射为 `this.$store.commit('increment')`
+#### 对React的virtual DOM的误解
+React 从来没有说过 “React 比原生操作 DOM 快”。React 的基本思维模式是每次有变动就整个重新渲染整个应用。如果没有 Virtual DOM，简单来想就是直接重置 innerHTML。很多人都没有意识到，在一个大型列表所有数据都变了的情况下，重置 innerHTML 其实是一个还算合理的操作... 真正的问题是在 “全部重新渲染” 的思维模式下，即使只有一行数据变了，它也需要重置整个 innerHTML，这时候显然就有大量的浪费。
 
-	// `mapMutations` 也支持载荷：
-	'incrementBy' // 将 `this.incrementBy(amount)` 映射为 `this.$store.commit('incrementBy', amount)`
- ]),
+我们可以比较一下 innerHTML vs. Virtual DOM 的重绘性能消耗：
 
- ...mapActions([
-	'foo', // -> this.foo()
-	'bar' // -> this.bar()
- ]),
+- innerHTML:  render html string O(template size) + 重新创建所有 DOM 元素 O(DOM size) <br/>
+- Virtual DOM: render Virtual DOM + diff O(template size) + 必要的 DOM 更新 O(DOM change)
 
- ...mapMutations({
-	add: 'increment' // 将 `this.add()` 映射为 `this.$store.commit('increment')`
- }),
-}
-```
-上面我们看到mutation与action都是在methods里使用对象展开运算符引入到页面内的，因为二者其实都是方法，只是mutation是同步的，而action一般执行异步操作的情况。
+Virtual DOM render + diff 显然比渲染 html 字符串要慢，但是！它依然是纯 js 层面的计算，比起后面的 DOM 操作来说，依然便宜了太多。
 
-**方式二：**当我们在组件内使用的名称与state里的名称一致时，可以传入数组：
-```js
-computed: {
-  // 映射 this.count 为 store.state.count
-  ...mapState(['count'])
-}
-```
+可以看到，innerHTML 的总计算量不管是 js 计算还是 DOM 操作都是和整个界面的大小相关，但 Virtual DOM 的计算量里面，只有 js 计算和界面大小相关，DOM 操作是和数据的变动量相关的。前面说了，和 DOM 操作比起来，js 计算是极其便宜的。
 
-**方式三：**当我们将store中的状态分模块后，也就相当于每个模块就是命令空间了，因此可以只引入某个命名空间下的状态：
-```js
-computed: {
-  // 此时引入的全是module模块里的state
-  ...mapState('some/nested/module', {
-    a: state => state.a,
-    b: state => state.b
-  })
-},
-methods: {
-  // 此时引入的全是module模块里的actions
-  ...mapActions('some/nested/module', [
-    'foo', // -> this.foo()
-    'bar' // -> this.bar()
-	]),
-}
-```
+这才是为什么要有 Virtual DOM：它保证了 
+1. 不管你的数据变化多少，每次重绘的性能都可以接受；
+2. 你依然可以用类似 innerHTML 的思路去写你的应用。
 
-#### 使用vuex的目录结构
-使用vuex一般有一定的目录结构，可以参考如下：
-```
-src
-  |--views
-  |  |--pages1
-  |  |--pages2
-  |  |--pages3
-  |--vuex
-  |  |--index.js              主store文件
-  |  |--mutations-types.js    mutation常量方法名
-  |  |--modules               各个数据模块
-  |  |  |--moduleOne.js
-  |  |  |--moduleTwo.js
-  |  |  |--moduleThree.js
-  |--app.js
-  |--...
-  ...
+#### MVVM 与 virtual DOM
+相比起 React，其他 MVVM 系框架比如 Angular, Knockout 以及 Vue、Avalon 采用的都是数据绑定：通过 Directive/Binding 对象，观察数据变化并保留对实际 DOM 元素的引用，当有数据变化时进行对应的操作。**MVVM 的变化检查是数据层面的，而 React 的检查是 DOM 结构层面的。**MVVM 的性能也根据变动检测的实现原理有所不同：Angular 的脏检查使得任何变动都有固定的 O(watcher count) 的代价；Knockout/Vue/Avalon 都采用了依赖收集，在 js 和 DOM 层面都是 O(change)：
 
-```
+- 脏检查：scope digest O(watcher count) + 必要 DOM 更新 O(DOM change)
+- 依赖收集：重新收集依赖 O(data change) + 必要 DOM 更新 O(DOM change)
 
+可以看到，Angular 最不效率的地方在于任何小变动都有和 watcher 数量相关的性能代价。但是！当所有数据都变了的时候，Angular 其实并不吃亏。依赖收集在初始化和数据变化的时候都需要重新收集依赖，这个代价在小量更新的时候几乎可以忽略，但在数据量庞大的时候也会产生一定的消耗。
+
+
+MVVM 渲染列表的时候，由于每一行都有自己的数据作用域，所以通常都是每一行有一个对应的 ViewModel 实例，或者是一个稍微轻量一些的利用原型继承的 "scope" 对象，但也有一定的代价。所以，MVVM 列表渲染的初始化几乎一定比 React 慢，因为创建 ViewModel / scope 实例比起 Virtual DOM 来说要昂贵很多。这里所有 MVVM 实现的一个共同问题就是在列表渲染的数据源变动时，尤其是当数据是全新的对象时，如何有效地复用已经创建的 ViewModel 实例和 DOM 元素。假如没有任何复用方面的优化，由于数据是 “全新” 的，MVVM 实际上需要销毁之前的所有实例，重新创建所有实例，最后再进行一次渲染！这就是为什么题目里链接的 angular/knockout 实现都相对比较慢。相比之下，React 的变动检查由于是 DOM 结构层面的，即使是全新的数据，只要最后渲染结果没变，那么就不需要做无用功。
+
+
+Angular 和 Vue 都提供了列表重绘的优化机制，也就是 “提示” 框架如何有效地复用实例和 DOM 元素。比如数据库里的同一个对象，在两次前端 API 调用里面会成为不同的对象，但是它们依然有一样的 uid。这时候你就可以提示 track by uid 来让 Angular 知道，这两个对象其实是同一份数据。那么原来这份数据对应的实例和 DOM 元素都可以复用，只需要更新变动了的部分。或者，你也可以直接 track by $index 来进行 “原地复用”：直接根据在数组里的位置进行复用。在题目给出的例子里，如果 angular 实现加上 track by $index 的话，后续重绘是不会比 React 慢多少的。甚至在 dbmonster 测试中，Angular 和 Vue 用了 track by $index 以后都比 React 快: dbmon (注意 Angular 默认版本无优化，优化过的在下面）
+
+顺道说一句，React 渲染列表的时候也需要提供 key 这个特殊 prop，本质上和 track-by 是一回事。
+
+#### 性能比较也要看场合
+在比较性能的时候，要分清楚初始渲染、小量数据更新、大量数据更新这些不同的场合。Virtual DOM、脏检查 MVVM、数据收集 MVVM 在不同场合各有不同的表现和不同的优化需求。Virtual DOM 为了提升小量数据更新时的性能，也需要针对性的优化，比如 shouldComponentUpdate 或是 immutable data。
+
+- 初始渲染：Virtual DOM > 脏检查 >= 依赖收集 <br/>
+- 小量数据更新：依赖收集 >> Virtual DOM + 优化 > 脏检查（无法优化） > Virtual DOM 无优化 <br/>
+- 大量数据更新：脏检查 + 优化 >= 依赖收集 + 优化 > Virtual DOM（无法/无需优化）>> MVVM 无优化 <br/>
+
+不要天真地以为 Virtual DOM 就是快，diff 不是免费的，batching 么 MVVM 也能做，而且最终 patch 的时候还不是要用原生 API。
+在我看来 Virtual DOM 真正的价值从来都不是性能，而是:
+1.  为函数式的 UI 编程方式打开了大门；
+2. 可以渲染到 DOM 以外的 backend，比如 ReactNative。
+
+
+
+[MVVMFromUrl]: https://www.cnblogs.com/onepixel/p/6034307.html
+[MVVM-阮一峰-Url]: http://www.ruanyifeng.com/blog/2015/02/mvcmvp_mvvm.html
+[MVVM-other1-Url]: https://draveness.me/mvx
+[MVVM-廖雪峰-Url]: https://www.liaoxuefeng.com/wiki/001434446689867b27157e896e74d51a89c25cc8b43bdb3000/001475449022563a6591e6373324d1abd93e0e3fa04397f000

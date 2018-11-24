@@ -34,6 +34,20 @@ date: Tue Nov 20 2018 10:17:51 GMT+0800 (中国标准时间)
   - 权限解决以后，又提示`Unable to pull data from 'https://rubygems.org/': SSL_connect returned=1 errno=0 state=SSLv2/v3 read server hello A: tlsv1 alert protocol version (https://rubygems.org/latest_specs.4.8.gz)`
 [参考][SSL_connect_err_url]
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 [SSL_connect_err_url]:https://teamtreehouse.com/community/warning-unable-to-pull-data-from-httpsrubygemsorg
 
 
