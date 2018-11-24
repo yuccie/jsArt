@@ -17,7 +17,24 @@ date: Tue Nov 20 2018 10:17:51 GMT+0800 (中国标准时间)
 
 #### jekyll常见问题
 1. 在md里面，四个空格和一个tab代表的距离一致，但如果通过jekyll serve编译时将一个tab代表的距离更换为2个空格？
-	
+
+
+#### 安装jekyll开发环境
+1. 安装ruby环境
+  - Ruby version 2.2.5 or above, including all development headers (ruby version can be checked by running ruby -v)
+  - RubyGems (which you can check by running gem -v)
+  - GCC and Make (in case your system doesn’t have them installed, which you can check by running gcc -v,g++ -v and make -v in your system’s command line interface)
+
+2. 
+
+#### 安装jekyll遇到的问题
+我的ruby环境已经安装好，版本2.5.1
+1. `gem install jekyll bundler`
+  - 先提示我权限不足，改用sudo解决权限
+  - 权限解决以后，又提示`Unable to pull data from 'https://rubygems.org/': SSL_connect returned=1 errno=0 state=SSLv2/v3 read server hello A: tlsv1 alert protocol version (https://rubygems.org/latest_specs.4.8.gz)`
+[参考][SSL_connect_err_url]
+
+[SSL_connect_err_url]:https://teamtreehouse.com/community/warning-unable-to-pull-data-from-httpsrubygemsorg
 
 
 
