@@ -1,6 +1,6 @@
 ---
 layout: post
-title: for Promise
+title: Promise解析
 date: Sat Nov 24 2018 18:08:15 GMT+0800 (中国标准时间)
 ---
 
@@ -493,10 +493,49 @@ hw.next()
 // { value: undefined, done: true }
 ```
 
+#### 不同的数据结构相互转化
+因为ES6给出了统一的迭代接口，使得不同类型的数据结构相互之间转换更加方便。如下：
+
+从Array生成Set，还可用于数组去重（[Set][SetMapTheoryUrl]本身是构造函数，类似于数组，但是成员的值都是唯一）
+```js
+new Set(['Alice', 'Bob', 'Carol'])    // {'Alice', 'Bob', 'Carol'}
+// 等价于
+new Set(['Alice', 'Bob', 'Carol'][Symbol.iterator]())
+```
+
+从Set生成Array
+```js
+let set = new Set(['Alice', 'Bob', 'Carol'])
+Array.from(set) // 'Alice', 'Bob', 'Carol'
+// 等价于
+Array.from(set[Symbol.iterator]())
+
+// 还可以使用展开运算符 ...
+let names = [...set]  // 'Alice', 'Bob', 'Carol'
+```
+
+从String到Set，得到字符串中具体的字符
+```js
+let alphabet = 'abcdefghijklmnopqrstuvwxyz';
+new Set(alphabet) // {'a', 'b', 'c', ...}
+// 等价于
+new Set('alice bob'[Symbol.iterator]())
+```
+
+从Object生成[Map][SetMapTheoryUrl](类似Object，只是键不再局限于字符串，各种类型的值都可以作为键)
+Object 结构提供了“字符串—值”的对应，Map 结构提供了“值—值”的对应，是一种更完善的 Hash 结构实现
+```js
+let mapping = {
+  "foo": "bar"
+}
+new Map(Object.entries(mapping))    // {"foo" => "bar"}
+```
+
 
 参考链接：
 - [阮一峰js标准教程][js-ruanyifeng-url]
 - [ES6迭代器][es6-iterator-url]
 
-[es6-iterator-url]： https://harttle.land/2018/09/29/es6-iterators.html
-[js-ruanyifeng-url]： http://es6.ruanyifeng.com/#docs/generator
+[es6-iterator-url]: https://harttle.land/2018/09/29/es6-iterators.html
+[js-ruanyifeng-url]: http://es6.ruanyifeng.com/#docs/generator
+[SetMapTheoryUrl]: http://es6.ruanyifeng.com/#docs/set-map

@@ -28,7 +28,7 @@ JavaScript语言的设计者意识到，这时主线程完全可以不管IO设�
 
 **注意：**只有等到异步任务有了结果才会进入任务队列(task queu)，而在有结果之前异步任务进入task table注册并开始计时。也就是说js代码从上向下执行，碰到异步任务就放到task table里，对于定时器如果时间到了就放进任务队列里，对于ajax请求，则等到返回响应才会进入任务队列
 
-只要主线程空了，就会去读取"任务队列"，这就是JavaScript的运行机制。这个过程会不断重复。
+只要主线程空了(js引擎存在monitoring process进程，会持续不断检查主线程执行栈是否为空)，就会去读取"任务队列"，这就是JavaScript的运行机制。这个过程会不断重复。
 
 #### 三、事件及回调函数
 "任务队列"是一个事件的队列（也可以理解成消息的队列），IO设备完成一项任务，就在"任务队列"中添加一个事件，表示相关的异步任务可以进入"执行栈"了。主线程读取"任务队列"，就是读取里面有哪些事件。
@@ -61,6 +61,24 @@ req.onload = function (){};
 req.onerror = function (){};    
 ```
 也就是说，指定回调函数的部分（onload和onerror），在send()方法的前面或后面无关紧要，因为它们属于执行栈的一部分，系统总是执行完它们，才会去读取"任务队列"。
+
+再看下面代码
+```js
+let data = []
+$.ajax({
+	url: 'www.js.com',
+	data: data,
+	success: ()=>{
+		console.log('发送成功')
+	}
+})
+console.log('代码执行结束')
+```
+上面代码执行的顺序：
+1. ajax进入Event Table，注册回调函数success。
+2. 执行console.log('代码执行结束')。
+3. ajax事件完成，回调函数success进入Event Queue。
+4. 主线程从Event Queue读取回调函数success并执行。
 
 
 #### 五、定时器
@@ -100,6 +118,28 @@ HTML5标准规定了setTimeout()的第二个参数的最小值（最短间隔）
 2. [淘宝FED-requestAnimationFrame][requestAnimationFrame-taobao-FED-Url]
 3. [张鑫旭-requestAnimationFrame][requestAnimationFrame-zhangxinxu-Url]
 
+#### 六、Node.js的Event Loop
+Node.js也是单线程的Event Loop，但是它的运行机制不同于浏览器
+
+除了setTimeout和setInterval这两个方法，Node.js还提供了另外两个与"任务队列"有关的方法：process.nextTick和setImmediate。它们可以帮助我们加深对"任务队列"的理解。
+
+process.nextTick方法可以在当前"执行栈"的尾部----下一次Event Loop（主线程读取"任务队列"）之前----触发回调函数。也就是说，它指定的任务总是发生在所有异步任务之前。setImmediate方法则是在当前"任务队列"的尾部添加事件，也就是说，它指定的任务总是在下一次Event Loop时执行，这与setTimeout(fn, 0)很像。
+```js
+process.nextTick(function A() {
+  console.log(1);
+  process.nextTick(function B(){console.log(2);});
+});
+
+setTimeout(function timeout() {
+  console.log('TIMEOUT FIRED');
+}, 0)
+// 1
+// 2
+// TIMEOUT FIRED
+```
+由于process.nextTick方法指定的回调函数，总是在当前"执行栈"的尾部触发，所以不仅函数A比setTimeout指定的回调函数timeout先执行，而且函数B也比timeout先执行。这说明，如果有多个process.nextTick语句（不管它们是否嵌套），将全部在当前"执行栈"执行。
+
+**注意:**到这里应该对Event Loop有深刻理解了吧，所谓的Event Loop是周而复始读取任务队列的过程。而process.nextTick方法会在当前执行栈的尾部触发回调，也就是在当前执行栈的最后执行位置。而setImmediate也是在当前任务队列的尾部添加事件。(待完善)
 
 
 #### 宏任务和微任务
@@ -110,10 +150,164 @@ HTML5标准规定了setTimeout()的第二个参数的最小值（最短间隔）
 
 知道了异步任务是如何进入任务队列(task queue)，对于setTimeout(fn,time)是从注册后time毫秒后才会进入任务队列，而setInterval(fn, time)则是每隔time毫秒就会进入到任务队列。**注意**此时若setInterval的回调fn执行时间大于延迟时间time，则就看不出来有时间间隔了。。。
 
-一开始执行栈的同步任务执行完毕，会去 microtasks queues 找， 然后清空 microtasks queues ，输出Promise1，同时会生成一个异步任务 setTimeout1
-去宏任务队列查看此时队列是 setTimeout1 在 setTimeout2 之前，因为setTimeout1执行栈一开始的时候就开始异步执行,所以输出 setTimeout1
-在执行setTimeout1时会生成Promise2的一个 microtasks ，放入 microtasks queues 中，接着又是一个循环，去清空 microtasks queues ，输出 Promise2
-清空完 microtasks queues ，就又会去宏任务队列取一个，这回取的是 setTimeout2
+```js
+setTimeout(()=>{
+  console.log('setTimeout1')
+},0)
+let p = new Promise((resolve,reject)=>{
+  console.log('Promise1')
+  resolve()
+})
+p.then(()=>{
+  console.log('Promise2')    
+})
+// 输出 Promise1，Promise2，setTimeout1
+```
+Promise参数中的Promise1是同步执行的 其次是因为Promise是microtasks，会在同步任务执行完后会去清空microtasks queues， 最后清空完微任务再去宏任务队列取值
+
+
+再来看看这个
+```js
+Promise.resolve().then(()=>{
+  console.log('Promise1')  
+  setTimeout(()=>{
+    console.log('setTimeout2')
+  },0)
+})
+
+setTimeout(()=>{
+  console.log('setTimeout1')
+  Promise.resolve().then(()=>{
+    console.log('Promise2')    
+  })
+},0)
+```
+主线程没有同步任务，先清空微任务即打印Promise1，同时注册一个宏任务setTimeout，这时微任务执行完毕，开始去执行宏任务，因为下面的宏任务setTimeout先注册，因此打印setTimeout1，此时再注册一个微任务，此时一个宏任务执行完了，再去清空微任务即打印Promise2，最后去宏任务领取最后一个即setTimeout2
+
+**注意：**首次执行时，先执行主线程的同步代码，然后再清空微任务列表，再每次领取一个宏任务执行，然后清空微任务，然后再是宏任务。。。周而复始（也不是每次领取一个宏任务。。。）
+
+在node环境下
+```js
+function test(){
+	console.log(1)
+	process.nextTick(()=>{
+		console.log('process.nextTick')
+	})
+	new Promise((resolve,reject)=>{
+		console.log('resolved')
+		resolve()
+	}).then(()=>{
+		console.log('then')
+	})
+}
+test()
+// 1 
+// resolved
+// process.nextTick
+// then
+```
+首先执行同步任务打印1，process.nextTick放到主线程最后，即先执行promise实例化，打印resolved，并注册一个微任务，然后打印process.nextTick，因为没有宏任务，所以最后打印then
+
+```js
+function test(){
+  // part1
+  setTimeout(()=>{
+    console.log('setTimeout1')
+    Promise.resolve().then(()=>{
+      console.log('setTimeout1 Promise1')    
+    })
+  },0)
+
+  // part2
+  Promise.resolve().then(()=>{
+    process.nextTick(()=>{
+      console.log('Promise1 nextTick')
+    })
+
+    console.log('Promise1')  
+
+    setTimeout(()=>{
+      console.log('setTimeout3')
+      process.nextTick(()=>{
+        console.log('setTimeout3 Promise1 nextTick')
+      })
+    },0)
+  })
+
+  // part3
+  process.nextTick(()=>{
+    console.log('nextTick')
+  })
+
+  // part4
+  setTimeout(()=>{
+    console.log('setTimeout2')
+    Promise.resolve().then(()=>{
+      console.log('setTimeout2 Promise2')    
+    })
+  },0)
+}
+test()
+// nextTick
+// Promise1
+// Promise1 nextTick
+// setTimeout1
+// setTimeout2
+// setTimeout1 Promise1
+// setTimeout2 Promise2
+// setTimeout3
+// setTimeout3 Promise1 nextTick
+```
+1. 从上到下，part1和part4先后进入宏任务队列，而part2进入微任务队列，part3是当前执行栈，因此先执行
+2. 然后将part2里的代码放在主线程执行，因为process.nextTick总是在当前执行栈最后，因此先打印Promise1，然后才是Promise1 nextTick，最后再注册一个宏任务
+3. 执行完part2里的微任务，然后开始执行宏任务，
+4. 
+
+**注意**因为事件循环是周而复始的，每次循环执行的都是上一次注册的事件，如果在执行过程中又注册了事件，则属于下一次事件循环的范畴了。
+
+
+```js
+function testQueue(){
+  console.log('1');
+
+  setTimeout(function() {
+    console.log('2');
+    process.nextTick(function() {
+        console.log('3');
+    })
+    new Promise(function(resolve) {
+        console.log('4');
+        resolve();
+    }).then(function() {
+        console.log('5')
+    })
+  })
+  process.nextTick(function() {
+      console.log('6');
+  })
+  new Promise(function(resolve) {
+      console.log('7');
+      resolve();
+  }).then(function() {
+      console.log('8')
+  })
+
+  setTimeout(function() {
+    console.log('9');
+    process.nextTick(function() {
+        console.log('10');
+    })
+    new Promise(function(resolve) {
+        console.log('11');
+        resolve();
+    }).then(function() {
+        console.log('12')
+    })
+  })
+}
+testQueue()
+// 1 7 6 8 2 4 9 11 3 10 5 12
+```
 
 
 [requestAnimationFrame-ruanyifeng-Url]: https://javascript.ruanyifeng.com/htmlapi/requestanimationframe.html
