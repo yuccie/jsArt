@@ -22,9 +22,11 @@ JavaScript语言的设计者意识到，这时主线程完全可以不管IO设�
 
 具体来说，异步执行的运行机制如下。（同步执行也是如此，因为它可以被视为没有异步任务的异步执行。）
 1. 所有同步任务都在主线程执行，形成一个执行栈（execution context stack）
-2. 主线程之外，还有一个任务队列（task queue），只要异步任务有了运行结果，就在任务队列里放置一个事件。（异步任务比如io,ajax有结果了，才放入到任务队列里）
+2. 主线程之外，还有一个任务队列（task queue），只要异步任务有了运行结果，就在任务队列里放置一个事件。
 3. 一旦主线程的执行栈所有同步任务执行完毕，系统就会读取任务队列，看看里面有哪些事件，那些对应的异步任务于是就结束等待状态，进入执行栈，开始执行。
 4. 主线程不断重复上面步骤
+
+**注意：**只有等到异步任务有了结果才会进入任务队列(task queu)，而在有结果之前异步任务进入task table注册并开始计时。也就是说js代码从上向下执行，碰到异步任务就放到task table里，对于定时器如果时间到了就放进任务队列里，对于ajax请求，则等到返回响应才会进入任务队列
 
 只要主线程空了，就会去读取"任务队列"，这就是JavaScript的运行机制。这个过程会不断重复。
 
@@ -98,19 +100,23 @@ HTML5标准规定了setTimeout()的第二个参数的最小值（最短间隔）
 2. [淘宝FED-requestAnimationFrame][requestAnimationFrame-taobao-FED-Url]
 3. [张鑫旭-requestAnimationFrame][requestAnimationFrame-zhangxinxu-Url]
 
-#### 宏任务和微任务
-宏任务一般是：包括整体代码script，setTimeout ，setInterval，setImmediate
-微任务：原生promise（有些实现的promise将then方法放到宏任务），process.nextTick，MutationObserve
 
-一开始执行栈的同步任务执行完毕，会去 microtasks queues 找 清空 microtasks queues ，输出Promise1，同时会生成一个异步任务 setTimeout1
+
+#### 宏任务和微任务
+首先我们要知道宏任务和微任务都是异步任务
+
+**宏任务：**包括整体代码script，[setTimeout][YouDoNotKonwSetTimeoutUrl] ，setInterval，setImmediate
+**微任务：**原生promise（有些实现的promise将then方法放到宏任务），process.nextTick，MutationObserve
+
+知道了异步任务是如何进入任务队列(task queue)，对于setTimeout(fn,time)是从注册后time毫秒后才会进入任务队列，而setInterval(fn, time)则是每隔time毫秒就会进入到任务队列。**注意**此时若setInterval的回调fn执行时间大于延迟时间time，则就看不出来有时间间隔了。。。
+
+一开始执行栈的同步任务执行完毕，会去 microtasks queues 找， 然后清空 microtasks queues ，输出Promise1，同时会生成一个异步任务 setTimeout1
 去宏任务队列查看此时队列是 setTimeout1 在 setTimeout2 之前，因为setTimeout1执行栈一开始的时候就开始异步执行,所以输出 setTimeout1
 在执行setTimeout1时会生成Promise2的一个 microtasks ，放入 microtasks queues 中，接着又是一个循环，去清空 microtasks queues ，输出 Promise2
 清空完 microtasks queues ，就又会去宏任务队列取一个，这回取的是 setTimeout2
-#### 宏任务微任务
-
-
 
 
 [requestAnimationFrame-ruanyifeng-Url]: https://javascript.ruanyifeng.com/htmlapi/requestanimationframe.html
 [requestAnimationFrame-taobao-FED-Url]: http://taobaofed.org/blog/2017/03/02/thinking-in-request-animation-frame/
 [requestAnimationFrame-zhangxinxu-Url]: https://www.zhangxinxu.com/wordpress/2013/09/css3-animation-requestanimationframe-tween-%E5%8A%A8%E7%94%BB%E7%AE%97%E6%B3%95/
+[YouDoNotKonwSetTimeoutUrl]: https://www.jeffjade.com/2016/01/10/2016-01-10-javacript-setTimeout/
