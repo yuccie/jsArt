@@ -4,6 +4,8 @@ title: 事件循环eventLoop
 date: Sat Nov 24 2018 18:06:10 GMT+0800 (中国标准时间)
 ---
 
+>文章中难免有相互矛盾的地方，会逐渐完善，下面是关于js事件循环的一些内容
+
 #### 一、js为何单线程
 浏览器进程里有多个线程，比如定时器，http请求等，但页面的渲染过程是单线程的，也就是说ui渲染和j解析是同一个线程，也就是同一时间只能执行二者其中一个。。。
 
@@ -66,11 +68,11 @@ req.onerror = function (){};
 ```js
 let data = []
 $.ajax({
-	url: 'www.js.com',
-	data: data,
-	success: ()=>{
-		console.log('发送成功')
-	}
+  url: 'www.js.com',
+  data: data,
+  success: ()=>{
+    console.log('发送成功')
+  }
 })
 console.log('代码执行结束')
 ```
@@ -150,6 +152,7 @@ setTimeout(function timeout() {
 
 知道了异步任务是如何进入任务队列(task queue)，对于setTimeout(fn,time)是从注册后time毫秒后才会进入任务队列，而setInterval(fn, time)则是每隔time毫秒就会进入到任务队列。**注意**此时若setInterval的回调fn执行时间大于延迟时间time，则就看不出来有时间间隔了。。。
 
+先来看个简单的
 ```js
 setTimeout(()=>{
   console.log('setTimeout1')
@@ -163,51 +166,103 @@ p.then(()=>{
 })
 // 输出 Promise1，Promise2，setTimeout1
 ```
-Promise参数中的Promise1是同步执行的 其次是因为Promise是microtasks，会在同步任务执行完后会去清空microtasks queues， 最后清空完微任务再去宏任务队列取值
+Promise参数中的Promise1是同步执行的 其次是因为Promise的then()是microtasks，会在同步任务执行完后会去清空microtasks queues， 最后清空完微任务再去宏任务队列取值
 
 
 再来看看这个
 ```js
-Promise.resolve().then(()=>{
-  console.log('Promise1')  
-  setTimeout(()=>{
-    console.log('setTimeout2')
-  },0)
-})
-
-setTimeout(()=>{
-  console.log('setTimeout1')
+function testQueue (){
+  // part1
   Promise.resolve().then(()=>{
-    console.log('Promise2')    
+    console.log('Promise1')
+    setTimeout(()=>{
+      console.log('setTimeout2')
+    },0)
+    Promise.resolve().then(()=>{
+      console.log('Promise3')    
+    })  
   })
-},0)
+  // part2
+  console.log('begin')
+  // part3
+  setTimeout(()=>{
+    console.log('setTimeout1')
+    Promise.resolve().then(()=>{
+      console.log('Promise2')    
+    })
+  },0)
+  // part4
+  setTimeout(()=>{
+    console.log('s1')
+    Promise.resolve().then(()=>{
+      console.log('p2')    
+    })
+  },0)
+}
+testQueue()
+// 浏览器环境
+// begin,Promise1,Promise3,setTimeout1,Promise2,s1,P2,setTimeout2
+
+// node环境
+// begin,Promise1,Promise3,setTimeout1,s1,Promise2,p2,setTimeout2
 ```
-主线程没有同步任务，先清空微任务即打印Promise1，同时注册一个宏任务setTimeout，这时微任务执行完毕，开始去执行宏任务，因为下面的宏任务setTimeout先注册，因此打印setTimeout1，此时再注册一个微任务，此时一个宏任务执行完了，再去清空微任务即打印Promise2，最后去宏任务领取最后一个即setTimeout2
+浏览器环境执行过程：
+1. 第一轮，主线程有part2先执行即打印begin，并注册一个微任务part1,两个宏任务part3,part4
+2. 第二轮，主线程为空了，开始执行微任务即part1,在微任务执行过程中遇到的所有微任务都执行，即打印Promise1，Promise3，并注册下一轮宏任务setTimeout
+3. 第三轮，开始执行第一轮注册的宏任务，即先执行part3,打印setTimeout1，并执行遇到的所有微任务，即再打印Promise2，继续执行第一轮注册的宏任务，即打印s1，并执行遇到的微任务即打印p2
+4. 第四轮，在上一步已经执行完了第一轮注册的宏任务，这次开始执行第二轮注册的宏任务，即打印setTimeout2
 
-**注意：**首次执行时，先执行主线程的同步代码，然后再清空微任务列表，再每次领取一个宏任务执行，然后清空微任务，然后再是宏任务。。。周而复始（也不是每次领取一个宏任务。。。）
+node环境执行过程：
+1. 第一轮，主线程有part2先执行即打印begin，并注册一个微任务part1,两个宏任务part3,part4
+2. 第二轮，主线程为空了，开始执行微任务即part1,在微任务执行过程中遇到的所有微任务都执行，即打印Promise1，Promise3，并注册下一轮宏任务setTimeout
+3. 第三轮，开始执行第一轮注册的宏任务，即先执行part3并打印setTimeout1，并注册下一轮微任务Promise2，然后再执行第一轮注册的宏任务part4，即打印s1,并注册下一轮的微任务p2。
+4. 第四轮，在第二轮没有微任务，在第三轮注册两个微任务，因此依次执行并打印Promise2，p2
+5. 第五轮，上一轮把所有微任务执行完了，最后打印setTimeout2
 
-在node环境下
+
+**综上**：在浏览器和node环境下，事件循环处理的机制不同。前者在执行宏任务或微任务过程中，如果遇到新注册的微任务则全部执行。而在node环境下，如果有同一循环下注册的宏任务，则先执行这些宏任务，然后再去执行微任务
+
+在**node环境**下，还有process.nextTick,**是在当前执行栈的末尾执行**,意味着要早于宏任务或微任务
 ```js
 function test(){
-	console.log(1)
-	process.nextTick(()=>{
-		console.log('process.nextTick')
-	})
-	new Promise((resolve,reject)=>{
-		console.log('resolved')
-		resolve()
-	}).then(()=>{
-		console.log('then')
-	})
+
+  setTimeout(()=>{
+    console.log('setTimeout')
+  })
+
+  process.nextTick(()=>{
+    console.log('process.nextTick')
+  })
+
+  new Promise((resolve,reject)=>{
+    console.log('resolved')
+    resolve()
+  }).then(()=>{
+    console.log('then')
+    setTimeout(()=>{
+      console.log('then-setTimeout')
+      Promise.resolve().then(()=>{
+        console.log('setTimeout-then')
+      })
+    })
+    Promise.resolve().then(()=>{
+      console.log('then then')
+    })
+  })
+
+  console.log('begin')
 }
 test()
-// 1 
-// resolved
-// process.nextTick
-// then
+// resolved,begin,process.nextTick,then,then then,setTimeout,then-setTimeout,setTimeout-then
 ```
-首先执行同步任务打印1，process.nextTick放到主线程最后，即先执行promise实例化，打印resolved，并注册一个微任务，然后打印process.nextTick，因为没有宏任务，所以最后打印then
+执行过程：
+1. 第一轮，注册宏任务setTimeout，主线程上Promise实例化立即执行即打印resolved，并注册微任务，然后打印begin，process.nextTick在当前主线程尾部执行，因此再打印process.nextTick
+2. 第二轮，上一轮是主线程，接下来该执行微任务队列了，即打印then，然后遇见微任务，则一并执行即打印then then,同时注册宏任务
+3. 第三轮，再执行第一轮注册的宏任务，即打印setTimeout
+4. 第四轮，因为没有微任务，因此执行第二轮注册的宏任务，因此打印then-setTimeout，然后没有其他宏任务了，因此打印setTimeout-then
 
+
+知道了上面的理论，再看看下面的
 ```js
 function test(){
   // part1
@@ -223,9 +278,7 @@ function test(){
     process.nextTick(()=>{
       console.log('Promise1 nextTick')
     })
-
     console.log('Promise1')  
-
     setTimeout(()=>{
       console.log('setTimeout3')
       process.nextTick(()=>{
@@ -258,13 +311,6 @@ test()
 // setTimeout3
 // setTimeout3 Promise1 nextTick
 ```
-1. 从上到下，part1和part4先后进入宏任务队列，而part2进入微任务队列，part3是当前执行栈，因此先执行
-2. 然后将part2里的代码放在主线程执行，因为process.nextTick总是在当前执行栈最后，因此先打印Promise1，然后才是Promise1 nextTick，最后再注册一个宏任务
-3. 执行完part2里的微任务，然后开始执行宏任务，
-4. 
-
-**注意**因为事件循环是周而复始的，每次循环执行的都是上一次注册的事件，如果在执行过程中又注册了事件，则属于下一次事件循环的范畴了。
-
 
 ```js
 function testQueue(){
@@ -272,42 +318,90 @@ function testQueue(){
 
   setTimeout(function() {
     console.log('2');
-    process.nextTick(function() {
-        console.log('3');
-    })
     new Promise(function(resolve) {
-        console.log('4');
-        resolve();
+      console.log('4');
+      resolve();
     }).then(function() {
-        console.log('5')
+      console.log('5')
+    })
+    process.nextTick(function() {
+      console.log('3');
     })
   })
+  
   process.nextTick(function() {
-      console.log('6');
-  })
-  new Promise(function(resolve) {
-      console.log('7');
-      resolve();
-  }).then(function() {
-      console.log('8')
+    console.log('6');
   })
 
+  new Promise(function(resolve) {
+    console.log('7');
+    resolve();
+  }).then(function() {
+    console.log('8')
+  })
+  
   setTimeout(function() {
     console.log('9');
     process.nextTick(function() {
-        console.log('10');
+      console.log('10');
     })
     new Promise(function(resolve) {
-        console.log('11');
-        resolve();
+      console.log('11');
+      resolve();
     }).then(function() {
-        console.log('12')
+      console.log('12')
     })
   })
 }
 testQueue()
-// 1 7 6 8 2 4 9 11 3 10 5 12
+// 因为有process.nextTick,因此需要node环境下打印
+// procee.nextTick是当前执行栈的末尾，意味着若前面有其他级别更高的代码，则优先执行级别高的
+// 1,7,6,8,2,4,9,11,3,10,5,12  
+
+// 原文答案
+// 1,7,6,8,2,4,3,5,9,11,10,12
 ```
+
+再来回顾一下浏览器环境
+```js
+function test(){
+  setTimeout(function() {
+    console.log(1)
+    new Promise(function(resolve){
+      console.log(3)
+      setTimeout(function(){
+        console.log(5)
+      })
+      resolve();
+    }).then(function(){
+      console.log(4)
+    });  
+  });
+
+  Promise.resolve().then(function(){
+    console.log(9)
+    setTimeout(function(){
+      console.log(10)
+    })
+  })
+
+  setTimeout(function() {
+    console.log(2)
+    new Promise(function(resolve){
+      console.log(6)
+      setTimeout(function(){
+        console.log(7)
+      })
+      resolve();
+    }).then(function(){
+      console.log(8)
+    });      
+  });
+}
+// 9,1,3,4,2,6,8,10,5,7
+```
+
+
 
 
 [requestAnimationFrame-ruanyifeng-Url]: https://javascript.ruanyifeng.com/htmlapi/requestanimationframe.html
