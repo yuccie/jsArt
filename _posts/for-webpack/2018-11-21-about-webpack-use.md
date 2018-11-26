@@ -9,7 +9,7 @@ date: Tue Nov 20 2018 16:48:56 GMT+0800 (中国标准时间)
 3. [v4.26.0版本(最新)][v4.26.0WebpackUrl]
 
 
-#### webpack管理pageage的好处
+#### 1、webpack管理pageage的好处
 很早之前，我们引用第三方依赖的方式，是通过script标签引入，这会有以下几个问题：
 1. 需要确保依赖下载完成之后才能使用
 2. 需要确保依赖的引入顺序
@@ -38,10 +38,10 @@ $ npx webpack --config webpack.config.js
 $ npm run build
 ```
 **注意：**
->如果 webpack.config.js 存在，则 webpack 命令将默认选择使用它。我们在这里使用 --config 选项只是向你表明，可以传递任何名称的配置文件。这对于需要拆分成多个文件的复杂配置是非常有用。
+>如果 webpack.config.js 存在，则 webpack 命令将默认选择使用它。我们在这里使用 - -config 选项只是向你表明，可以传递任何名称的配置文件。这对于需要拆分成多个文件的复杂配置是非常有用。
 
 
-#### webpack输入与输出
+#### 2、webpack输入与输出
 以下会在dist目录生成一个名为`mainName.js`的文件。
 ```js
 const path = require('path')
@@ -78,9 +78,10 @@ module.exports = {
 内置变量除了上面的name，还有下面几个：
 - id : chunk的唯一标识，从0开始(但我这里打印的依然是:main)
 - name : chunk的名称
-- hash ：compilation对象的hash值(如默认20位：1cdec354500d2419a5c8)
-- chunkhash ：chunk内容的hash值(如默认20位：76cf6ec9cda20554951d)
-其中hash和chunkhash的长度是可指定的，[hash:8]代表8位的hash值，默认是20位。
+- hash ：compilation对象的hash值
+- chunkhash ：chunk内容的hash值
+
+其中hash和chunkhash的长度是可指定的，如[hash:8]代表8位的hash值，默认是20位。
 
 **注意**：hash与chunkhash的区别，[参考](https://www.cnblogs.com/ihardcoder/p/5623411.html)
 1. [hash] `is replaced by the hash of the compilation.`
@@ -109,28 +110,28 @@ module.exports = {
 // Cannot use [chunkhash] or [contenthash] for chunk in '[hash][chunkhash].js' (use [hash] instead)
 ```
 
-**注意**：webpack编译的文件入口是js文件，不支持其他类型的文件， 因此要编译style文件，需要将其导入到js文件中然后再编译。但这样会造成一个问题，就是*此时无论修改style文件还是js文件，都会导致chunkhash改变*，因此此时需要配合插件`extract-text-webpack-plugin`提供的`contenthash`来解决，表示文本内容的hash值，也就是只有style文件hash值。
+**注意**：webpack编译的文件入口是js文件，不支持其他类型的文件， 因此要编译style文件，需要将其导入到js文件中然后再编译。但这样会造成一个问题，就是**此时无论修改style文件还是js文件，都会导致chunkhash改变**，因为将style样式文件打包到js文件里了，因此此时可以配合插件`extract-text-webpack-plugin`提供的`contenthash`来解决，表示文本内容的hash值，也就是只有style文件hash值。
 
-#### **webpack管理资源**
+#### 3、**webpack管理资源**
 在webpack之前，我们利用grunt和gulp来处理资源，并将它们从 /src 文件夹移动到 /dist 或 /build 目录中。同样方式也被用于 JavaScript 模块，但是，像 webpack 这样的工具，将动态打包(dynamically bundle)所有依赖项（创建所谓的依赖图(dependency graph)）。这是极好的创举，因为现在每个模块都可以明确表述它自身的依赖，我们将避免打包未使用的模块。
 
 还可以通过loader来引入任何其他类型的文件
 
-#### **处理css等样式文件**
+#### 3.1、**处理css等样式文件**
 [参考1](https://github.com/zhengweikeng/blog/issues/9) <br/>
 [参考2](https://blog.csdn.net/u010982507/article/details/81337529)<br/>
 [现在推荐使用mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)<br/>
 [webpack加载css,sass,less等资源并集成postcss](https://github.com/iSpring/babel-webpack-react-redux-tutorials/blob/master/tutorials/load-css-with-webpack/README.md)
 
-我们要知道，webpack从入口文件开始解析，然后遇到各种类型的资源会尝试寻找对应的loader规则，匹配上了就使用相应的loader处理，处理完再输出到指定目录。然后我们的页面引用的最终文件也是打包完成的。。。
+我们要知道，webpack从入口文件开始解析，然后遇到各种类型的资源会尝试寻找对应的loader规则，匹配上了就使用相应的loader处理，处理完再输出到指定目录。然后我们的页面引用的最终文件也是打包完成的，因此如果某些资源处理的不对，页面就会出现错误，同时构建日志会报错。。。
 
-因此如果某些资源处理的不对，页面就会出现错误，同时构建日志会报错。。。
-因此流程应为：
+处理样式文件配置流程应为：
 1. 安装`npm i -D style-loader,css-loader`
 2. 配置webpack匹配css规则
+
 ```js
-module:{
-  rules:[
+module: {
+  rules: [
     {
       test: /\.css$/,
       use: ['style-loader','css-loader']
@@ -143,7 +144,7 @@ module:{
 其中[style-loader][styleLoaderUrl]插件作用是在最终页面插入`style`标签，同时自动引入对应的css文件。而且还要在页面中查看（不要检查页面源代码，因为它不会显示结果），查看head标签，就可以看到style标签。
 
 **疑问？**在不使用分离插件时，css文件被打包到了main.js文件里，👆的过程是如何实现的？<br/>
-**答:**将原生的css文件打包成js文件时，会在js文件中生成很多额外的函数，用于在运行时将css注入到style标签里。这就会造成文件臃肿，如一个1KB的未被压缩的CSS文件生成的对应的JavaScript文件大约有16KB，这导致了输出文件过于庞大，影响传输速度。
+**答:**将原生的css文件打包成js文件时，会在js文件中生成很多额外的函数，用于在运行时将css注入到style标签里。这就会造成文件臃肿，如一个1KB的未被压缩的CSS文件生成的对应的js文件大约有16KB，这导致了输出文件过于庞大，影响传输速度。
 
 先来看看如何分离css,这里用到插件`extract-text-webpack-plugin`,因此先安装，然后增加配置如下：
 
@@ -157,6 +158,7 @@ module.exports = {
         test: /\.css$/,
         // ExtractTextPlugin.extract(options: loader | object)
         use: ExtractTextPlugin.extract({
+          // 应用于没有被提取的css
           fallback: 'style-loader',
           use: 'css-loader'
         })
@@ -188,14 +190,14 @@ module.exports = {
 ```
 `extract-text-webpack-plugin`插件还有不同的参数选项，[点击查看插件详情][extractTextWebpackPluginUrl]
 当然插件`extract-text-webpack-plugin`可以分离各种被匹配的资源，但经过上面处理后，文件是被分离出来了，**但style-loader失效了？？？**<br/>
-**答:**单纯使用分离插件会使得热更新失效，因为每次生成的文件名都会变(这句说辞待完善)，因此要么手动每次引入，还有就是借助[html-webpack-plugin][htmlWebpackPluginUrl]插件
+**答:**单纯使用分离插件会使得热更新失效，因为每次生成的文件名都会变(这句说辞待完善)，因此要么手动每次引入，要么就是借助[html-webpack-plugin][htmlWebpackPluginUrl]插件
 
 
-#### **处理图片类文件**
+#### 3.2、**处理图片类文件**
 页面需要的图片类文件一般都是用相对路径引用，或使用[vue中的资源路径处理][vueHandleAssetsPath]。
 
 先来看看webpack上关于解析图片路径的原理：<br/>
-当使用 `import myImg from './xxx/my-img.png`引入图像时，webpack会利用[file-loader][fileLoaderUrl]处理图片并输出到output目录，并且用`myImg`变量指向该图像在处理后的最终url。当使用 [css-loader][cssLoaderUrl] 时，如上所示，你的 CSS 中的 url('./my-img.png') 会使用类似的过程去处理。loader 会识别这是一个本地文件，并将 './my-image.png' 路径，替换为输出目录中图像的最终路径。[html-loader][htmlLoaderUrl] 以相同的方式处理 `<img src="./my-image.png" />`。
+当使用 `import myImg from './xxx/my-img.png`引入图像时，webpack会利用[file-loader][fileLoaderUrl]处理图片并输出到output目录，并且用`myImg`变量指向该图片处理后的最终url。当使用 [css-loader][cssLoaderUrl] 时，如上所示，你的 CSS 中的 url('./my-img.png') 会使用类似的过程去处理。loader 会识别这是一个本地文件，并将 './my-image.png' 路径，替换为输出目录中图像的最终路径。[html-loader][htmlLoaderUrl] 以相同的方式处理 `<img src="./my-image.png" />`。
 
 `file-loader`生成的文件名就是文件内容的md5哈希值并会保留所引用资源的原始扩展名。
 
@@ -223,6 +225,7 @@ module:{
             name (file){
               // [name] type: String default: file.basename
               // [path] type: String default: file.dirname
+              // 这里的[name][path]都是插件提供的
               if(env === 'development'){
                 return '[path][name].[ext]'
               }
@@ -235,7 +238,6 @@ module:{
     }
   ]
 }
-import myImg from './my-img.png'
 ```
 3. 编辑图片文件，引入并使用
 ```js
@@ -255,7 +257,6 @@ document.appendChild(newImg)
 module: [
   {
     test: /\.(png|jpe?g|svg|gif)$/,
-    // use是数组，子元素可以传入对象
     use: [
       {
         loader: 'url-loader',
@@ -264,7 +265,7 @@ module: [
           limit: 10000,
           // 浏览器通常使用MIME类型（而不是文件扩展名）来确定如何处理文档,终端：file xxx查看
           // 由类型与子类型两个字符串中间用'/'分隔而组成
-          // 这里是指定要转换成的dataurl的子类型，用到jimp插件(专门修改资源mime类型)
+          // 这里是指定要转换成的dataurl的文件子类型，需要用到jimp插件(专门修改资源mime类型)
           mimetype: 'image/png',
           // 大于limit的先经过fallback处理，若无fallback则交由file-loader处理
           fallback: 'responsive-loader'
@@ -278,7 +279,7 @@ module: [
   }
 ]
 ```
-上面分别显式的，分别使用了[file-loader][fileLoaderUrl]或者[url-loader][urlLoaderUrl]，如果二者同时使用，则会把[url-loader][urlLoaderUrl]处理的结果再输出到dist目录，也就是说，[url-loader][urlLoaderUrl]处理生成的图片(普通url)或dataURL图片，[file-loader][fileLoaderUrl]会将这些详细信息再输出到dist目录。
+上面显式的，分别使用了[file-loader][fileLoaderUrl]或者[url-loader][urlLoaderUrl]，如果二者同时使用，则会把[url-loader][urlLoaderUrl]处理的结果再输出到dist目录，也就是说，[url-loader][urlLoaderUrl]处理生成的图片(普通url)或dataURL图片，[file-loader][fileLoaderUrl]会将这些详细信息再输出到dist目录。
 
 **注意：**上面操作生效的前提是，在配置文件里[file-loader][fileLoaderUrl]优先配置，也就是说和顺序有关。
 
@@ -286,17 +287,16 @@ module: [
 然后经过[file-loader][fileLoaderUrl]处理会输出一个新文件如：`1bae1637.png`,图片里的内容为：`module.exports = __webpack_public_path__ + "020f95e5.png";`
 注意文件名
 
-**注意：**经过上面的处理，文件内容编程了代码，就不是有效的图片格式，也就打不开了。
-
+**注意：**经过上面的处理，文件内容变成了代码，就不是有效的图片格式，也就打不开了。
 
 **综上：**
 上面处理了css，图片等文件类型，其实还可以加载字体类型，数据类型(如：json文件，csv,tsv和xml等)，原理都是相似的。类似于 NodeJS，JSON 支持实际上是内置的，也就是说 import Data from './data.json' 默认将正常运行。要导入 CSV、TSV 和 XML，你可以使用 [csv-loader][csvLoaderUrl] 和 [xml-loader][xmlLoaderUrl]。
 
 
-#### **自动更新引入的文件**
+#### 4、**自动更新引入的文件**
 上面我们在index.html写死了引入的文件名如`<script src="main.js"></script>`,但如果我们更改了入口名或增加了入口数量，那岂不是每次都得手动改这个index.html。。。
 
-通过[html-webpack-plugin][htmlWebpackPluginUrl]解决上面的问题
+通过[html-webpack-plugin][htmlWebpackPluginUrl]解决上面的问题，这个插件的作用就是在每次compilation发生变化时，都会重新生成html文件。
 
 引入插件步骤：
 1. `npm i -D html-webpack-plugin`
@@ -315,7 +315,10 @@ module.exports = {
 ```
 经过[html-webpack-plugin][htmlWebpackPluginUrl]插件的处理，不但修复了使用分离css插件后[style-loader][styleLoaderUrl]失效的问题，还每次都重新生成index.html。因此这时把整个dist目录删除了也没问题了。而且生成的index.html就已经包含了各种标签。。。
 
-#### **定制输出模板**
+**注意**如果你在output里配置了publicPath，则在使用[html-webpack-plugin][htmlWebpackPluginUrl]生成的html文件里生成的引用文件路径前缀就是publicPath了
+
+
+#### 5、**定制输出模板**
 到这里你应该思考，这个`index.html`应该是某个模板文件生成，那既然如此，是不是可以定制这个模板呢，没错就是[html-webpack-template][htmlWebpackTemplateUrl],安装然后增加配置如下即可使用：
 
 ```js
@@ -331,6 +334,7 @@ module.exports = {
       // Optional 选填选项
       title: 'output Management',
       filename: 'my-index.html',
+      // 还可以增加meta等等标签
       meta: [
         {
           name: 'description',
@@ -343,7 +347,8 @@ module.exports = {
 ```
 **注意：**这样意味着，可以根据业务需求自定义模板，可以灵活加以应用。。。
 
-#### **插件删除dist目录**
+
+#### 6、**插件删除dist目录**
 到目前为止，dist目录里的文件，一直都是手动删除，这不符合程序猿懒的特质，因此[clean-webpack-plugin][cleanWebpcakPluginUrl]需要了解一下：
 ```js
 const CleanWebpackPlugin = require('clean-webpack-plugin')
@@ -360,11 +365,12 @@ module.exports = {
 }
 ```
 
-#### **webpack管理资源的原理**
-你可能会感兴趣，webpack及其插件似乎“知道”应该哪些文件生成。答案是，通过 manifest，webpack 能够对「你的模块映射到输出 bundle 的过程」保持追踪。这里我们只需知道，webpack背后通过一定的策略来控制模块间的交互。。。（待完善）
+#### 7、**webpack管理资源的原理**
+你可能会感兴趣，webpack及其插件似乎“知道”应该哪些文件生成？<br/>
+答案是，通过 manifest，webpack 能够对「你的模块映射到输出 bundle 的过程」保持追踪。这里我们只需知道，webpack背后通过一定的策略来控制模块间的交互。。。（待完善）
 
 
-#### **开发环境配置**
+#### 8、**开发环境配置**
 1. scource map
 2. webpack's Watch Mode 
 3. webpack-dev-server
@@ -375,7 +381,7 @@ module.exports = {
 **1. [scource map][sourceMapUrl]** <br/>
 当使用webpack打包文件以后，一般会将很多模块打包到一个文件里，因此当具体某个文件错误时debug将变得异常困难，只能粗略的指向打包出来的那个大文件，而无法准确定位到源代码的具体位置，因此`scource map`就需要了解一下
 
-当然需要先了解一下source map,它是一个信息文件,里面存储着位置信息。也就是说，转换后的代码的每一个位置，所对应的转换前的位置。不过目前好像只有chrome浏览器支持（在开发者工具的`setting`中开启`Enable source maps`）
+source map,它是一个信息文件,里面存储着位置信息。也就是说，转换后的代码的每一个位置，所对应的转换前的位置。不过目前好像只有chrome浏览器支持（在开发者工具的`setting`中开启`Enable source maps`）
 
 在开启source map后，打包出来的文件底部会有类似`//@ sourceMappingURL=/path/to/file.js.map`这样的内容，意思是说，具体的map文件在/path/to/file.js.map这里。
 
@@ -392,7 +398,7 @@ module.exports = {
   devtool: 'hidden-source-map'
 
   // 和上面不同的是，该模式生成的文件不但有sourceMappingURL字样，而且把具体的map文件内容内联在打包的文件里了，而前两者sourceMappingURL的值只是一个地址
-  // 注意此时dist目录没有map文件，但这样会使得打包出来的文件变大
+  // 注意此时dist目录没有map文件，因为相当于将map文件内敛到chunk里了，但这样会使得打包出来的文件变大
   devtool: 'inline-source-map'
 }
 ```
@@ -401,7 +407,7 @@ module.exports = {
 [阮一峰-sourceMap详解][ruanyifeng-sourceMapUrl]<br/>
 
 
-当然打包处理后的代码有很多优点：
+当然打包处理的代码有很多优点：
 1. 压缩混淆
 2. 多个文件合并，减少http请求
 3. 将其他类型文件编译成js，如ts
@@ -418,17 +424,20 @@ module.exports = {
   },
 }
 ```
+**注意点**虽然自动重建，但仍然需要刷新浏览器才可以看到效果
 
 **3. [webpack-dev-server][webpackDevServerUrl]** <br/>
 
 在watch模式下，虽然可以监听文件的变动并自动构建，但需要刷新浏览器才可以，因此我们需要借助[webpack-dev-server][webpackDevServerUrl]来帮我们自动刷新浏览。(可以先思考一下，watch模式下，webpack监视的原理是什么？)
 
 [webpack-dev-server][webpackDevServerUrl]提供了一个web服务器，并能够自动重新加载，同样需要先安装。
+
 **注意：**此时是重新加载也就是liveReload，是重新加载整个页面。。。
+
 ```bash
 npm i -D webpack-dev-server 
 ```
-然后配置这个webpack服务器监视哪个目录下的文件变动，因为watch模式下已经将变化的文件重新构建并输出到dist目录了，当然devServer肯定集成了watch。。。增加配置文件如下：
+然后配置webpack服务器监视哪个目录下的文件变动，因为watch模式下已经将变化的文件重新构建并输出到dist目录了，当然devServer肯定集成了watch。。。增加配置文件如下：
 ```js
 // 和entry等同等级
 devServer: {
@@ -438,7 +447,6 @@ devServer: {
   lazy: true
   // 使用 filename，可以只在某个文件被请求时编译。
   filename:'boundle.js',
-  
   // 在所有响应中添加首部内容：
   headers: {
   "X-Custom-Foo": "bar"
@@ -455,12 +463,15 @@ devServer: {
   },
 }
 ```
-上面的配置--open是说当第一次构建时，自动打开浏览器，当后续修改文件了，会自动构建并重新刷新浏览器。。。**注意：**这里的构建只是发生在内存中，并没有dist目录生成，这些看不见的工作webpack在后台处理(详情看devServer原理)。
+上面的配置--open是说当第一次构建时，自动打开浏览器，当后续修改文件了，会自动构建并重新刷新浏览器。。。<br/>
+**注意：**这里的构建只是发生在内存中，并没有dist目录生成，这些看不见的工作webpack在后台处理(详情看devServer原理)。
+
+使用了[webpack-dev-server][webpackDevServerUrl]虽然可以自动构建并自动重新加载，但是**整个页面的重新加载**，浪费资源。因此需要用到[模块热替换(Hot Module Replacement 或 HMR)][hotModuleReplacementUrl]
 
 **[模块热替换(Hot Module Replacement 或 HMR)][hotModuleReplacementUrl]** <br/>
 HMR也就是在程序运行的时候替换，添加或删除模块，而无需重新加载整个页面。。。相比LiveReload而言，只刷新改变的部分。
 
-开启HMR的方式：
+开启HMR的两种方式：
 1. 当使用了webapck-dev-server后，可以在配置了`hot:true`以后，还需要实例化`HotModuleReplacementPlugin`插件，这是webpack内置插件
 ```js
 plugins: [
@@ -469,7 +480,7 @@ plugins: [
   new webpack.HotModuleReplacementPlugin()
 ]
 ```
-2. 通过命令行实现，如修改脚本`webpack-dev-server --open`
+2. 通过命令行实现，如修改脚本`webpack-dev-server --open --hot`
 
 哪些方式加快开发速度：
 - 保留在完全重新加载页面时丢失的应用程序状态。
@@ -520,7 +531,7 @@ output: {
   path: path.resolve(__dirname, 'dist'),
   // 所有通过html-webpack-plugin插件插入到页面的资源，前缀都会添加/spa/,如果是/spa，则是/spaxxx
   // 绝对路径则会拼接上服务名，很少用相对路径
-  // 完整的路径如https://www.baidu.com一般是将资源托管到第三方平台
+  // 完整的路径如https://www.baidu.com，一般是将资源托管到第三方平台
   publicPath: '/spa/'
 }
 ```
@@ -558,14 +569,23 @@ app.listen(3000, function(){
 这时你会发现访问`http://localhost:3000`失败，因为我们给服务配置了`publicPath`,因此需要访问`http://localhost:3000/spa/`
 
 **总结**
-[webpack-dev-middleware][webpackDevMiddlewareUrl]的作用是生成一个与wabpack的compiler绑定的中间件，然后再express启动的服务商调用这个中间件。
-作用主要有三点：
+[webpack-dev-middleware][webpackDevMiddlewareUrl]的作用是生成一个与wabpack的compiler绑定的中间件，然后在express启动的服务上调用这个中间件。
+
+[webpack-dev-middleware][webpackDevMiddlewareUrl]插件作用主要有三点：
 1. 通过watch mode，监听资源的变更，然后自动打包
 2. 快速编译，走内存
 3. 返回中间件，支持express的use格式
 
 **特别注明：**webpack明明可以用watch mode，可以实现一样的效果，但是为什么还需要这个中间件呢？<br/>
-**答:**，第二点所提到的，采用了内存方式。如果，只依赖webpack的watch mode来监听文件变更，自动打包，每次变更，都将新文件打包到本地，就会很慢。
+**答:**，第二点所提到的，采用了内存方式。如果，只依赖webpack的watch mode来监听文件变更，自动打包，每次变更，都将新文件打包到本地，就会很慢。而[webpack-dev-middleware][webpackDevMiddlewareUrl]插件每次构建及打包都是在内存中完成，意味着此时不会生成dist
+
+
+
+#### 9、**tree shaking**
+随着项目越来越大，项目里可能会引入大量用不到的模块，如果这些模块都打包到chunk里，势必造成带宽浪费，因此需要一种手段将其清除，也就是`tree shaking`
+
+##### 9.1、**tree shaking原理**
+
 
 
 
@@ -592,3 +612,4 @@ app.listen(3000, function(){
 [hotModuleReplacementUrl]: https://webpack.docschina.org/guides/hot-module-replacement
 [moduleHotUrl]: https://www.webpackjs.com/api/hot-module-replacement/
 [webpackDevMiddlewareUrl]: https://www.webpackjs.com/api/hot-module-replacement/
+[treeShakingUrl]: https://webpack.docschina.org/guides/tree-shaking/

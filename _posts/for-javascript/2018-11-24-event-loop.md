@@ -84,6 +84,8 @@ console.log('代码执行结束')
 
 
 #### 五、定时器
+[w3c更多标准][w3cOfficalSetTimeoutUrl]<br/>
+[从event loop规范探究javaScript异步及浏览器更新渲染时机][setTimeoutAndSetIntervalUrl]
 除了放置异步任务的事件，"任务队列"还可以放置定时事件，即指定某些代码在多少时间之后执行。这叫做"定时器"（timer）功能，也就是定时执行的代码。
 
 定时器功能主要由setTimeout()和setInterval()这两个函数来完成，它们的内部运行机制完全一样，区别在于前者指定的代码是一次性执行，后者则为反复执行。以下主要讨论setTimeout()。
@@ -408,3 +410,5 @@ function test(){
 [requestAnimationFrame-taobao-FED-Url]: http://taobaofed.org/blog/2017/03/02/thinking-in-request-animation-frame/
 [requestAnimationFrame-zhangxinxu-Url]: https://www.zhangxinxu.com/wordpress/2013/09/css3-animation-requestanimationframe-tween-%E5%8A%A8%E7%94%BB%E7%AE%97%E6%B3%95/
 [YouDoNotKonwSetTimeoutUrl]: https://www.jeffjade.com/2016/01/10/2016-01-10-javacript-setTimeout/
+[w3cOfficalSetTimeoutUrl]: https://www.w3.org/TR/html5/webappapis.html#timers
+[setTimeoutAndSetIntervalUrl]: https://github.com/aooy/blog/issues/5
