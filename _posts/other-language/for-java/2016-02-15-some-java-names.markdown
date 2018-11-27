@@ -20,7 +20,7 @@ date: Mon Nov 26 2018 16:18:51 GMT+0800 (中国标准时间)
 
 #### **学习java之前需要知道的几个概念**
 
-#### **1、Spring Boot**
+#### **Spring Boot**
 之前搭建一个spring web项目的时候需要怎么做？
 1. 配置web.xml，加载spring和spring mvc
 2. 配置数据库连接、配置spring事务
@@ -69,7 +69,7 @@ public class HelloWorldController {
 [Spring Boot优雅入门篇][springBootBeautifulEnterDoorUrl]<br/>
 
 
-#### **2、Maven**
+#### **Maven**
 Maven 翻译为"专家"、"内行"，是 Apache 下的一个纯 Java 开发的开源项目。基于**项目对象模型**（缩写：POM）概念，Maven利用一个中央信息片断能管理一个项目的构建、报告和文档等步骤。
 
 Maven 是一个项目管理工具，可以对 Java 项目进行构建、依赖管理，为开发者提供了一套完整的构建生命周期框架。Maven 也可被用于构建和管理各种项目，例如 C#，Ruby，Scala 和其他语言编写的项目。
@@ -85,7 +85,7 @@ Maven 能够帮助开发者完成以下工作：
 - 邮件列表
 总的来说，Maven 简化了工程的构建过程，并对其标准化。它无缝衔接了编译、发布、文档生成、团队合作和其他任务。Maven 提高了重用性，负责了大部分构建相关的任务。
 
-#### **3、War,Jar,Ear**
+#### **War,Jar,Ear**
 Jar、War、EAR、在文件结构上，三者并没有什么不同，它们都采用zip或jar档案文件压缩格式。但是它们的使用目的有所区别：
 
 - Jar文件（扩展名为. Jar，Java Application Archive）包含Java类的普通库、资源（resources）、辅助文件（auxiliary files）等。java编译好之后生成class文件，但如果直接发布这些class文件的话会很不方便，所以就把许多的class文件打包成一个jar，jar中除了class文件还可以包括一些资源和配置文件，通常一个jar包就是一个java程序或者一个java库
@@ -97,7 +97,7 @@ Jar、War、EAR、在文件结构上，三者并没有什么不同，它们都�
 　　每一种文件（.jar, .war, .ear）只能由应用服务器（application servers）、小型服务程序容器（servlet containers）、EJB容器（EJB containers）等进行处理。
 
 
-#### **4、servlet**
+#### **servlet**
 事实上，servlet就是一个Java接口，而且只有5个方法
 1. init(ServletConfig):void
 2. getServletConfig():ServletConfig
@@ -124,7 +124,13 @@ tomcat才是与客户端直接打交道的家伙，他监听了端口，请求�
 参考链接:<br/>
 [servlet的本质是什么?][whatIsServletUrl]<br/>
 
-
+#### **jsp**
+#### **JDBC**
+#### **mybatis**
+#### **JDK**
+#### **JVM**
+#### **MySql**
+#### **webSocket**
 
 
 
@@ -134,3 +140,4 @@ tomcat才是与客户端直接打交道的家伙，他监听了端口，请求�
 [springBootBaseUrl]: https://www.ibm.com/developerworks/cn/java/j-spring-boot-basics-perry/index.html
 [springBootEnterDoorUrl]: https://www.cnblogs.com/ityouknow/p/5662753.html
 [springBootBeautifulEnterDoorUrl]: http://tengj.top/2017/02/26/springboot1/
+
