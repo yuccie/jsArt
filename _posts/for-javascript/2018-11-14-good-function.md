@@ -8,6 +8,10 @@ date: Wed Nov 14 2018 19:33:18 GMT+0800 (中国标准时间)
 ### 经典函数收集
 
 #### 调系统摄像头录像转换为canvas
+需要开启web服务：
+- python3 -m http.server
+- npx http-server
+- npx serve
 ```html
 <!doctype html>
 <head>
