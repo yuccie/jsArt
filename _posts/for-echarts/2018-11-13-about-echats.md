@@ -161,6 +161,7 @@ window.addEventLister('resize', throttle(() => {
 	```
 	9.4. 知道了赋值与浅拷贝的区别，那深拷贝就是递归浅拷贝了。可以借助第三方库lodash等实现，还可以通过如下方式：
 	```js
+<!-- 但需要指出的是这种方法对于包含function函数或者Date类型的对象则不管用! -->
 	let deepCloneData = JSON.parse(JSON.stringify(originData))
 	```
 	9.5. 因此避免修改子组件的数据而影响到父组件的数据，那就用深拷贝吧。

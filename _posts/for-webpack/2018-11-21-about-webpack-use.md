@@ -402,6 +402,7 @@ module.exports = {
   devtool: 'inline-source-map'
 }
 ```
+>避免在生产中使用 inline-*** 和 eval-***，因为它们可以增加 bundle 大小，并降低整体性能。
 更多请参考：<br/>
 [滴滴出行说devtool的几种模式][didiDevtoolUrl]<br/>
 [阮一峰-sourceMap详解][ruanyifeng-sourceMapUrl]<br/>
@@ -584,7 +585,57 @@ app.listen(3000, function(){
 #### 9、**tree shaking**
 随着项目越来越大，项目里可能会引入大量用不到的模块，如果这些模块都打包到chunk里，势必造成带宽浪费，因此需要一种手段将其清除，也就是`tree shaking`
 
-##### 9.1、**tree shaking原理**
+新的 webpack 4 正式版本，扩展了这个检测能力，通过 package.json 的 "sideEffects" 属性作为标记，向 compiler 提供提示，表明项目中的哪些文件是 "pure(纯的 ES2015 模块)"，由此可以安全地删除文件中未使用的部分。
+
+***9.1、tree shaking原理***<br/>
+tree shaking是一个术语，通常用于描述移除js上下文中的未引用代码（dead-code）。它依赖于es6模块系统的[静态结构特性][es6StaticDataFeatureUrl],例如 import 和 export。这个术语和概念实际上是兴起于 ES2015 模块打包工具 rollup。
+
+Es6引入自己的模块格式的一个原因是为了支持静态结构，有以下几个好处。
+1. dead code elimination during bundling
+- 加载打包后的文件，可以检索更少的文件
+- 压缩打包后的文件，比压缩单独的文件更有效
+- bunding过程中可以删除dead code
+
+2. compact bundling, no custom bundle format
+	- 它们的静态结构意味着 bundle 格式不必考虑有条件加载的模块
+	- 导入是导出的只读视图，这意味着您不必复制导出，可以直接引用它们
+
+3.  faster lookup of imports (更快的查找导入)
+	- es6模块导入的库，可以静态的知道并优化
+
+4. variable checking (检查变量)
+	- 静态模块结构，您总是静态地知道哪些变量在模块内的任何位置都是可见的
+	- 全局变量: 唯一完全的全局变量将越来越多地来自语言本身。 其他的一切都将来自模块(包括来自标准库和浏览器的功能)。 
+	- 对检查给定标识符是否拼写正确非常有帮助(其实就是语法检查)
+5. ready for macros （可以使用宏了，在编译期间可操作语法树）
+
+***9.2、tree shaking使用***<br/>
+使用步骤：
+1. 定义类似如下文件
+```js
+// math.js
+export function square {
+	return x * x
+}
+export function cube {
+	return x * x * x
+}
+```
+2. 在主文件中引入math.js中一个函数并使用
+```js
+import {cube} from './views/math'
+console.log(cube(2))
+```
+3. 开启 production模式这个webpack 编译标记，来启用 uglifyjs 压缩插件
+查看处理后的代码已经删除了未用的到的代码，而且处理后的代码类似如下：
+```js
+"./src/views/math.js":function(n,t,r){"use strict";function e(n){return n*n*n}r.d(t,"a",function(){return e})}});
+```
+
+**注意：**sideEffects在webpack的rules里配置没有效果。。。你可以将应用程序想象成一棵树。绿色表示实际用到的源码和 library，是树上活的树叶。灰色表示无用的代码，是秋天树上枯萎的树叶。为了除去死去的树叶，你必须摇动这棵树，使它们落下。
+
+
+#### 10、**生产环境构建**
 
 
 
@@ -613,3 +664,4 @@ app.listen(3000, function(){
 [moduleHotUrl]: https://www.webpackjs.com/api/hot-module-replacement/
 [webpackDevMiddlewareUrl]: https://www.webpackjs.com/api/hot-module-replacement/
 [treeShakingUrl]: https://webpack.docschina.org/guides/tree-shaking/
+[es6StaticDataFeatureUrl]: http://exploringjs.com/es6/ch_modules.html#static-module-structure
