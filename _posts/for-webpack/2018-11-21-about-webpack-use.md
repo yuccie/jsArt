@@ -590,6 +590,8 @@ app.listen(3000, function(){
 ***9.1、tree shaking原理***<br/>
 tree shaking是一个术语，通常用于描述移除js上下文中的未引用代码（dead-code）。它依赖于es6模块系统的[静态结构特性][es6StaticDataFeatureUrl],例如 import 和 export。这个术语和概念实际上是兴起于 ES2015 模块打包工具 rollup。
 
+你可以将应用程序想象成一棵树。绿色表示实际用到的源码和 library，是树上活的树叶。灰色表示无用的代码，是秋天树上枯萎的树叶。为了除去死去的树叶，你必须摇动这棵树，使它们落下。
+
 Es6引入自己的模块格式的一个原因是为了支持静态结构，有以下几个好处。
 1. dead code elimination during bundling
 - 加载打包后的文件，可以检索更少的文件
@@ -597,16 +599,16 @@ Es6引入自己的模块格式的一个原因是为了支持静态结构，有�
 - bunding过程中可以删除dead code
 
 2. compact bundling, no custom bundle format
-	- 它们的静态结构意味着 bundle 格式不必考虑有条件加载的模块
-	- 导入是导出的只读视图，这意味着您不必复制导出，可以直接引用它们
+  - 它们的静态结构意味着 bundle 格式不必考虑有条件加载的模块
+  - 导入是导出的只读视图，这意味着您不必复制导出，可以直接引用它们
 
 3.  faster lookup of imports (更快的查找导入)
-	- es6模块导入的库，可以静态的知道并优化
+  - es6模块导入的库，可以静态的知道并优化
 
 4. variable checking (检查变量)
-	- 静态模块结构，您总是静态地知道哪些变量在模块内的任何位置都是可见的
-	- 全局变量: 唯一完全的全局变量将越来越多地来自语言本身。 其他的一切都将来自模块(包括来自标准库和浏览器的功能)。 
-	- 对检查给定标识符是否拼写正确非常有帮助(其实就是语法检查)
+  - 静态模块结构，您总是静态地知道哪些变量在模块内的任何位置都是可见的
+  - 全局变量: 唯一完全的全局变量将越来越多地来自语言本身。 其他的一切都将来自模块(包括来自标准库和浏览器的功能)。 
+  - 对检查给定标识符是否拼写正确非常有帮助(其实就是语法检查)
 5. ready for macros （可以使用宏了，在编译期间可操作语法树）
 
 ***9.2、tree shaking使用***<br/>
@@ -615,10 +617,10 @@ Es6引入自己的模块格式的一个原因是为了支持静态结构，有�
 ```js
 // math.js
 export function square {
-	return x * x
+  return x * x
 }
 export function cube {
-	return x * x * x
+  return x * x * x
 }
 ```
 2. 在主文件中引入math.js中一个函数并使用
@@ -626,16 +628,221 @@ export function cube {
 import {cube} from './views/math'
 console.log(cube(2))
 ```
-3. 开启 production模式这个webpack 编译标记，来启用 uglifyjs 压缩插件
+
+3. 开启 production模式这个webpack 编译标记，来自动启用 UglifyJSPlugin 压缩插件
 查看处理后的代码已经删除了未用的到的代码，而且处理后的代码类似如下：
 ```js
 "./src/views/math.js":function(n,t,r){"use strict";function e(n){return n*n*n}r.d(t,"a",function(){return e})}});
 ```
 
-**注意：**sideEffects在webpack的rules里配置没有效果。。。你可以将应用程序想象成一棵树。绿色表示实际用到的源码和 library，是树上活的树叶。灰色表示无用的代码，是秋天树上枯萎的树叶。为了除去死去的树叶，你必须摇动这棵树，使它们落下。
+**注意：**sideEffects标示出模块的哪些部分包含外部作用(side effect)，也就是说标识出的这部分代码即使没有用到，也不能tree-shaking。但sideEffects在webpack的rules里及package.json里配置都没有效果？？？在开发环境下没有开启压缩，将函数都会打出且标记为`harmony export (binding)`,并没有官方指南上的`unused harmony export`。而生产环境模式下，所有标记都会消失，且代码会压缩混淆。
+
+>通过如上方式，我们已经可以通过 import 和 export 语法，找出那些需要删除的“未使用代码(dead code)”，然而，我们不只是要找出，还需要在 bundle 中删除它们。为此，我们将使用 -p(production) 这个 webpack 编译标记，来启用 UglifyJSPlugin 插件。
+
+再反过来看看上面官方的一段话，以及回顾一下静态数据结构，则表明，webpack可以根据import和export等语法分析出哪些代码是dead-code，然后再利用UglifyJSPlugin插件删除多余代码。
 
 
 #### 10、**生产环境构建**
+因为生产和开发环境的构建目标差异还是很大的，在开发环境中，我们需要具有强大的、具有实时重新加载(live reloading)或热模块替换(hot module replacement)能力的 source map 和 localhost server。而在生产环境中，我们的目标则转向于关注更小的 bundle，更轻量的 source map，以及更优化的资源，以改善加载时间。
+由于要遵循逻辑分离，我们通常建议为每个环境编写彼此独立的 webpack 配置。
+
+虽然，以上我们将生产环境和开发环境做了略微区分，但是，请注意，我们还是会遵循不重复原则(Don't repeat yourself - DRY)，保留一个“通用”配置。为了将这些配置合并在一起，我们将使用一个名为 webpack-merge 的工具。通过“通用”配置，我们不必在环境特定(environment-specific)的配置中重复代码。
+
+1、 分别将webpack配置分成如下结构，然后单独抽离各个环境下的配置
+```
+project-name
+  |--src
+  |  ...
+  |--webpack.base.js
+  |--webpack.dev.js
+  |--webpack.prod.js
+  |--server.js
+  |--package.json
+  ...
+```
+2、 修改package.json如下：
+可以看到传参可以通过 --config xxx配置文件来实现
+```json
+{
+  "scripts": {
+    "dev": "webpack-dev-server --open --config webpack.dev.js",
+    "server": "node server.js",
+    "watch": "webpack --watch",
+    "build": "webpack",
+    "dev-build": "webpack --config webpack.dev.js",
+    "prod-build": "webpack --config webpack.prod.js",
+  },
+}
+```
+3、 对于压缩插件：
+在`webpack.prod.js`里，mode为production，会自动开启`UglifyJSPlugin`，虽然它是代码压缩方面比较好的选择，但是还有一些其他选择：
+- BabelMinifyWebpackPlugin
+- ClosureCompilerPlugin
+**注意：**如果决定尝试一些其他插件，只要确保新插件也会按照 tree shake 中所陈述的，具有删除未引用代码(dead code)的能力足矣。
+
+4、 对于source-map
+在生产环境下使用source-map，便于快速索引错误位置。在开发环境因为运行在内存中，可以使用inline-source-map。
+>避免在生产中使用 inline-*** 和 eval-***，因为它们可以增加 bundle 大小，并降低整体性能。
+
+5、 指定环境
+许多 library 将通过与 process.env.NODE_ENV 环境变量关联，以决定 library 中应该引用哪些内容。例如，当不处于生产环境中时，某些 library 为了使调试变得容易，可能会添加额外的日志记录(log)和测试(test)。其实，当使用 process.env.NODE_ENV === 'production' 时，一些 library 可能针对具体用户的环境进行代码优化，从而删除或添加一些重要代码。我们可以使用 webpack 内置的 [DefinePlugin][DefinePluginUrl] 为所有的依赖定义这个变量：
+```js
+  const webpack = require('webpack');
+  const merge = require('webpack-merge');
+  const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+  const common = require('./webpack.common.js');
+
+  module.exports = merge(common, {
+    mode: 'production',
+    devtool: 'source-map',
+    plugins: [
+      new UglifyJSPlugin({
+        sourceMap: true
+      })
+    }),
+      new webpack.DefinePlugin({
+       'process.env.NODE_ENV': JSON.stringify('production'),
+      //  还可这样
+			 'process.env': {
+				 'NODE_ENV': JSON.stringify('production')
+			 },
+
+      //  在生产/开发中，构建中使用不同的URL
+      'SERVICE_URL': JSON.stringify('https://yuccie.github.io/jsArt')
+     })
+    ]
+  });
+```
+>技术上讲，NODE_ENV 是一个由 Node.js 暴露给执行脚本的系统环境变量。通常用于决定在开发环境与生产环境(dev-vs-prod)下，服务器工具、构建脚本和客户端 library 的行为。然而，与预期不同的是，无法在构建脚本 webpack.config.js 中，将 process.env.NODE_ENV 设置为 "production"，请查看 [#2537][#2537Url]。因此，例如 process.env.NODE_ENV === 'production' ? '[name].[hash].bundle.js' : '[name].bundle.js' 这样的条件语句，在 webpack 配置文件中，无法按照预期运行。
+
+[DefinePlugin][DefinePluginUrl]允许创建一个在**编译时**可以配置的全局变量。
+
+用法：
+- 如果这个值是一个字符串，它会被当作一个代码片段来使用
+- 如果这个值不是字符串，它会被转化为字符串(包括函数)。
+- 如果这个值是一个对象，它所有的 key 会被同样的方式定义。
+- 如果在一个 key 前面加了 typeof,它会被定义为 typeof 调用。
+
+**注意：**
+>注意，因为这个插件直接执行文本替换，给定的值必须包含字符串本身内的实际引号。通常，有两种方式来达到这个效果，使用 '"production"', 或者使用 JSON.stringify('production')。
+
+
+
+#### 11、**代码分离**
+该特性能够把代码分离到不同的bundle中，然后可以按需加载或并行加载这些文件。代码分离可以用于获取更小的bundle，以及控制资源加载优先级，合理使用会极大影响加载时间。
+
+三种常用的代码分离方法：
+- 入口起点：使用 entry 配置手动地分离代码。
+- 防止重复：使用 SplitChunks 去重和分离 chunk。
+- 动态导入：通过模块的内联函数调用来分离代码。
+
+***入口起点：使用 entry 配置手动地分离代码***<br/>
+即将手动增加入口文件，类似如下：
+```js
+entry: {
+  main:'./src/index.js',
+  other:'./src/other.js'
+},
+```
+该方法的缺点：
+- 如果入口chunks之间包含重复的代码，那打包之后，哪些重复的模块会被引入到各个bundle中。
+- 不灵活，并且不能将核心应用程序逻辑进行动态拆分代码。
+
+***防止重复：使用 SplitChunks 去重和分离 chunk***<br/>
+在webpack4中使用[SplitChunksPlugin][SplitChunksPluginUrl]插件分离代码（之前的[CommonsChunkPlugin][CommonsChunkPluginUrl]已被移除）.
+
+The SplitChunks 插件可以将公共的依赖模块提取到已有的入口 chunk 中，或者提取到一个新生成的 chunk。
+
+在webapck.base.js增加如下配置
+```js
+// output:{},
+optimization: {
+  splitChunks: {
+    chunks: 'all'
+  }
+}
+```
+再次构建，即可看到已经将入口文件中引用的公共模块抽离出来了。。。**注意，这里抽离出来的公共模块是用npm包装的，而不是自己写的模块,因为默认只分离node_modules里的文件**。。。下面有具体配置
+
+另外被抽离生成的模块名，默认命名规则为块的来源和引用文件名（例如此处的vendors~main~other.js）,还需注意在开发环境若构建，引入的包即使没用，也会打包出来，因为tree shaking是配合压缩代码插件使用的。
+
+再看下其默认配置：
+```js
+// output:{},
+optimization: {
+  splitChunks: {
+    //选择哪些块进行优化，值all，async,initial
+    // 还可以是函数，返回值将指示是否包含每个块
+    // 功能强大，意味着即使在异步与非异步之间也可以共享块
+    chunks: 'async',
+    // 要生成的块的最小大小
+    minSize: 30000,
+    // 分割前必须共享模块的最小块数(就是有多少文件公用它)
+    minChunks: 1,
+    // 按需加载时的最大并行请求数
+    maxAsyncRequests: 5,
+    // 入口文件中并行请求的最大数量(应该是针对多个入口时)
+    maxInitialRequests: 3,
+    //抽离出来的包名字分隔符
+    automaticNameDelimiter: '~',
+    // 为true则根据块及缓存组密钥生成名字。若为字符串，则就是自定义名
+    name: true,
+    // priority，一个模块可以属于多个缓存组，该优化将优先选择具有较高优先级的缓存组
+    // default是默认组，具有负优先级，允许自定义组具有更高优先级
+    cacheGroups: {
+      vendors: {
+        // 缓存组选择哪些模块，省略它(''空字符即可)则选择所有模块。
+        test: /[\\/]node_modules[\\/]/,
+        priority: -10
+      },
+      default: {
+        minChunks: 2,
+        priority: -20,
+        // boolean,如果当前块包含已经从主包中拆分出来的模块，那么它将重用，而不是新生成的模块，可能会影响块的结果文件名
+        reuseExistingChunk: true
+      }
+    }
+  }
+}
+```
+
+知道了配置，那什么情况下分包呢？假如有如下代码：
+```js
+// entry.js
+
+// dynamic imports
+import('./a');
+import('./b');
+
+// a.js
+import './helpers'; // helpers is 40kb in size
+
+// b.js
+import './helpers';
+import './more-helpers'; // more-helpers is also 40kb in size
+```
+分析上面代码：
+- helpers模块有两处导入
+- helpers模块大小大于30kb
+- 导入调用时的并行请求数为2
+- Doesn't affect request at initial page load（页面初始化不影响加载）
+因为满足以上四个条件，所以`helper`会被单独打包到一个模块。
+**注意**其实浏览器对并发请求数量也是有限制的，因此合适的打包处理有利于浏览器加载资源文件，通过抽离公共模块，最终合成的文件只在最开始的时候加载一次，便存到缓存中供后续使用。
+
+可再结合[CommonsChunkPlugin][CommonsChunkPluginUrl]理解
+
+出来上面的两种分离代码插件，还有一些社区提供的，如下：
+- mini-css-extract-plugin: 用于将 CSS 从主应用程序中分离。
+- bundle-loader: 用于分离代码和延迟加载生成的 bundle。
+- promise-loader: 类似于 bundle-loader ，但是使用的是 promises。
+
+***动态导入：通过模块的内联函数调用来分离代码***<br/>
+当涉及动态代码拆分时，webpack提供了两种类似的技术:
+1. 使用符合 ECMAScript 提案 的 import() 语法 (推荐)
+2. 使用 webpack 特定的 require.ensure
+
+>import() 调用会在内部用到 promises。如果在旧有版本浏览器中使用 import()，记得使用 一个 polyfill 库（例如 es6-promise 或 promise-polyfill），来 shim Promise。
+
 
 
 
@@ -665,3 +872,7 @@ console.log(cube(2))
 [webpackDevMiddlewareUrl]: https://www.webpackjs.com/api/hot-module-replacement/
 [treeShakingUrl]: https://webpack.docschina.org/guides/tree-shaking/
 [es6StaticDataFeatureUrl]: http://exploringjs.com/es6/ch_modules.html#static-module-structure
+[#2537Url]: https://github.com/webpack/webpack/issues/2537
+[DefinePluginUrl]: https://webpack.docschina.org/plugins/define-plugin
+[SplitChunksPluginUrl]: https://webpack.docschina.org/plugins/split-chunks-plugin/
+[CommonsChunkPluginUrl]: https://webpack.docschina.org/plugins/commons-chunk-plugin/
