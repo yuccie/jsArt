@@ -108,7 +108,10 @@ module.exports = {
 // ERROR in chunk main [entry]
 // [hash][chunkhash].js
 // Cannot use [chunkhash] or [contenthash] for chunk in '[hash][chunkhash].js' (use [hash] instead)
+
+//若开启HMR，关闭后重试或许可解决(注释HMR模块插件)
 ```
+
 
 **注意**：webpack编译的文件入口是js文件，不支持其他类型的文件， 因此要编译style文件，需要将其导入到js文件中然后再编译。但这样会造成一个问题，就是**此时无论修改style文件还是js文件，都会导致chunkhash改变**，因为将style样式文件打包到js文件里了，因此此时可以配合插件`extract-text-webpack-plugin`提供的`contenthash`来解决，表示文本内容的hash值，也就是只有style文件hash值。
 
@@ -843,10 +846,143 @@ import './more-helpers'; // more-helpers is also 40kb in size
 
 >import() 调用会在内部用到 promises。如果在旧有版本浏览器中使用 import()，记得使用 一个 polyfill 库（例如 es6-promise 或 promise-polyfill），来 shim Promise。
 
+以上都是静态导入某个模块，这里使用动态导入，比如动态导入lodash：
+1. 删除掉多余的entry及optimization.splitChunks
+2. 在output里增加`chunkFilename: '[name].bundle.js'`
+	- 决定非入口chunk的名称(比如抽离出来的包，如vendors~lodash.bundle.js)
+3. 修改index.js如下
+```js
+function component() {
+	// import规范不允许控制模块的名称或其他属性，因为 "chunks" 只是 webpack 中的一个概念
+	// webpack 中可以通过注释接收一些特殊的参数，而无须破坏规定，即如下
+	// webpackChunkName：新 chunk 的名称，再看上面打包出来的文件名便懂
+	// 参考https://webpack.docschina.org/api/module-methods#import-
+	return import(/* webpackChunkName: "lodash" */ 'lodash').then( _ =>{
+		var element = document.createElement('div')
+		element.innerHTML = _.join(['hello', 'webpack'], ' ')
+
+		return element
+	}).catch((err)=>{
+		console.log('错误信息为：', err)
+	})
+}
+
+component().then( component => {
+	document.body.appendChild(component);
+})
+```
+4. 再次构建，即可看到被分离出来的`vendors~lodash.bundle.js`文件
+
+当然上面第三步的代码还可以利用async，但是需要babel和[Syntax Dynamic Import Babel Plugin][syntaxDynamicImportBabelPluginUrl],如下：
+
+```js
+async function component() {
+	var element = document.createElement('div')
+	const _ = await import(/* webpackChunkName: "lodash" */ 'lodash')
+	element.innerHTML = _.join(['hello', 'webpack'], ' ')
+
+	return element
+}
+
+component().then( component => {
+	document.body.appendChild(component);
+})
+```
+
+***Prefetching/preloading***<br/>
+上面我们动态导入时使用了类似`import(/* webpackChunkName: "lodash" */ 'lodash')`的方式，其实这里还可以使用prefetch、preload
+1. prefetch（在未来的某些路由页面可能需要的资源）
+	- 在父模块下载完成
+	- 浏览器空闲时下载
+	- 在未来的某个时候请求
+2. preload（在当前路由页面可能需要的资源）
+	- 与父模块并行下载
+	- 具有中等优先级并且立即下载
+	- 应该立即被父模块请求
+使用时如
+```js
+import(/* webpackPreload: true */ 'ChartingLibrary');
+
+import(/* webpackPrefetch: true */ 'LoginModal');
+```
+这两者其实就是在最后标签里添加类似`<link rel="preload">`这样的效果，当然浏览器的支持度并不一致。另外尤其是preload，要注意使用，否则会损害性能。
 
 
+***boundle分析***<br/>
+如果我们以分离代码作为开始，那么就以检查模块作为结束，分析输出结果是很有用处的。
+[官方的分析工具][webpackAnalyseToolsUrl]
+然后社区的还有
+- [webpack-chart][webpackChartUrl]: webpack 数据交互饼图
+- [webpack-visualizer][webpackVisualizerUrl]: 可视化并分析你的 bundle，检查哪些模块占用空间，哪些可能是重复使用的。
+- [webpack-bundle-analyzer][webpackBundleAnalyzerUrl]: 一款分析 bundle 内容的插件及 CLI 工具，以便捷的、交互式、可缩放的树状图形式展现给用户。
 
+前三种方式都是生成一个文件`webpack --profile --json > stats.json`，然后通过其官网提供的接口分析即可。
+[webpack-bundle-analyzer][webpackBundleAnalyzerUrl]需要如下：
+```js
+// 首先要 npm i -D webpack-bundle-analyzer
+// 然后配置webpack.base.js，运行一个构建任务即可自动打开一个页面
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+module.exports = {
+  plugins: [
+    new BundleAnalyzerPlugin()
+  ]
+}
+```
 
+#### 12、**懒加载**
+懒加载或者按需加载，是**先把代码在一些逻辑点处分离开，然后在一些代码块中完成某些操作，立即引用或即将引用另外一些新的代码块**。
+
+因为之前做代码分离，虽然分离了代码块lodash.bundle.js ，但这个包每次加载页面的时候都会请求，这会对性能造成负面影响，因此可以懒加载它，即当用户操作某一逻辑后，才去加载它。
+1、新建与index.js同级的print.js，如：
+```js
+console.log('The print.js module has loaded! See the network tab in dev tools...');
+export default () => {
+  console.log('Button Clicked: Here\'s "some text"!');
+}
+```
+2、修改index.js，如下:
+```js
+import _ from 'lodash'
+
+function component(){
+	var ele = document.createElement('div')
+	var btn = document.createElement('button')
+	var br = document.createElement('br')
+
+	btn.innerHTML = 'Click me and look at the console!'
+	ele.appendChild(br)
+	ele.appendChild(btn)
+
+	btn.onclick = e => import(/* webpackChunkName: 'print' */ './print').then(module => {
+		var print = module.default
+		print()
+	})
+	return ele
+}
+document.body.appendChild(component())
+```
+3、启动服务或构建完打开index.html即可
+打开控制台，可以看到print.bundle.js文件页面初始化时并没有加载，而是在单击按钮之后才发起了请求
+
+>注意当调用 ES6 模块的 import() 方法（引入模块）时，必须指向模块的 .default 值，因为它才是 promise 被处理后返回的实际的 module 对象。
+
+许多框架和类库对于如何用它们自己的方式来实现（懒加载）都有自己的建议。这里有一些例子：
+- React: [Code Splitting and Lazy Loading][reactCodeSplittingAndLazyLoadingUrl]
+- Vue: [Lazy Load in Vue using Webpack's code splitting][vueLazyLoadAndCodeSplittingUrl]
+
+更多懒加载参考：[es5模块化在浏览器里的懒加载][es5ModuleLazyLoadingInBrowserUrl]
+
+#### 13、**缓存**
+以上通过webpack构建生成dist目录，只要这个目录部署到服务器上，客户端（通常是浏览器）就能够访问网站此服务器的网站及其资源，而这一步很耗时间，这就是为什么浏览器使用一种名为缓存的技术。可以通过命中缓存，以降低网络流量，使网站加载速度更快。。。
+
+然而，如果我们在部署新版本时不更改资源的文件名，浏览器会认为它没有被更新，就会使用它的缓存版本。由于需要获取新的代码时，就会显得很棘手。
+
+当我们修改output的filename为`[name].[chunkhash].js`后，在文件不带动的情况下，反复构建按道理说文件名是不会再变的。。。但并不一定。。。这是因为：
+>This is because webpack includes certain boilerplate, specifically the runtime and manifest, in the entry chunk.
+>这是因为 webpack 包含某些模板，特别是运行时和manifest清单，在入口模块中
+
+所以为了安全起见，需要`Extracting Boilerplate`
+***Extracting Boilerplate提取模板***<br/>
 
 [vueHandleAssetsPath]: https://vue-loader-v14.vuejs.org/zh-cn/configurations/asset-url.html
 [extractTextWebpackPluginUrl]: https://webpack.docschina.org/plugins/extract-text-webpack-plugin/
@@ -876,3 +1012,11 @@ import './more-helpers'; // more-helpers is also 40kb in size
 [DefinePluginUrl]: https://webpack.docschina.org/plugins/define-plugin
 [SplitChunksPluginUrl]: https://webpack.docschina.org/plugins/split-chunks-plugin/
 [CommonsChunkPluginUrl]: https://webpack.docschina.org/plugins/commons-chunk-plugin/
+[syntaxDynamicImportBabelPluginUrl]: https://babeljs.io/docs/en/babel-plugin-syntax-dynamic-import/#installation
+[webpackAnalyseToolsUrl]: https://github.com/webpack/analyse
+[webpackChartUrl]: https://alexkuz.github.io/webpack-chart/
+[webpackVisualizerUrl]: https://alexkuz.github.io/webpack-chart/
+[webpackBundleAnalyzerUrl]: https://github.com/webpack-contrib/webpack-bundle-analyzer
+[reactCodeSplittingAndLazyLoadingUrl]: https://reacttraining.com/react-router/web/guides/code-splitting
+[vueLazyLoadAndCodeSplittingUrl]: https://alexjoverm.github.io/2017/07/16/Lazy-load-in-Vue-using-Webpack-s-code-splitting/
+[es5ModuleLazyLoadingInBrowserUrl]: https://dzone.com/articles/lazy-loading-es2015-modules-in-the-browser
