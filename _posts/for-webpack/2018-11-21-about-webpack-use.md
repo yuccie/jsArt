@@ -7,6 +7,7 @@ date: Tue Nov 20 2018 16:48:56 GMT+0800 (中国标准时间)
 1. [老版本][oldWebpackUrl]
 2. [v4.15.1版本][v4.15.1WebpackUrl]
 3. [v4.26.0版本(最新)][v4.26.0WebpackUrl]
+4. [v4新版本变化][v4WebpackWhatHaveChangeUrl]
 
 
 #### 1、webpack管理pageage的好处
@@ -100,7 +101,9 @@ module.exports = {
   mode: 'development',
   entry: './src/index.js',
   output: {
-    filename: '[hash][chunkhash].js',
+		// [hash].[contenthash].js也会报错，
+		// 若开启HMR，关闭后重试或许可解决(只需注释HMR模块插件)
+    filename: '[hash].[chunkhash].js',
     path: path.resolve(__dirname, 'dist')
   }
 }
@@ -108,8 +111,6 @@ module.exports = {
 // ERROR in chunk main [entry]
 // [hash][chunkhash].js
 // Cannot use [chunkhash] or [contenthash] for chunk in '[hash][chunkhash].js' (use [hash] instead)
-
-//若开启HMR，关闭后重试或许可解决(注释HMR模块插件)
 ```
 
 
@@ -752,7 +753,7 @@ entry: {
 - 不灵活，并且不能将核心应用程序逻辑进行动态拆分代码。
 
 ***防止重复：使用 SplitChunks 去重和分离 chunk***<br/>
-在webpack4中使用[SplitChunksPlugin][SplitChunksPluginUrl]插件分离代码（之前的[CommonsChunkPlugin][CommonsChunkPluginUrl]已被移除）.
+在webpack4中使用[SplitChunksPlugin][SplitChunksPluginUrl]插件分离代码（之前的[CommonsChunkPlugin][CommonsChunkPluginUrl]已被移除，如果在webpack4里使用会提示已移除）.
 
 The SplitChunks 插件可以将公共的依赖模块提取到已有的入口 chunk 中，或者提取到一个新生成的 chunk。
 
@@ -777,14 +778,15 @@ optimization: {
     //选择哪些块进行优化，值all，async,initial
     // 还可以是函数，返回值将指示是否包含每个块
     // 功能强大，意味着即使在异步与非异步之间也可以共享块
+		// 默认async是说按需加载的模块如果满足以下条件就会单独打包
     chunks: 'async',
-    // 要生成的块的最小大小
+    // 要生成的块的压缩前最小大小30kb，块如果太小就没必要新生成一个包
     minSize: 30000,
-    // 分割前必须共享模块的最小块数(就是有多少文件公用它)
+    // 分割前必须共享模块的最小块数(就是有最少多少文件公用它)
     minChunks: 1,
     // 按需加载时的最大并行请求数
     maxAsyncRequests: 5,
-    // 入口文件中并行请求的最大数量(应该是针对多个入口时)
+    // 一个入口文件中并行请求的最大数量(比如一个入口有多处按需加载的地方)
     maxInitialRequests: 3,
     //抽离出来的包名字分隔符
     automaticNameDelimiter: '~',
@@ -793,11 +795,13 @@ optimization: {
     // priority，一个模块可以属于多个缓存组，该优化将优先选择具有较高优先级的缓存组
     // default是默认组，具有负优先级，允许自定义组具有更高优先级
     cacheGroups: {
+			// 默认将来自node_modules的块分配到vendors缓存组里
       vendors: {
         // 缓存组选择哪些模块，省略它(''空字符即可)则选择所有模块。
         test: /[\\/]node_modules[\\/]/,
         priority: -10
       },
+			// 所有重复引用至少两次的代码分配到default缓存组里
       default: {
         minChunks: 2,
         priority: -20,
@@ -809,30 +813,77 @@ optimization: {
 }
 ```
 
-知道了配置，那什么情况下分包呢？假如有如下代码：
+**注意：**上面的那么多参数，其实都可以不用管，cacheGroups 才是我们配置的关键。它可以继承/覆盖上面 splitChunks 中所有的参数值，除此之外还额外提供了三个配置，分别为：test, priority 和 reuseExistingChunk。
+
+如上面的默认配置，对于来自node_modules的模块抽离到vendors缓存组里，对于异步请求超过1次的放在default组里(默认就是async异步)。
+
+实例一
 ```js
-// entry.js
-
-// dynamic imports
-import('./a');
-import('./b');
-
-// a.js
-import './helpers'; // helpers is 40kb in size
-
-// b.js
-import './helpers';
-import './more-helpers'; // more-helpers is also 40kb in size
+entry: {
+	pageA: './src/views/pageA.js', 	// 引用a.js  
+	pageB: './src/views/pageB.js',	// 引用a.js  引用b.js
+	pageC: './src/views/pageC.js'		// 引用a.js  引用b.js
+}
+optimization: {
+	splitChunks: {
+		chunks: 'all',
+		cacheGroups: {
+			commons: {
+				minSize: 0,
+				minChunks: 2,
+			}
+		}
+	}
+},
 ```
-分析上面代码：
-- helpers模块有两处导入
-- helpers模块大小大于30kb
-- 导入调用时的并行请求数为2
-- Doesn't affect request at initial page load（页面初始化不影响加载）
-因为满足以上四个条件，所以`helper`会被单独打包到一个模块。
-**注意**其实浏览器对并发请求数量也是有限制的，因此合适的打包处理有利于浏览器加载资源文件，通过抽离公共模块，最终合成的文件只在最开始的时候加载一次，便存到缓存中供后续使用。
+如上配置，会生成`commons~pageA~pageB~pageC.js`，`commons~pageB~pageC.js`文件，因为：
+1. a.js
+	- 所有情况下的引用即all
+	- 引用超过1次，即3
+	- 生成的包大于0kb
+2. b.js
+	- 所有情况下的引用即all
+	- 引用超过1次，即2
+	- 生成的包大于0kb
 
-可再结合[CommonsChunkPlugin][CommonsChunkPluginUrl]理解
+
+**注意：**如果修改配置如下,则不会生成额外的包：
+```js
+optimization: {
+	splitChunks: {
+		chunks: 'all',
+		cacheGroups: {
+			commons: {
+				// 覆盖上面的all,只能是按需加载的才满足条件
+				async:'async',
+				minSize: 0,
+				minChunks: 2,
+			}
+		}
+	}
+},
+```
+
+因为上面是多入口，也会生成`pageA.js`、`pageB.js`、`pageC.js`,源文件里并没有多少代码，但生成的文件里挺大，这是因为每个生成的文件里都包含webpack运行时的一些代码，因此可以将运行时的代码再抽离出去。。。
+```js
+optimization: {
+	splitChunks: {	
+		// 增加下面一行即可
+		runtimeChunk: "single"
+		// 等价于下面代码
+		runtimeChunk: {
+			name: "manifest"
+		}
+	}
+},
+```
+此时生成的文件会多一个runtime.js或者manifest.js
+
+
+再来结合[CommonsChunkPlugin][CommonsChunkPluginUrl]理解一下，还可参考：
+[splitChunkPluginExamples1Url][splitChunkPluginExamples1Url]
+
+
 
 出来上面的两种分离代码插件，还有一些社区提供的，如下：
 - mini-css-extract-plugin: 用于将 CSS 从主应用程序中分离。
@@ -977,13 +1028,60 @@ document.body.appendChild(component())
 
 然而，如果我们在部署新版本时不更改资源的文件名，浏览器会认为它没有被更新，就会使用它的缓存版本。由于需要获取新的代码时，就会显得很棘手。
 
-当我们修改output的filename为`[name].[chunkhash].js`后，在文件不带动的情况下，反复构建按道理说文件名是不会再变的。。。但并不一定。。。这是因为：
+当我们修改output的filename为`[name].[contenthash].js`后，在文件不改动的情况下，反复构建按道理说文件名是不会再变的。。。但并不一定。。。这是因为：
 >This is because webpack includes certain boilerplate, specifically the runtime and manifest, in the entry chunk.
 >这是因为 webpack 包含某些模板，特别是运行时和manifest清单，在入口模块中
 
-所以为了安全起见，需要`Extracting Boilerplate`
-***Extracting Boilerplate提取模板***<br/>
+既然，运行时或者manifest清单会导致构建后文件名发生变化，那如果给它单独抽离出来不就好了。。。那什么是运行时和manifest呢，其实就是在浏览器运行时，webpack用来连接模块化的应用程序的所有代码
 
+**runtime**：在模块交互时，连接模块所需的加载和解析逻辑。包括浏览器中的已加载模块的连接，以及懒加载模块的执行逻辑。
+
+**manifest**：
+>那么，一旦你的应用程序中，形如 index.html 文件、一些 bundle 和各种资源加载到浏览器中，会发生什么？你精心安排的 /src 目录的文件结构现在已经不存在，所以 webpack 如何管理所有模块之间的交互呢？这就是 manifest 数据用途的由来……
+
+>当编译器(compiler)开始执行、解析和映射应用程序时，它会保留所有模块的详细要点。这个数据集合称为 "Manifest"，当完成打包并发送到浏览器时，会在运行时通过 Manifest 来解析和加载模块。无论你选择哪种模块语法，那些 import 或 require 语句现在都已经转换为 __webpack_require__ 方法，此方法指向模块标识符(module identifier)。通过使用 manifest 中的数据，runtime 将能够查询模块标识符，检索出背后对应的模块。
+
+比如懒加载一个模块，如果单纯修改这个模块，并将运行时抽离出去之后，是不会影响到主文件，此时只会改变该模块和抽离出去的manifest文件(或runtime.js文件)，另外就是可以在manifest文件里索引到该模块的hash值，如下看`f8def119`字段：
+```js
+// manifest.69245d81.js
+/******/ 	// script path function
+/******/ 	function jsonpScriptSrc(chunkId) {
+/******/ 		return __webpack_require__.p + "" + ({"print":"print"}[chunkId]||chunkId) + "." + {"print":"f8def119"}[chunkId] + ".bundle.js"
+/******/ 	}
+
+// 文件名
+// print.f8def119.bundle.js
+```
+
+***Extracting Boilerplate提取模板***<br/>
+使用SplitChunkPlugin可以被用来将模块分割成不同的包，webpack提供一个优化特性，可以根据提供的选项将运行时代码分割成一个独立的块。只需如下：
+```js
+output: {},
+optimization: {
+	runtimeChunk: 'single'
+}
+```
+这样的结果是在**单独的把运行时相关的代码抽离出来**形成一个包。再修改单独的文件，就不会影响到主文件了。
+
+
+***提取第三方库***<br/>
+提取第三方库其实就是上面说的SplitChunks，参考上文。
+
+***module indentifiers 模块标识符***<br/>
+有时候我们会只修改一个主文件，但是重新打包会引起之前打包出来的第三方包的文件名也发生变化。。。其实这主要是因为：**因为每个 module.id 都是基于默认的解析顺序进行递增的。 意思是当解析的顺序被改变时，id 也会被改变。**
+
+因此可以通过以下两种插件来修复：
+- [NamedModulesPlugin][NamedModulesPluginUrl]（开发环境易读，生产环境则耗时很多）
+- [HashedModuleIdsPlugin][HashedModuleIdsPluginUrl]（推荐用于生产）
+
+
+
+
+
+
+[splitChunkPluginExamples1Url]: https://juejin.im/post/5af1677c6fb9a07ab508dabb
+[NamedModulesPluginUrl]: https://www.webpackjs.com/plugins/named-modules-plugin/
+[HashedModuleIdsPluginUrl]: https://webpack.js.org/plugins/hashed-module-ids-plugin/
 [vueHandleAssetsPath]: https://vue-loader-v14.vuejs.org/zh-cn/configurations/asset-url.html
 [extractTextWebpackPluginUrl]: https://webpack.docschina.org/plugins/extract-text-webpack-plugin/
 [cssLoaderUrl]: https://github.com/webpack-contrib/css-loader
@@ -1020,3 +1118,4 @@ document.body.appendChild(component())
 [reactCodeSplittingAndLazyLoadingUrl]: https://reacttraining.com/react-router/web/guides/code-splitting
 [vueLazyLoadAndCodeSplittingUrl]: https://alexjoverm.github.io/2017/07/16/Lazy-load-in-Vue-using-Webpack-s-code-splitting/
 [es5ModuleLazyLoadingInBrowserUrl]: https://dzone.com/articles/lazy-loading-es2015-modules-in-the-browser
+[v4WebpackWhatHaveChangeUrl]: https://feclub.cn/post/content/webpack4
