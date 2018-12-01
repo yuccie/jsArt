@@ -41,6 +41,58 @@ $ npm run build
 **注意：**
 >如果 webpack.config.js 存在，则 webpack 命令将默认选择使用它。我们在这里使用 - -config 选项只是向你表明，可以传递任何名称的配置文件。这对于需要拆分成多个文件的复杂配置是非常有用。
 
+***开始之前先了解一下resolve***
+resolve配置如何解析模块，例如当你`import 'lodash'`时，resolve选项会改变webpack去查找lodash模块的位置。
+
+```js
+module.exports = {
+  //...
+  resolve: {
+    // 别名就是把长路径换成一个短路径，
+    // 更多配置规则https://webpack.js.org/configuration/resolve/#resolve-alias
+    alias: {
+      app: path.resolve(__dirname, 'src/app/'),
+    },
+
+    // 一个模块可能适用于多端(比如浏览器，或者node端)，所以当引入一个模块时，也会针对不同的环境提供对应的文件
+    // 而这里的字段是和要引入的包里对应package.json对应的。
+    aliasFields: ['browser']
+    
+    //如果为真，则不允许使用无扩展名文件
+    enforceExtension: false
+    // 是否要求对模块使用扩展(例如加载器)，默认fasle
+    enforceModuleExtension: false,
+    // 使用这个将覆盖默认选项，因此为防止错误，最好加个"*"
+    // 自动解析某些扩展，默认情况如下
+    extensions: ['.wasm', '.mjs', '.js', '.json'],
+    // 默认如下，当从npm包里导入时，如导入d3，这个选项将对应d3包里的package.json里该字段
+    // 感觉有点类似aliasFields？
+    mainFields:['browser', 'module', 'main']
+    // 告诉webpack在解析模块时应该搜索什么目录，默认为node_modules
+    modules:['node_modules']
+    // 如果想早于node_modules,只需在数组前加入即可，如
+    modules:[path.resolve(__dirname, 'src'),'node_modules']
+
+    // 启用，会主动缓存模块，但并不安全。传递 true 将缓存一切。默认
+    unsafeCache: true
+
+    // 与上面resolve属性集相同，但仅用于解析webpack的loader，默认如下
+    resolveLoader: {
+      modules: [ 'node_modules' ],
+      extensions: [ '.js', '.json' ],
+      mainFields: [ 'loader', 'main' ]
+
+      // 这不是resolveLoader的默认值
+      // 从webapck2开始强烈建议使用完整的loader名，如example-loader
+      // 如果不想完整，则可配置如下
+      moduleExtensions: [ '-loader' ]
+    }
+  }
+}
+```
+对于resolve.modules
+>绝对路径和相对路径都能使用，但是要知道它们之间有一点差异。通过查看当前目录以及祖先路径（即 ./node_modules, ../node_modules 等等），相对路径将类似于 Node 查找 'node_modules' 的方式进行查找。使用绝对路径，将只在给定目录中搜索。
+
 
 #### 2、webpack输入与输出
 以下会在dist目录生成一个名为`mainName.js`的文件。
@@ -101,8 +153,8 @@ module.exports = {
   mode: 'development',
   entry: './src/index.js',
   output: {
-		// [hash].[contenthash].js也会报错，
-		// 若开启HMR，关闭后重试或许可解决(只需注释HMR模块插件)
+    // [hash].[contenthash].js也会报错，
+    // 若开启HMR，关闭后重试或许可解决(只需注释HMR模块插件)
     filename: '[hash].[chunkhash].js',
     path: path.resolve(__dirname, 'dist')
   }
@@ -197,6 +249,50 @@ module.exports = {
 **答:**单纯使用分离插件会使得热更新失效，因为每次生成的文件名都会变(这句说辞待完善)，因此要么手动每次引入，要么就是借助[html-webpack-plugin][htmlWebpackPluginUrl]插件
 
 
+***再来深入理解一下[css-loader][cssLoaderWebpackUrl]***
+[css-loader][cssLoaderWebpackUrl]解释（interpret）@import和url()，会import/require()后解析（resolve）他们。
+
+```js
+{
+  loader: "css-loader",
+  option: {
+    // 对于以/开头的url，默认行为是不转译，即url(/image.png) => url(/image.png)
+    // 若设置了root，则会添加到url前面，然后再转译。如：url(/image.png) => require('./image.png')
+    // 不建议用相对路径
+    root: '.',
+
+    // 是否禁用css-loader解析url(),
+    // 如果false不解析，则原样输出url的内容，会导致路径错误
+    url:true,
+    
+    // 遵循与webpack的resolve.alias相同的语法
+    // 当使用第三方的样式包时，会非常方便，如下
+    alias:{
+      "../fonts/bootstrap": "bootstrap-sass/assets/fonts/bootstrap"
+    },
+
+    // 要禁用css-loader解析@import，可以设置为false,
+    // 禁用之后，@import 方式导入的模块都将失效
+    import: true,
+    
+    // 是否启用局部作用域css。
+    module: true,
+    
+    // 默认情况下，css将所有的类名暴露到全局的选择器作用域中。样式可以在局部作用域中
+    module: true,
+
+    // 默认情况下，如果模块系统指定，css-loader 将压缩 css
+    // 在某些情况下，压缩对于 css 来说是破坏性的，所以如果需要设置，可以向基于 cssnano 的 minifier(cssnano-based minifier) 提供自己的选项
+    minimize: true || {/* CSSNano Options */},
+    // 默认情况下不启用它们，因为它们会导致运行时的额外开销，并增加了 bundle 大小 (JS source map 不会)。
+    sourceMap: false
+    // 一般情况下，css样式的类名都是-连接，如果想经过css-loader处理后，使用驼峰，可以设置该选项
+    // 如file.css为.class-name {} 可以这样 import { className } from 'file.css';
+    camelCase:true
+  }
+}
+```
+
 #### 3.2、**处理图片类文件**
 页面需要的图片类文件一般都是用相对路径引用，或使用[vue中的资源路径处理][vueHandleAssetsPath]。
 
@@ -212,9 +308,9 @@ module.exports = {
 createElement('img', { attrs: { src: require('../image.png') }})
 ```
 
-处理图片步骤：
-1. 安装`npm i -D file-loader`
-2. 配置webpack匹配图片规则
+处理图片步骤：<br/>
+1、 安装`npm i -D file-loader`<br/>
+2、 配置webpack匹配图片规则<br/>
 ```js
 module:{
   rules:[
@@ -243,7 +339,7 @@ module:{
   ]
 }
 ```
-3. 编辑图片文件，引入并使用
+3、 编辑图片文件，引入并使用<br/>
 ```js
 // 可以直接这样引入图片，并直接使用
 import myImg from './my-img.png'
@@ -292,6 +388,107 @@ module: [
 注意文件名
 
 **注意：**经过上面的处理，文件内容变成了代码，就不是有效的图片格式，也就打不开了。
+
+还可以如下连续用多个配置
+```js
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [ 'style-loader', 'css-loader' ]
+      },
+      {
+        test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
+        loader: 'url-loader',
+        options: {
+          limit: 10000
+        }
+      }
+    ]
+  }
+}
+```
+对于生产环境还可以：
+```js
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: env === 'production'
+          ? ExtractTextPlugin.extract({
+              fallback: 'style-loader',
+              use: [ 'css-loader' ]
+          })
+          : [ 'style-loader', 'css-loader' ]
+      },
+    ]
+  },
+  plugins: env === 'production'
+    ? [
+        new ExtractTextPlugin({
+          filename: '[name].css'
+        })
+      ]
+    : []
+}
+```
+
+#### 3.3、**处理js文件**
+***先来说说babel***<br/>
+babel 是js的编译器，是将下一代js的语法编译成各个平台都兼容的语法格式。官网不同平台上的使用方式，无非是安装babel的核心代码及各种presets，plugin。。。
+
+**注意**，presets与plugin的关系，其实babel有很多细粒度很小的插件，具体转译那种语法可以按需引入，这样有很强的灵活性。。。但假如有很多语法都需要转发，则需要引入很多，此时babel官方就提供了plugin的合集，也就是presets。
+
+而`babel-preset-env`就相当于 es2015 ，es2016 ，es2017 及最新版本。
+而stage是将TC39 提案分为以下几个阶段:
+- Stage 0 - 稻草人: 只是一个想法，可能是 babel 插件。
+- Stage 1 - 提案: 初步尝试。
+- Stage 2 - 初稿: 完成初步规范。
+- Stage 3 - 候选: 完成规范和浏览器初步实现。
+- Stage 4 - 完成: 将被添加到下一年度发布。
+stage只是提案，是否最终发布不能确定，只是实验性的语法，而env则是发布的。
+
+同时配置了plugin和presets后，会有一个执行顺序如下：
+- Plugin 会运行在 Preset 之前。
+- Plugin 会从第一个开始顺序执行。ordering is first to last.
+- Preset 的顺序则刚好相反(从最后一个逆序执行)。
+
+更多详情参考[babel官网中文文档][babelChineseDocsUrl]
+
+***本地利用babel编译es6至es5*** <br/>
+1、 初始化仓库 `npm init` <br/>
+2、 配置`.babelrc` <br/>
+
+>只有配置了相关的预处理插件，babel才知道将高级语法转译到什么类型，若不配，则原样输出
+
+```js
+{
+  "presets": [
+    // 预处理的版本，需要安装对应的插件
+    "env",
+    // 如果想体验初步规范的新语法，可以增加这个
+    // "stage-2"
+  ],
+}
+```
+3、 安装.babelrc配置的预处理版本及babel <br/>
+```bash
+npm i -D babel-cli babel-preset-env
+```
+4、 将含有`m1.js,m2.js`的文件夹编译打包,配置package.json
+
+>这里你或许会问，直接在项目里运行babel命令不就好了，为何还要写在这里？因为你安装的babel-cli只是项目内，并没有全局安装，因此会提示：command not found : bebel
+
+```json
+{
+  "scripts": {
+    "build": "babel src -d dist"
+  },
+}
+```
+5、 终端运行编译后的文件即可 <br/>
 
 **综上：**
 上面处理了css，图片等文件类型，其实还可以加载字体类型，数据类型(如：json文件，csv,tsv和xml等)，原理都是相似的。类似于 NodeJS，JSON 支持实际上是内置的，也就是说 import Data from './data.json' 默认将正常运行。要导入 CSV、TSV 和 XML，你可以使用 [csv-loader][csvLoaderUrl] 和 [xml-loader][xmlLoaderUrl]。
@@ -526,8 +723,8 @@ if(module.hot){
 **4. [webpack-dev-middleware][webpackDevMiddlewareUrl]** <br/>
 `webpack-dev-middleware` 是一个容器(wrapper)，他可以把webpack处理后的文件传递给一个服务器(server)。webpack-dev-server在内部使用了它，它也可以作为一个单独的包来使用，接下来我们配合express来使用它。
 
-1. `npm i -D express webpack-dev-middleware`
-2. 增加webpack.config.js里output的publicPath
+1、 `npm i -D express webpack-dev-middleware`
+2、 增加webpack.config.js里output的publicPath
 
 ```js
 output: {
@@ -541,7 +738,7 @@ output: {
 }
 ```
 
-3. 增加服务器文件。
+3、 增加服务器文件。
 
 ```js
 const express = require('express')
@@ -562,14 +759,14 @@ app.listen(3000, function(){
 })
 ```
 
-4. 在package.json里增加
+4、 在package.json里增加
 
 ```json
 "scripts": {
   "server": "node server.js"
 }
 ```
-5. 启动服务`npm run server`
+5、 启动服务`npm run server`
 
 这时你会发现访问`http://localhost:3000`失败，因为我们给服务配置了`publicPath`,因此需要访问`http://localhost:3000/spa/`
 
@@ -691,31 +888,31 @@ project-name
 5、 指定环境
 许多 library 将通过与 process.env.NODE_ENV 环境变量关联，以决定 library 中应该引用哪些内容。例如，当不处于生产环境中时，某些 library 为了使调试变得容易，可能会添加额外的日志记录(log)和测试(test)。其实，当使用 process.env.NODE_ENV === 'production' 时，一些 library 可能针对具体用户的环境进行代码优化，从而删除或添加一些重要代码。我们可以使用 webpack 内置的 [DefinePlugin][DefinePluginUrl] 为所有的依赖定义这个变量：
 ```js
-  const webpack = require('webpack');
-  const merge = require('webpack-merge');
-  const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-  const common = require('./webpack.common.js');
+const webpack = require('webpack');
+const merge = require('webpack-merge');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const common = require('./webpack.common.js');
 
-  module.exports = merge(common, {
-    mode: 'production',
-    devtool: 'source-map',
-    plugins: [
-      new UglifyJSPlugin({
-        sourceMap: true
-      })
-    }),
-      new webpack.DefinePlugin({
-       'process.env.NODE_ENV': JSON.stringify('production'),
+module.exports = merge(common, {
+  mode: 'production',
+  devtool: 'source-map',
+  plugins: [
+    new UglifyJSPlugin({
+      sourceMap: true
+    })
+  }),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production'),
       //  还可这样
-			 'process.env': {
-				 'NODE_ENV': JSON.stringify('production')
-			 },
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      },
 
       //  在生产/开发中，构建中使用不同的URL
       'SERVICE_URL': JSON.stringify('https://yuccie.github.io/jsArt')
-     })
-    ]
-  });
+    })
+  ]
+});
 ```
 >技术上讲，NODE_ENV 是一个由 Node.js 暴露给执行脚本的系统环境变量。通常用于决定在开发环境与生产环境(dev-vs-prod)下，服务器工具、构建脚本和客户端 library 的行为。然而，与预期不同的是，无法在构建脚本 webpack.config.js 中，将 process.env.NODE_ENV 设置为 "production"，请查看 [#2537][#2537Url]。因此，例如 process.env.NODE_ENV === 'production' ? '[name].[hash].bundle.js' : '[name].bundle.js' 这样的条件语句，在 webpack 配置文件中，无法按照预期运行。
 
@@ -778,7 +975,7 @@ optimization: {
     //选择哪些块进行优化，值all，async,initial
     // 还可以是函数，返回值将指示是否包含每个块
     // 功能强大，意味着即使在异步与非异步之间也可以共享块
-		// 默认async是说按需加载的模块如果满足以下条件就会单独打包
+    // 默认async是说按需加载的模块如果满足以下条件就会单独打包
     chunks: 'async',
     // 要生成的块的压缩前最小大小30kb，块如果太小就没必要新生成一个包
     minSize: 30000,
@@ -795,13 +992,13 @@ optimization: {
     // priority，一个模块可以属于多个缓存组，该优化将优先选择具有较高优先级的缓存组
     // default是默认组，具有负优先级，允许自定义组具有更高优先级
     cacheGroups: {
-			// 默认将来自node_modules的块分配到vendors缓存组里
+      // 默认将来自node_modules的块分配到vendors缓存组里
       vendors: {
         // 缓存组选择哪些模块，省略它(''空字符即可)则选择所有模块。
         test: /[\\/]node_modules[\\/]/,
         priority: -10
       },
-			// 所有重复引用至少两次的代码分配到default缓存组里
+      // 所有重复引用至少两次的代码分配到default缓存组里
       default: {
         minChunks: 2,
         priority: -20,
@@ -820,61 +1017,61 @@ optimization: {
 实例一
 ```js
 entry: {
-	pageA: './src/views/pageA.js', 	// 引用a.js  
-	pageB: './src/views/pageB.js',	// 引用a.js  引用b.js
-	pageC: './src/views/pageC.js'		// 引用a.js  引用b.js
+  pageA: './src/views/pageA.js',    // 引用a.js  
+  pageB: './src/views/pageB.js',    // 引用a.js  引用b.js
+  pageC: './src/views/pageC.js'     // 引用a.js  引用b.js
 }
 optimization: {
-	splitChunks: {
-		chunks: 'all',
-		cacheGroups: {
-			commons: {
-				minSize: 0,
-				minChunks: 2,
-			}
-		}
-	}
+  splitChunks: {
+    chunks: 'all',
+    cacheGroups: {
+      commons: {
+        minSize: 0,
+        minChunks: 2,
+      }
+    }
+  }
 },
 ```
 如上配置，会生成`commons~pageA~pageB~pageC.js`，`commons~pageB~pageC.js`文件，因为：
 1. a.js
-	- 所有情况下的引用即all
-	- 引用超过1次，即3
-	- 生成的包大于0kb
+  - 所有情况下的引用即all
+  - 引用超过1次，即3
+  - 生成的包大于0kb
 2. b.js
-	- 所有情况下的引用即all
-	- 引用超过1次，即2
-	- 生成的包大于0kb
+  - 所有情况下的引用即all
+  - 引用超过1次，即2
+  - 生成的包大于0kb
 
 
 **注意：**如果修改配置如下,则不会生成额外的包：
 ```js
 optimization: {
-	splitChunks: {
-		chunks: 'all',
-		cacheGroups: {
-			commons: {
-				// 覆盖上面的all,只能是按需加载的才满足条件
-				async:'async',
-				minSize: 0,
-				minChunks: 2,
-			}
-		}
-	}
+  splitChunks: {
+    chunks: 'all',
+    cacheGroups: {
+      commons: {
+        // 覆盖上面的all,只能是按需加载的才满足条件
+        async:'async',
+        minSize: 0,
+        minChunks: 2,
+      }
+    }
+  }
 },
 ```
 
 因为上面是多入口，也会生成`pageA.js`、`pageB.js`、`pageC.js`,源文件里并没有多少代码，但生成的文件里挺大，这是因为每个生成的文件里都包含webpack运行时的一些代码，因此可以将运行时的代码再抽离出去。。。
 ```js
 optimization: {
-	splitChunks: {	
-		// 增加下面一行即可
-		runtimeChunk: "single"
-		// 等价于下面代码
-		runtimeChunk: {
-			name: "manifest"
-		}
-	}
+  splitChunks: {  
+    // 增加下面一行即可
+    runtimeChunk: "single"
+    // 等价于下面代码
+    runtimeChunk: {
+      name: "manifest"
+    }
+  }
 },
 ```
 此时生成的文件会多一个runtime.js或者manifest.js
@@ -900,62 +1097,66 @@ optimization: {
 以上都是静态导入某个模块，这里使用动态导入，比如动态导入lodash：
 1. 删除掉多余的entry及optimization.splitChunks
 2. 在output里增加`chunkFilename: '[name].bundle.js'`
-	- 决定非入口chunk的名称(比如抽离出来的包，如vendors~lodash.bundle.js)
+  - 决定非入口chunk的名称(比如抽离出来的包，如vendors~lodash.bundle.js)
 3. 修改index.js如下
+
 ```js
 function component() {
-	// import规范不允许控制模块的名称或其他属性，因为 "chunks" 只是 webpack 中的一个概念
-	// webpack 中可以通过注释接收一些特殊的参数，而无须破坏规定，即如下
-	// webpackChunkName：新 chunk 的名称，再看上面打包出来的文件名便懂
-	// 参考https://webpack.docschina.org/api/module-methods#import-
-	return import(/* webpackChunkName: "lodash" */ 'lodash').then( _ =>{
-		var element = document.createElement('div')
-		element.innerHTML = _.join(['hello', 'webpack'], ' ')
+  // import规范不允许控制模块的名称或其他属性，因为 "chunks" 只是 webpack 中的一个概念
+  // webpack 中可以通过注释接收一些特殊的参数，而无须破坏规定，即如下
+  // webpackChunkName：新 chunk 的名称，再看上面打包出来的文件名便懂
+  // 参考https://webpack.docschina.org/api/module-methods#import-
+  return import(/* webpackChunkName: "lodash" */ 'lodash').then( _ =>{
+    var element = document.createElement('div')
+    element.innerHTML = _.join(['hello', 'webpack'], ' ')
 
-		return element
-	}).catch((err)=>{
-		console.log('错误信息为：', err)
-	})
+    return element
+  }).catch((err)=>{
+    console.log('错误信息为：', err)
+  })
 }
 
 component().then( component => {
-	document.body.appendChild(component);
+  document.body.appendChild(component);
 })
 ```
+
 4. 再次构建，即可看到被分离出来的`vendors~lodash.bundle.js`文件
 
 当然上面第三步的代码还可以利用async，但是需要babel和[Syntax Dynamic Import Babel Plugin][syntaxDynamicImportBabelPluginUrl],如下：
 
 ```js
 async function component() {
-	var element = document.createElement('div')
-	const _ = await import(/* webpackChunkName: "lodash" */ 'lodash')
-	element.innerHTML = _.join(['hello', 'webpack'], ' ')
+  var element = document.createElement('div')
+  const _ = await import(/* webpackChunkName: "lodash" */ 'lodash')
+  element.innerHTML = _.join(['hello', 'webpack'], ' ')
 
-	return element
+  return element
 }
 
 component().then( component => {
-	document.body.appendChild(component);
+  document.body.appendChild(component);
 })
 ```
 
 ***Prefetching/preloading***<br/>
 上面我们动态导入时使用了类似`import(/* webpackChunkName: "lodash" */ 'lodash')`的方式，其实这里还可以使用prefetch、preload
 1. prefetch（在未来的某些路由页面可能需要的资源）
-	- 在父模块下载完成
-	- 浏览器空闲时下载
-	- 在未来的某个时候请求
+  - 在父模块下载完成
+  - 浏览器空闲时下载
+  - 在未来的某个时候请求
 2. preload（在当前路由页面可能需要的资源）
-	- 与父模块并行下载
-	- 具有中等优先级并且立即下载
-	- 应该立即被父模块请求
+  - 与父模块并行下载
+  - 具有中等优先级并且立即下载
+  - 应该立即被父模块请求
 使用时如
+
 ```js
 import(/* webpackPreload: true */ 'ChartingLibrary');
 
 import(/* webpackPrefetch: true */ 'LoginModal');
 ```
+
 这两者其实就是在最后标签里添加类似`<link rel="preload">`这样的效果，当然浏览器的支持度并不一致。另外尤其是preload，要注意使用，否则会损害性能。
 
 
@@ -996,19 +1197,19 @@ export default () => {
 import _ from 'lodash'
 
 function component(){
-	var ele = document.createElement('div')
-	var btn = document.createElement('button')
-	var br = document.createElement('br')
+  var ele = document.createElement('div')
+  var btn = document.createElement('button')
+  var br = document.createElement('br')
 
-	btn.innerHTML = 'Click me and look at the console!'
-	ele.appendChild(br)
-	ele.appendChild(btn)
+  btn.innerHTML = 'Click me and look at the console!'
+  ele.appendChild(br)
+  ele.appendChild(btn)
 
-	btn.onclick = e => import(/* webpackChunkName: 'print' */ './print').then(module => {
-		var print = module.default
-		print()
-	})
-	return ele
+  btn.onclick = e => import(/* webpackChunkName: 'print' */ './print').then(module => {
+    var print = module.default
+    print()
+  })
+  return ele
 }
 document.body.appendChild(component())
 ```
@@ -1044,10 +1245,10 @@ document.body.appendChild(component())
 比如懒加载一个模块，如果单纯修改这个模块，并将运行时抽离出去之后，是不会影响到主文件，此时只会改变该模块和抽离出去的manifest文件(或runtime.js文件)，另外就是可以在manifest文件里索引到该模块的hash值，如下看`f8def119`字段：
 ```js
 // manifest.69245d81.js
-/******/ 	// script path function
-/******/ 	function jsonpScriptSrc(chunkId) {
-/******/ 		return __webpack_require__.p + "" + ({"print":"print"}[chunkId]||chunkId) + "." + {"print":"f8def119"}[chunkId] + ".bundle.js"
-/******/ 	}
+/******/   // script path function
+/******/   function jsonpScriptSrc(chunkId) {
+/******/     return __webpack_require__.p + "" + ({"print":"print"}[chunkId]||chunkId) + "." + {"print":"f8def119"}[chunkId] + ".bundle.js"
+/******/   }
 
 // 文件名
 // print.f8def119.bundle.js
@@ -1058,7 +1259,7 @@ document.body.appendChild(component())
 ```js
 output: {},
 optimization: {
-	runtimeChunk: 'single'
+  runtimeChunk: 'single'
 }
 ```
 这样的结果是在**单独的把运行时相关的代码抽离出来**形成一个包。再修改单独的文件，就不会影响到主文件了。
@@ -1119,3 +1320,5 @@ optimization: {
 [vueLazyLoadAndCodeSplittingUrl]: https://alexjoverm.github.io/2017/07/16/Lazy-load-in-Vue-using-Webpack-s-code-splitting/
 [es5ModuleLazyLoadingInBrowserUrl]: https://dzone.com/articles/lazy-loading-es2015-modules-in-the-browser
 [v4WebpackWhatHaveChangeUrl]: https://feclub.cn/post/content/webpack4
+[cssLoaderWebpackUrl]: https://webpack.docschina.org/loaders/css-loader/
+[babelChineseDocsUrl]: https://www.babeljs.cn/docs/plugins
