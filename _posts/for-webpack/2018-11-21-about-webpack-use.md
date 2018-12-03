@@ -455,7 +455,7 @@ stage只是提案，是否最终发布不能确定，只是实验性的语法，
 - Plugin 会从第一个开始顺序执行。ordering is first to last.
 - Preset 的顺序则刚好相反(从最后一个逆序执行)。
 
-更多详情参考[babel官网中文文档][babelChineseDocsUrl]
+总结起来，`env`是纳入规范的新语法特性，而stage则是未纳入规范的提案，但有些api的调用并不是什么新的语法，比如Array.isArray这个方法在低版本ie浏览器中，就无法执行，因此还需要polyfill(当然自己写个方法实现也可以)。。。
 
 ***本地利用babel编译es6至es5*** <br/>
 1、 初始化仓库 `npm init` <br/>
@@ -479,7 +479,7 @@ npm i -D babel-cli babel-preset-env
 ```
 4、 将含有`m1.js,m2.js`的文件夹编译打包,配置package.json
 
->这里你或许会问，直接在项目里运行babel命令不就好了，为何还要写在这里？因为你安装的babel-cli只是项目内，并没有全局安装，因此会提示：command not found : bebel
+>这里你或许会问，直接在项目里运行babel命令不就好了，为何还要写在这里？因为你安装的babel-cli只是项目内，并没有全局安装，因此会提示：command not found : babel
 
 ```json
 {
@@ -493,6 +493,48 @@ npm i -D babel-cli babel-preset-env
 **综上：**
 上面处理了css，图片等文件类型，其实还可以加载字体类型，数据类型(如：json文件，csv,tsv和xml等)，原理都是相似的。类似于 NodeJS，JSON 支持实际上是内置的，也就是说 import Data from './data.json' 默认将正常运行。要导入 CSV、TSV 和 XML，你可以使用 [csv-loader][csvLoaderUrl] 和 [xml-loader][xmlLoaderUrl]。
 
+上面只说了很简单的一种使用方式，其实还有很多相关的使用方式，更多详情参考：<br/>
+[babel官网中文文档][babelChineseDocsUrl]<br/>
+[babel7使用手册][babel7UseUrl]<br/>
+
+
+***这里简短总结一下babel是如何读懂你的代码的***<br/>
+使用webpack处理源代码过程中，babel负责的功能很纯粹，就是接收**字符串格式**的代码，然后返回一段新的**代码字符串(及sourcemap)**，就是个编译器，将高级语法转译成低级语法，不会运行代码，也不会打包。。。
+
+上面的过程分为三个过程：
+1. parser(解析)
+	1. 分词(词法分析)
+	2. 语法分析
+2. transform(转换)
+3. generate(生成)
+![whatIsAST](/jsArt/assets/images/js-theory/what-is-AST.png)
+
+***1、 parser(解析)***<br/>
+比如代码块`n*n`经过**分词**之后，会变成类似如下：
+```js
+// 词法分析阶段把字符串形式的代码转换为 令牌(tokens)流
+// 每个type有一组属性来描述该令牌流，就是用来说明该令牌流的详细信息
+// 分词有一定的规则，也就是将js代码分割成最小的语法单元
+[
+  { type: { ... }, value: "n", start: 0, end: 1, loc: { ... } },
+  { type: { ... }, value: "*", start: 2, end: 3, loc: { ... } },
+  { type: { ... }, value: "n", start: 4, end: 5, loc: { ... } },
+  ...
+]
+```
+分词之后，在**语法分析阶段会将令牌流转换成初步AST**的形式，其实可以理解成一个大的json对象(对象形式描述的令牌流)，便于后续的操作。。。
+
+***2、 transform(转换)***<br/>
+转换阶段接收第一步生成的初步AST对象，然后对其遍历，在此过程中对节点进行添加，更新或移除等(比如本来是箭头函数的描述符，修改成普通的函数描述符，就完成箭头函数转化的一步。因为初步AST有详细的描述符，所以只需修改描述符就可以完成对应的语法修改)，这也是各种编译插件介入的地方。。。
+
+***3、 generate(生成)***<br/>
+这个阶段接收上一步经过一些列转换之后的AST对象，然后再转换成字符串形式的代码，同时创建源码映射(source map)。其实原理很简单，就是深度遍历整个AST，然后构建可以表示转换后的字符串。
+
+更多详情参考：<br/>
+[Babel是如何读懂JS代码的(AST)*][HowBabelReadJsCodeUrl]<br/>
+[AST抽象语法树——最基础的javascript重点知识，99%的人根本不了解][ASTAlmostPeopleNotKownUrl]<br/>
+[AST初学者教程][AST初学者教程Url]<br/>
+[抽象语法树(abstractSyntaxTree)][AbstractSyntaxTreeUrl]<br/>
 
 #### 4、**自动更新引入的文件**
 上面我们在index.html写死了引入的文件名如`<script src="main.js"></script>`,但如果我们更改了入口名或增加了入口数量，那岂不是每次都得手动改这个index.html。。。
@@ -1276,6 +1318,7 @@ optimization: {
 - [HashedModuleIdsPlugin][HashedModuleIdsPluginUrl]（推荐用于生产）
 
 
+***webapck暂时告一段落，这篇文章涉及了很多技术点，有些技术点只是大概说说原理，如需更深入，则需要查看相关连接。。。随着技术栈理解的越来越深，上面的还会再变动，因此只做参考。。。***
 
 
 
@@ -1322,3 +1365,8 @@ optimization: {
 [v4WebpackWhatHaveChangeUrl]: https://feclub.cn/post/content/webpack4
 [cssLoaderWebpackUrl]: https://webpack.docschina.org/loaders/css-loader/
 [babelChineseDocsUrl]: https://www.babeljs.cn/docs/plugins
+[babel7UseUrl]: https://mp.weixin.qq.com/s/AURDiWwspdfRExopNf4YLQ
+[AbstractSyntaxTreeUrl]: https://mp.weixin.qq.com/s?__biz=MjM5MTA1MjAxMQ==&mid=2651230568&idx=1&sn=1f6f1de7316f7a57c3209b6faa1ed9a4&scene=21#wechat_redirect
+[ASTAlmostPeopleNotKownUrl]: https://segmentfault.com/a/1190000016231512
+[AST初学者教程Url]: https://juejin.im/entry/5947703f8d6d81cc72f16e71
+[HowBabelReadJsCodeUrl]: https://zhuanlan.zhihu.com/p/27289600
