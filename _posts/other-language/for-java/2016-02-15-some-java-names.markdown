@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 了解一下java
-date: Mon Nov 26 2018 16:18:51 GMT+0800 (中国标准时间)
+date: Mon Nov 26 2017 16:18:51 GMT+0800 (中国标准时间)
 ---
 #### 关于java学习的几点建议
 [框架与基础哪个重要][baseOrFrameWhoisImportantUrl]<br/>

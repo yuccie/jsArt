@@ -535,6 +535,7 @@ npm i -D babel-cli babel-preset-env
 [AST抽象语法树——最基础的javascript重点知识，99%的人根本不了解][ASTAlmostPeopleNotKownUrl]<br/>
 [AST初学者教程][AST初学者教程Url]<br/>
 [抽象语法树(abstractSyntaxTree)][AbstractSyntaxTreeUrl]<br/>
+[AST in Modern JavaScript][ASTInModernJavaScriptUrl]<br/>
 
 #### 4、**自动更新引入的文件**
 上面我们在index.html写死了引入的文件名如`<script src="main.js"></script>`,但如果我们更改了入口名或增加了入口数量，那岂不是每次都得手动改这个index.html。。。
@@ -1320,6 +1321,11 @@ optimization: {
 
 ***webapck暂时告一段落，这篇文章涉及了很多技术点，有些技术点只是大概说说原理，如需更深入，则需要查看相关连接。。。随着技术栈理解的越来越深，上面的还会再变动，因此只做参考。。。***
 
+待整理：<br/>
+1. sass,less,css等文件的统一性处理
+2. webapck4框架学习
+
+
 
 
 
@@ -1370,3 +1376,4 @@ optimization: {
 [ASTAlmostPeopleNotKownUrl]: https://segmentfault.com/a/1190000016231512
 [AST初学者教程Url]: https://juejin.im/entry/5947703f8d6d81cc72f16e71
 [HowBabelReadJsCodeUrl]: https://zhuanlan.zhihu.com/p/27289600
+[ASTInModernJavaScriptUrl]: https://juejin.im/entry/5b0371e56fb9a07ac85abbf7
