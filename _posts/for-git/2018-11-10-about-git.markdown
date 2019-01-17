@@ -31,12 +31,36 @@ $ git clean -f
 # 连untracked的目录（工作区）也一块删掉
 $ git clean -fd
 
+# 若untracked的目录有子目录，可以如下全部删除
+$ git clean -fd -f
+
 # 删除某个分支（强制删除：-D）
 $ git branch -d xxx
 
 # 删除远程分支
 $ git push origin -delete xxx
+
+# 保存当前修改，再拉取远程更新或切换到远程
+$ git stash
+
+# 想再恢复之前的保存，用如下命令
+$ git stash pop
+
+# 重命名本地分支名
+$ git branch -m old-name new-name
+
 ```
+
+#### 禁用package-lock.json
+```bash
+# 当前项目里禁用
+echo 'package-lock=false' >> .npmrc
+echo 'package-lock.json' >> .gitignore
+
+# 当前机器当前用户，所有项目禁用
+npm config set package-lock false
+```
+
 
 #### 命令行初始化一个仓库
 ```bash
