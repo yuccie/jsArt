@@ -3,7 +3,7 @@ layout: post
 title: 基本的js原理
 date: Thu Jan 17 2019 15:17:36 GMT+0800 (中国标准时间)
 ---
-
+[参考js秘密花园][jsSecretGardenUrl]
 
 #### **defer与async**
 **注意：**默认情况下就是defer
@@ -16,6 +16,51 @@ date: Thu Jan 17 2019 15:17:36 GMT+0800 (中国标准时间)
 
 <script defer src="myscript.js"></script>
 // 有 defer，加载后续文档元素的过程将和 script.js 的加载并行进行（异步），但是 script.js 的执行要在所有元素解析完成之后，DOMContentLoaded 事件触发之前完成。
+```
+
+#### **内置类型的构造函数**
+**注意：**内置类型（比如 Number 和 String）的构造函数在被调用时，使用或者不使用 new 的结果完全不同。
+```js
+new Number(10) === 10;     // False, 对象与数字的比较
+Number(10) === 10;         // True, 数字与数字的比较
+new Number(10) + 0 === 10; // True, 由于隐式的类型转换
+```
+使用内置类型 Number 作为构造函数将会创建一个新的 Number 对象， 而在不使用 new 关键字的 Number 函数更像是一个数字转换器。
+为了避免意向不到的问题，一般都显式的声明转换规则。如
+```js
+// 使用一元的加号操作符，将字符串变为数字
++'10' === 10; // true
+// 字符串转数字，还有以下常见的几种
++'010' === 10
+Number('010') === 10
+parseInt('010', 10) === 10  // 用来转换为整数
+
++'010.2' === 10.2
+Number('010.2') === 10.2
+parseInt('010.2', 10) === 10
+
+// 当然还有使用两次否操作符，可以变为布尔值
+!!'foo';   // true
+!!'';      // false
+!!'0';     // true
+!!'1';     // true
+!!'-1'     // true
+!!{};      // true
+!!true;    // true
+```
+
+#### **定时器**
+定时函数 setTimeout 和 setInterval 都可以接受字符串作为它们的第一个参数。 这个字符串总是在**全局作用域**中执行，
+
+另外建议不要在调用定时器函数时，为了向回调函数传递参数而使用字符串的形式。
+```js
+function foo(a, b, c) {}
+// 不要这样做
+setTimeout('foo(1,2, 3)', 1000)
+// 可以使用匿名函数完成相同功能
+setTimeout(function() {
+    foo(1, 2, 3);
+}, 1000)
 ```
 
 
@@ -65,15 +110,4 @@ module.exports = {
   incCounter: incCounter,
 };
 ```
-
-
-[babelChineseDocsUrl]: https://www.babeljs.cn/docs/plugins
-[exports&exportDiffUrl]: https://github.com/aooy/blog/issues/5
-[requestAnimationFrame-ruanyifeng-Url]: https://javascript.ruanyifeng.com/htmlapi/requestanimationframe.html
-[requestAnimationFrame-taobao-FED-Url]: http://taobaofed.org/blog/2017/03/02/thinking-in-request-animation-frame/
-[requestAnimationFrame-zhangxinxu-Url]: https://www.zhangxinxu.com/wordpress/2013/09/css3-animation-requestanimationframe-tween-%E5%8A%A8%E7%94%BB%E7%AE%97%E6%B3%95/
-[YouDoNotKonwSetTimeoutUrl]: https://www.jeffjade.com/2016/01/10/2016-01-10-javacript-setTimeout/
-[w3cOfficalSetTimeoutUrl]: https://www.w3.org/TR/html5/webappapis.html#timers
-[setTimeoutAndSetIntervalUrl]: https://github.com/aooy/blog/issues/5
-[dynamicImportUrl]: https://www.w3ctech.com/topic/1977
-[nativeECAMScriptModulesUrl]: https://www.w3ctech.com/topic/1977
+[jsSecretGardenUrl]: https://bonsaiden.github.io/JavaScript-Garden/zh/
