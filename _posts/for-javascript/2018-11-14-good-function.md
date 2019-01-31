@@ -137,6 +137,25 @@ function debounce(fn, interval = 300) {
 
 #### 设置rem基准值
 ```js
+// 其实说白了，就是设定两个基准值，一个是屏幕宽度，一个字体大小
+// 比如说：移动端设置基准宽750px，设置字体100px
+// 而pc端：设置屏幕基准宽1600px，字体16px
+// 移动端
+(function (doc, win) {
+  var docEl = doc.documentElement,
+    resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+    recalc = function () {
+      var clientWidth = docEl.clientWidth;
+      if (!clientWidth) return;
+      docEl.style.fontSize = 100 * (clientWidth / 750) + 'px';
+    };
+
+  if (!doc.addEventListener) return;
+  win.addEventListener(resizeEvt, recalc, false);
+  doc.addEventListener('DOMContentLoaded', recalc, false);
+})(document, window);
+
+// pc端
 (function(){
   'use strict';
   /**
@@ -164,7 +183,6 @@ function debounce(fn, interval = 300) {
     */
     setRootFontSize = function(){
       el.style.fontSize = el.clientWidth / dipWidth * size + 'px';
-      window.$rootFontSize = el.style.fontSize.replace('px','')
     };
   setRootFontSize();
   window.addEventListener(eventType, setRootFontSize, false);
