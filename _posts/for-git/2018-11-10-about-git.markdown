@@ -96,6 +96,9 @@ $ git remote rm <主机名>
 
 # 重命名远程主机名
 $ git remote rename <原主机名> <新主机名>
+
+# 修改远程仓库地址，url地址有https与ssh两种
+$ git remote set-url origin [url]
 ```
 
 ### git fetch
