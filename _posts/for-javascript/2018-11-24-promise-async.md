@@ -510,6 +510,11 @@ Array.from(set) // 'Alice', 'Bob', 'Carol'
 // 等价于
 Array.from(set[Symbol.iterator]())
 
+Array.from() 方法从一个类似数组或可迭代对象中创建一个新的数组实例。
+```js
+Array.from(arrayLike[, mapFn[, thisArg]])
+```
+
 // 还可以使用展开运算符 ...
 let names = [...set]  // 'Alice', 'Bob', 'Carol'
 ```
