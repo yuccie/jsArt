@@ -414,8 +414,8 @@ async function async1() {
 async function async1() {
 	console.log('async1 start');
 	Promise.resolve(async2()).then(() => {
-                console.log('async1 end');
-        })
+    console.log('async1 end');
+  })
 }
 
 // 
