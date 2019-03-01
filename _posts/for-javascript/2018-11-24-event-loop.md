@@ -82,6 +82,48 @@ console.log('代码执行结束')
 3. ajax事件完成，回调函数success进入Event Queue。
 4. 主线程从Event Queue读取回调函数success并执行。
 
+***node.js的事件循环***<br/>
+参考：[nodejs的事件循环(官网)][officialNodeJsEventLoopUrl]、[剖析nodejs的事件循环][anlyzeNodeJsEventLoopUrl]、<br/>
+- EventLoop是一种事件处理模型。
+- node.js实现了单线程高效的异步IO,这里的单线程指的是执行js代码部分的线程
+- 异步IO部分node.js是利用线程池去执行的
+
+![nodejs架构](/jsArt/assets/images/js-theory/nodejs.png)
+上图是nodejs的架构，从上到下：
+1. 用户代码js(也就是我们编写的应用程序，npm包，nodejs内置的模块等)
+2. binding代码或第三方插件(js或c/c++代码，胶水代码能够让js调用c/c++的代码，相当于一个桥联通js与c/c++)
+3. 底层库(nodejs的依赖库，包括v8，libuv(c语言实现的一套异步功能库，nodejs的异步编程模型很大程度归功于libuv的实现)，还包括其他依赖库http-parser,openssl加解密，c-ares解析dns，npm包管理器)
+
+而nodejs实现异步机制的核心便是libuv，libuv承担着nodejs与文件、网络等异步任务的沟通桥梁
+![libuv架构](/jsArt/assets/images/js-theory/libuv.png)
+上图中可以看到:nodejs的网络I/O、文件I/O、DNS操作、还有一些用户代码都是在 libuv 工作的。 
+
+非I/O:
+- 定时器（setTimeout，setInterval）
+- microtask（promise）
+- process.nextTick
+- setImmediate
+- DNS.lookup
+
+I/O:
+- 网络I/O
+- 文件I/O
+- 一些DNS操作
+
+对于网络I/O，各个平台的实现机制不一样，linux 是 epoll 模型，类 unix 是 kquene 、windows 下是高效的 IOCP 完成端口、SunOs 是 event ports，libuv 对这几种网络I/O模型进行了封装。
+
+libuv内部还维护着一个默认4个线程的线程池，这些线程负责执行文件**I/O操作、DNS操作、用户异步代码**。当 js 层传递给 libuv 一个操作任务时，libuv 会把这个任务加到队列中。之后分两种情况：
+- 线程池中的线程都被占用的时候，队列中任务就要进行排队等待空闲线程。
+- 程池中有可用线程时，从队列中取出这个任务执行，执行完毕后，线程归还到线程池，等待下个任务。同时以事件的方式通知event-loop，event-loop接收到事件执行该事件注册的回调函数。
+
+**注意：**如果觉得4个线程不够用，可以在nodejs启动时，设置环境变量UV_THREADPOOL_SIZE来调整，出于系统性能考虑，libuv 规定可设置线程数不能超过128个。
+
+***官网解释EventLoop***<br/>
+尽管 JavaScript 是单线程处理的——当有可能的时候，它们会把操作转移到系统内核中去
+
+既然目前大多数内核都是多线程的，它们可在后台处理多种操作。当其中的一个操作完成的时候，内核通知 Node.js 将适合的回调函数添加到 轮询 队列中等待时机执行。
+
+
 
 #### 五、定时器
 [w3c更多标准][w3cOfficalSetTimeoutUrl]<br/>
@@ -141,10 +183,9 @@ setTimeout(function timeout() {
 // 2
 // TIMEOUT FIRED
 ```
-由于process.nextTick方法指定的回调函数，总是在当前"执行栈"的尾部触发，所以不仅函数A比setTimeout指定的回调函数timeout先执行，而且函数B也比timeout先执行。这说明，如果有多个process.nextTick语句（不管它们是否嵌套），将全部在当前"执行栈"执行。
+由于process.nextTick方法指定的回调函数，总是在当前"执行栈"的尾部触发，所以不仅函数A比setTimeout指定的回调函数timeout先执行，而且函数B也比timeout先执行。这说明，如果有多个process.nextTick语句（不管它们是否嵌套），将全部在当前"执行栈"执行。而setImmediate总是将事件注册到下一轮Event Loop，多个process.nextTick语句总是在当前"执行栈"一次执行完，多个setImmediate可能则需要多次loop才能执行完。
 
 **注意:**到这里应该对Event Loop有深刻理解了吧，所谓的Event Loop是周而复始读取任务队列的过程。而process.nextTick方法会在当前执行栈的尾部触发回调，也就是在当前执行栈的最后执行位置。而setImmediate也是在当前任务队列的尾部添加事件。(待完善)
-
 
 #### 宏任务和微任务
 首先我们要知道宏任务和微任务都是异步任务
@@ -446,3 +487,5 @@ console.log('1', a) // -> '1' 1
 [YouDoNotKonwSetTimeoutUrl]: https://www.jeffjade.com/2016/01/10/2016-01-10-javacript-setTimeout/
 [w3cOfficalSetTimeoutUrl]: https://www.w3.org/TR/html5/webappapis.html#timers
 [setTimeoutAndSetIntervalUrl]: https://github.com/aooy/blog/issues/5
+[officialNodeJsEventLoopUrl]: https://nodejs.org/zh-cn/docs/guides/event-loop-timers-and-nexttick/
+[anlyzeNodeJsEventLoopUrl]: https://juejin.im/post/5af1413ef265da0b851cce80
