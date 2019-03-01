@@ -7,6 +7,134 @@ date: Wed Nov 14 2018 19:33:18 GMT+0800 (中国标准时间)
 
 ### 经典函数收集
 
+#### 数组去重
+```js
+// 原始方法一
+var arr1 = [ 1, 1, '1', '1' ]
+function unique1( arr ) {
+  let arrLen = arr.length
+  if ( arrLen <= 1 ) return
+  debugger
+  let resArr = []
+  for ( let i = 0; i < arrLen; i++ ) {
+    for ( var j = 0, resLen = resArr.length; j < resLen; j++ ) {
+      // 判断原数组与结果数组是否有重复，只要有一个重复就是重复了，也就没必要再比较了，就跳出整个循环
+      if ( arr[ i ] === resArr[ j ] ) {
+        // break以后，j就不会在++了，
+        break
+      }
+    }
+    if ( j === resLen ) {
+      resArr.push( arr[ i ] )
+    }
+  }
+  return resArr
+}
+console.log( unique1( arr1 ) )
+
+// indexOf
+var arr2 = [ 1, 1, '1', '1' ]
+function unique2(arr){
+  let arrLen = arr.length
+  if(arrLen <= 1) return
+  let resArr = []
+  for(let i = 0; i < arrLen; i++){
+    if(resArr.indexOf(arr[i]) === -1){
+      // 如果成立，则不包含
+      resArr.push(arr[i])
+    }
+  }
+  return resArr
+}
+console.log( unique2( arr2 ) )
+
+// filter
+var arr3 = [1,1,'1','1']
+function unique3(arr){
+  let arrLen = arr.length
+  if(arrLen <= 1) return
+
+  // return arr.filter((item,index,array) => {
+  //   return index === array.indexOf(item)
+  // })
+  return arr.filter((item,index,array) => 
+    // 当箭头函数的函数体只有一个 `return` 语句时，可以省略 `return` 关键字和方法体的花括号
+    // 注意花括号也得省略
+    index === array.indexOf(item)
+  )
+}
+console.log(unique3(arr3))
+
+// 先排序在去重
+var arr4 = [2,'1',1,'2']
+function uniqued4(arr){
+  // 排序
+  let arrLen = arr.sort().length
+  if(arrLen <= 1) return
+  let newArr = [],prevVal;
+  for(let i = 0; i < arrLen; i++ ){
+    // 第一个肯定要放进去，然后再找相邻不等的
+    // 必须将前一个值存起来
+    if(!i || prevVal !== arr[i]){
+      newArr.push(arr[i])
+    }
+    // 每次循环都会赋值一个新值
+    prevVal = arr[i]
+  }
+  return newArr
+}
+console.log(uniqued4(arr4))
+
+// 先排序在去重，再用filter
+var arr5 = [2,'1',1,1,'2']
+function uniqued5(arr){
+  // 排序
+  let arrLen = arr.sort().length
+  if(arrLen <= 1) return
+  return arr.filter((item,index,array) => 
+    !index || item !== array[index-1]
+  )
+}
+console.log(uniqued5(arr5))
+
+// map
+var arr6 = [2,'1',1,1,'2']
+function uniqued6(arr){
+  let arrLen = arr.length
+  if(arrLen <= 1) return
+  let newMap = new Map()
+  // map里面不能有重复的
+  return arr.filter(a => !newMap.has(a) && newMap.set(a,1))
+}
+console.log(uniqued6(arr6))
+
+
+// Set
+var arr6 = [2,'1',1,1,'2']
+function uniqued6(arr){
+  let arrLen = arr.length
+  if(arrLen <= 1) return
+  return [...new Set()]
+}
+console.log(uniqued6(arr6))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
 #### 调系统摄像头录像转换为canvas
 需要开启web服务：
 - python3 -m http.server

@@ -94,3 +94,4 @@ function throttle(fn, interval = 300){
     }, interval)
   }
 }
+
