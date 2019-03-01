@@ -8,6 +8,8 @@ date: Sat Nov 10 2018 15:16:33 GMT+0800
 
 参考：[阮一峰-远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html) 
 
+参考：[阮一峰-工作流](http://www.ruanyifeng.com/blog/2015/12/git-workflow.html)
+
 工作区：就是我们本地的目录，还没有被git管理
 暂存区：git开始管理，只是还没有提交到分支上
 commit: commit后就将暂存区的内容提到分支上了，如果此时在git push则把本地修改同步到远程
