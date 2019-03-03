@@ -13,6 +13,23 @@ function bubleSort(arr){
 }
 
 function bubleSort(arr){
+  let arrLen = arr.length
+  if(arrLen <= 1) return
+  let flag = true
+  for(let i = 0;i < arrLen-1;i++){
+    
+    for(let j = i;j<arrLen-1-i;j++){
+      if(arr[j]>arr[j+1]){
+        [arr[j+1],arr[j]] = [arr[j],arr[j+1]]
+        flag = false
+      }
+      if(flag) break
+    }
+  }
+  return arr
+}
+
+function bubleSort(arr){
   if(!arr) return
   let arrLen = arr.length
   for(let i = 1;i<arrLen;i++){
@@ -95,3 +112,54 @@ function throttle(fn, interval = 300){
   }
 }
 
+let obj = {
+  name : 'obj name'
+}
+let fn = function(){
+  console.log(this.name)
+}
+
+Function.prototype.myBind = function(obj,...args){
+  return (...args1) => {
+    this.appply(obj, args.concat(...args1))
+  }
+}
+
+// 节流
+function throttle(fn ,interval = 300){
+  let canRun  = true
+  return (...args) => {
+    if(!canRun) return
+    canRun = true
+    setTimeout(()=>{
+      fn.apply(this, args)
+      canRun = false
+    }, interval)
+  }
+}
+
+// 防抖
+function debounce(fn ,interval = 300){
+  let timeout = null
+  return (...args) => {
+    clearTimeout(timeout)
+    setTimeout(()=>{
+      fn.apply(this, args)
+    }, interval)
+  }
+}
+
+// 插入排序
+
+for(let i = 1;i<arr.length;i++){
+  let value = arr[i]
+    j = i -1;
+  for(;j>=0;j--){
+    if(arr[j]>value){
+      arr[j+1] = arr[j]
+    }else{
+      break
+    }
+  }
+  arr[j+1] = value
+}
