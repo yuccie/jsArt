@@ -263,6 +263,12 @@ function debounce(fn, interval = 300) {
 
 ```
 
+#### 弹出层完美禁止页面滚动
+参考：[弹层之后禁止页面滚动][forbiddenScrollUrl]、[web移动端浮层阻止窗体滚动(张鑫旭)][forbiddenWebScrollZXXUrl]<br/>
+- 弹出层position设置为fixed，四个定位锚点均设为0；
+- 激活弹出层时给html和body设置overflow: hidden;；
+- 激活时，还需要加css属性touch-action: none;
+
 #### 设置rem基准值
 ```js
 // 其实说白了，就是设定两个基准值，一个是屏幕宽度，一个字体大小
@@ -318,3 +324,8 @@ function debounce(fn, interval = 300) {
   document.addEventListener('DOMContentLoaded', setRootFontSize, false);
 })();
 ```
+
+
+
+[forbiddenScrollUrl]: https://codepen.io/zhaojun/post/forbidscroll
+[forbiddenWebScrollZXXUrl]: https://www.zhangxinxu.com/wordpress/2016/12/web-mobile-scroll-prevent-window-js-css/
