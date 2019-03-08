@@ -50,7 +50,6 @@ $ git stash pop
 
 # 重命名本地分支名
 $ git branch -m old-name new-name
-
 ```
 
 #### 禁用package-lock.json
@@ -101,6 +100,9 @@ $ git remote rename <原主机名> <新主机名>
 
 # 修改远程仓库地址，url地址有https与ssh两种
 $ git remote set-url origin [url]
+
+# 远程分支已删除，本地还没删除，可以通过以下命令同步一下
+$ git remote prune origin
 ```
 
 ### git fetch
@@ -157,7 +159,7 @@ $ git pull -p
 # 将本地master分支的更新推送到远程主机next分支上
 $ git push origin master:next
 
-# 省略远程分支名，则表示将本地分支推送到与之存在追踪关系的远程分支
+# 省略远程分支名，则表示将本地分支推送到与之存在追踪关系的远程分支。推送本地分支到远程分支
 # 如果远程分支不存在，则会新建
 $ git push origin master
 
