@@ -140,7 +140,8 @@ $ git merge origin/next
 
 # 在clone仓库时，git会自动在本地与远程同名分支之间，建立一种追踪关系（tracking）
 # 当然也可以手动建立追踪关系，如下本地master与远程next分支
-$ git branch --set-upstream master origin/next
+# $ git branch --set-upstream master origin/next // 这个命令废弃了
+git branch --set-upstream-to=origin/myBranch myBranch
 
 # 如果当前分支与 远程追踪分支 存在追踪关系，可以省略远程追踪分支名
 # 当前分支还可以同时追踪多个远程分支？？
