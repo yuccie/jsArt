@@ -32,6 +32,29 @@ JavaScript语言的设计者意识到，这时主线程完全可以不管IO设�
 
 只要主线程空了(js引擎存在monitoring process进程，会持续不断检查主线程执行栈是否为空)，就会去读取"任务队列"，这就是JavaScript的运行机制。这个过程会不断重复。
 
+再来通过一段伪代码了解一下这个概念 :
+```js
+// eventLoop是一个用作队列的数组 //(先进，先出)
+var eventLoop = [ ];
+var event;
+//“永远”执行 
+while (true) {
+  // 一次tick
+  if (eventLoop.length > 0) {
+    // 拿到队列中的下一个事件 
+    event = eventLoop.shift();
+    // 现在，执行下一个事件
+    try {
+      event(); 
+    }
+    catch (err) {
+      reportError(err);
+    }
+  }
+}
+```
+上面是一段伪代码，只用来说明概念，你可以看到，有一个用 while 循环实现的持续运行的循环，**循环的每一轮称为一个 tick**。 对每个 tick 而言，如果在队列中有等待事件，那么就会从队列中摘下一个事件并执行。这 些事件就是你的回调函数。
+
 #### 三、事件及回调函数
 "任务队列"是一个事件的队列（也可以理解成消息的队列），IO设备完成一项任务，就在"任务队列"中添加一个事件，表示相关的异步任务可以进入"执行栈"了。主线程读取"任务队列"，就是读取里面有哪些事件。
 
@@ -262,6 +285,27 @@ node环境执行过程：
 4. 第四轮，在第二轮没有微任务，在第三轮注册两个微任务，因此依次执行并打印Promise2，p2
 5. 第五轮，上一轮把所有微任务执行完了，最后打印setTimeout2
 
+
+```js
+function testQueue (){
+  Promise.resolve().then(()=>{
+    console.log('Promise1')
+    Promise.resolve().then(()=>{
+      console.log('Promise3')    
+    })  
+
+  })
+  console.log('begin')
+
+  Promise.resolve().then(()=>{
+    console.log('p2')    
+  })
+}
+testQueue()
+// 浏览器环境
+// begin,Promise1,p2,Promise3
+```
+注意，虽然执行Promise1时，遇到微任务Promise3，但只是在任务队里插入新的微任务，期前面还有p2。。。因此先执行p2
 
 **综上**：在浏览器和node环境下，事件循环处理的机制不同。前者在执行宏任务或微任务过程中，如果遇到新注册的微任务则全部执行。而在node环境下，如果有同一循环下注册的宏任务，则先执行这些宏任务，然后再去执行微任务
 

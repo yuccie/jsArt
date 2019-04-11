@@ -444,6 +444,40 @@ for(let i of obj){
 直接调用obj[Symbol.iterator]()会返回一个迭代器对象，然后再调用这个对象上的next方法，可以打印迭代器的每个成员。
 
 #### Gennerator
+```js
+var x = 1;
+// function* foo(){}、function *foo(){}、function*foo(){}功能与语法都相同
+function *foo() {
+  x++;
+  console.log("x:", x)
+  yield; // 暂停!
+  bar()
+  console.log( "x:", x );
+}
+function bar() {
+  x++;
+}
+
+var it = foo()
+it.next() 
+// x: 2
+// {value: undefined, done: false}
+it.next()
+// x: 3
+// {value: undefined, done: true}
+```
+
+(1) it = foo() 运算并没有执行生成器 *foo()，而只是构造了一个迭代器(iterator)，这个 迭代器会控制它的执行。后面会介绍迭代器。
+(2) 第一个 it.next() 启动了生成器 *foo()，并运行了 *foo() 内的 x++, console.log("x:", x)。
+(3) *foo() 在 yield 语句处暂停，在这一点上第一个 it.next() 调用结束。此时 *foo() 仍
+ 在运行并且是活跃的，但处于暂停状态。
+(4) 我们查看 x 的值，此时为 2。
+(5) 我们调用 bar()，它通过 x++ 再次递增 x。
+(6) 我们再次查看 x 的值，此时为 3。
+(7) 最后的 it.next() 调用从暂停处恢复了生成器 *foo() 的执行，并运行bar(), console.log(..)
+语句，这条语句使用当前 x 的值 3。
+
+
 上面说了手写迭代器，其实ES6里提供了专门用来生成迭代器的api，也就是Gennerator Function生成器方法，以方便上述迭代器的实现。生成器方法返回的Gennerator对象直接就是一个实现了Iterator Protocol的对象
 
 然后我们用生成器方法重新实现50以内的斐波那契数列
