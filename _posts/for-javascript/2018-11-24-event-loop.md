@@ -263,6 +263,53 @@ node环境执行过程：
 5. 第五轮，上一轮把所有微任务执行完了，最后打印setTimeout2
 
 
+```js
+var p = Promise.resolve()
+p.then( function(){
+  p.then( function(){
+    console.log( "C" );
+  } );
+  setTimeout(()=>{
+    console.log('D')
+  })
+  console.log( "A" );
+} );
+p.then( function(){
+ console.log( "B" );
+} ); 
+
+// A B C D
+```
+一个 Promise 决议后，这个 Promise 上所有的通过then(..) 注册的回调都会在下一个异步时机点上依次被立即调用。这些回调中的任意一个都无法影响或延误对其他回调的调用。这里，"C" 无法打断或抢占 "B"，这是因为 Promise 的运作方式。
+
+事件循环队列类似于一个游乐园游戏：玩过了一个游戏之后，你需要重新到队尾排队才能再玩一次。而任务队列类似于玩过了游戏之后，插队接着继续玩。一个任务可能引起更多任务添加到同一个任务队列中，所以，理论上任务循环可能会无限循环。。。每次事件循环可理解为tick，如果遇到任务则属于当前tick(类似setTimeout(fn,0))，只有事件才属于下一轮tick
+
+这对上面的例子，首先会注册A,B任务，然后打印A、B，执行A的时候注册新的任务C，C属于任务，因此为在当前tick执行，而D属于事件，需要在下一个tick执行，因此最后执行
+
+```js
+var p3 = new Promise( function(resolve,reject){
+ resolve( "B" );
+} );
+var p1 = new Promise( function(resolve,reject){
+ resolve( p3 );
+} );
+p2 = new Promise( function(resolve,reject){
+ resolve( "A" );
+} );
+p1.then( function(v){
+ console.log( v );
+} ); 
+p2.then( function(v){
+ console.log( v );
+} ); 
+
+// A B
+// ，p1 不是用立即值而是用另一个 promise p3 决议，
+// 后者本身决议为值 "B"。规定的行为是把 p3 展开到 p1，但是是异步地展开。
+// 所以，在异步任务队列中，p1 的回调排在 p2 的回调之后
+```
+注意：**把p3展开到p1是异步地展开**
+
 **综上**：在浏览器和node环境下，事件循环处理的机制不同。前者在执行宏任务或微任务过程中，如果遇到新注册的微任务则全部执行。而在node环境下，如果有同一循环下注册的宏任务，则先执行这些宏任务，然后再去执行微任务
 
 在**node环境**下，还有process.nextTick,**是在当前执行栈的末尾执行**,意味着要早于宏任务或微任务
