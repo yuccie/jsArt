@@ -3,10 +3,7 @@ layout: post
 title: vue的那些常见问题
 date: Sat Nov 10 2018 20:16:33 GMT+0800
 ---
-
-<!-- 参考：[阮一峰-常用git命令操作](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html) 
-
-参考：[阮一峰-远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)  -->
+参考：[vue技术内幕][vueTechInsdStory]、[vue技术解密][vueTechDecrypt]<br/>
 
 
 #### token
@@ -65,3 +62,91 @@ mounted () {
 
 **方式二：**之所以想让第一次触发，是因为我们想要的数据确实到达了子组件，而我们实现出发后具体的更新逻辑一般在watch里，因此可以将这部分逻辑单独抽离出来，然后在mounted里判断一下，如果有更新数据达到，就执行一下抽离出来的逻辑。。。
 
+#### 过滤器
+
+```js
+filters: {
+  string2Date(item){
+    return string2Date(item)
+  },
+  formatEnum: (val) => {
+    // 打印{a:{}}, a何意？若非箭头函数，this为undefined
+    console.log('this', this)
+    return val
+  }
+},
+```
+
+#### v-if && v-show
+如果一个弹窗里有多个组件，通过一个dialog来控制，为了降低损耗，用v-show。。。但有一个问题，就是页面初始化的时候，dialog内所有组件都不会初始化，但只要有一个组件显示，其他的组件都会被渲染(只是表现为display:none)。。。但这会造成一个问题，就是组件内钩子上的方法会被调用，进而出错。。。而是整个组件内的钩子都会被调用。。。
+```js
+<el-dialog
+  :title="dialog.title"
+  :visible.sync="dialog.visible"
+> 
+  <c-apply-remove
+    v-show="dialog.type === menuMap.get('ORDER_APPLY')"
+    :visible.sync="dialog.visible"
+  ></c-apply-remove>
+
+  <c-view-details 
+    v-show="dialog.type === menuMap.get('VIEW_DETAIL')" 
+    :orderId="dialog.currentData.orderId"
+    :requestId="dialog.currentData.requestId"
+    :visible.sync="dialog.visible"
+  ></c-view-details>
+
+  <c-review 
+    v-show="dialog.type === menuMap.get('REVIEW')" 
+    :orderId="dialog.currentData.orderId"
+    :requestId="dialog.currentData.requestId"
+    :status="dialog.currentData.status"
+    :visible.sync="dialog.visible"
+  ></c-review >
+
+  <c-change-records 
+    v-show="dialog.type === menuMap.get('STATUS_CHANGE_RECORDS')"
+    :orderId="dialog.currentData.orderId"
+    :visible.sync="dialog.visible"
+  ></c-change-records>
+</el-dialog>
+```
+
+
+***vue的.native修饰符***<br/>
+参考：[.native监听组件根元素原生事件][vueNatvieModifierUrl]、[native原理(知乎)][vueNatvieModifierUrl(知乎)]<br/>
+官方：你可能有很多次想要在一个组件的根元素上直接监听一个原生事件，这时可以用.native修饰符。
+注意：必须是一个自定义组件上用native，在普通的标签上没有效果，所谓普通就是像div，a这些原生标签。
+```html
+<barProcess :barObj="barObj.rateOne" @click.native="clickMe"></barProcess>
+```
+这样就可以给整个组件绑定click的事件，所谓原生事件，不过是原生标签才具有的事件而已
+但还要注意，给组件上添加.native，其实仍然是给定义的组件的根原生元素添加的事件，利用事件流冒泡的原理，如果对非根元素使用click.stop后，则父组件使用.native则捕捉不到对应区域的click事件
+
+有个技巧但也不一定好，利用冒泡原理，使用了native后最外层根元素会监听到组件内的点击事件，相当于在子组件内不需要再使用emit暴露指定事件了，但这样适用于组件内点击事件比较少的情况下，多的时候会比较混乱。
+
+***vue的.sync修饰符***<br/>
+[.sync修饰符][vueSyncModifierUrl]
+在之前的父子组件传递数据时，一般使用props，但是子组件不能直接修改props。。。但是有时候，props的值确实需要变更，只能emit出去，然后父组件再更改。。。但这样有点麻烦，因此.sync的修饰符，就不需要父组件再监听什么了，子组件直接emit出一个特殊事件名即可
+
+```js
+// 子组件emit出一个'update:xxx'即可
+this.$emit('update:title', newTitle)
+```
+
+```html
+// 父组件
+<text-document v-bind:title.sync="doc.title"></text-document>
+
+// 如果想多个值，比如对象，可以如下
+<text-document v-bind.sync="doc"></text-document>
+```
+
+
+
+
+[vueSyncModifierUrl]: https://cn.vuejs.org/v2/guide/components-custom-events.html#sync-%E4%BF%AE%E9%A5%B0%E7%AC%A6
+[vueNatvieModifierUrl]: https://cn.vuejs.org/v2/guide/components-custom-events.html
+[vueNatvieModifierUrl(知乎)]: https://zhuanlan.zhihu.com/p/36101632
+[vueTechInsdStory]: http://hcysun.me/vue-design/
+[vueTechDecrypt]: https://ustbhuangyi.github.io/vue-analysis/
