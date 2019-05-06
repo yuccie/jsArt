@@ -6,7 +6,7 @@ date: Thu Jan 17 2019 15:17:36 GMT+0800 (中国标准时间)
 [参考js秘密花园][jsSecretGardenUrl]
 
 #### **defer与async**
-**注意：**默认情况下就是defer
+**注意：**如果用document.createElement创建的script元素默认是async;async和defer标识的script脚本可能在DOMContentLoaded事件前触发（多数），也可能在之后，但一定都在load事件之前。
 ```js
 <script src="script.js"></script>
 // 没有 defer 或 async，浏览器会立即加载并执行指定的脚本，“立即”指的是在渲染该 script 标签之下的文档元素之前，也就是说不等待后续载入的文档元素，读到就加载并执行。
@@ -15,7 +15,7 @@ date: Thu Jan 17 2019 15:17:36 GMT+0800 (中国标准时间)
 // 有 async，加载和渲染后续文档元素的过程将和 script.js 的加载与执行并行进行（异步）。
 
 <script defer src="myscript.js"></script>
-// 有 defer，加载后续文档元素的过程将和 script.js 的加载并行进行（异步），但是 script.js 的执行要在所有元素解析完成之后，DOMContentLoaded 事件触发之前完成。
+// 有 defer，加载后续文档元素的过程将和 script.js 的加载并行进行（异步），但是 script.js 的执行要在所有元素解析完成之后，一般在DOMContentLoaded 事件触发之前完成，但也不一定。
 ```
 
 #### **内置类型的构造函数**
