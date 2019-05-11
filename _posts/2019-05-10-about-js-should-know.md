@@ -67,9 +67,11 @@ msg = 100 // 有效但不推荐
 
 像上面那样先初始化一个字符串数据类型，后又改为数字类型，这种即改变变量值又改变值类型的行为不推荐。
 
+。所有变量(包括基本类型和引用类型)都存在与一个执行环境(也叫作用域)中，这个执行环境决定了变量的生命周期，以及哪一部分代码可以访问其中的变量。
+
 ---
 
-### **数据类型**
+### **基本数据类型**
 
 ---
 
@@ -112,6 +114,14 @@ Number(null) === 0  // true
 如果定义的变量准备在**将来用于保存对象，那么最好将该变量初始化为`null`而不是其他值**。这样只要直接检测是否为`null`就可以知道变量是否已经保存一个对象的引用了。
 
 参考：[null和undefined的由来及区别][nullAndundefined(阮一峰)]
+
+#### **instanceof**
+
+。`typeof`是检测字符串、数值、布尔值、`undefined`的最佳工具，但对于对象或`null`，则都返回`'object'`。因此在检测引用类型的值时用途不大，因为**我们并不是想知道某个值是对象，而是想知道它是什么类型的对象**，因此出现了`instanceof`操作符，**用于测试构造函数的prototype属性是否出现在对象的原型链中的任何位置**。
+
+如果变量是给定引用类型的实例，那么`instanceof`就会返回`true`。根据规定，所有引用类型都是`Objcet`的实例，因此在检测引用类型值与`Objcet`构造函数时，`instanceof`都会返回`true`，如果检测基本类型，则都会`false`，因为基本类型不是对象。。。
+
+在ECMA-262规范中，凡是内部实现`[[call]]`方法的对象，`typeof`检测都返回`'function'`，由于正则也实现了，因此也会返回`'function'`。。。但现代浏览器普遍都返回`'object'`
 
 #### **Number**
 
@@ -252,6 +262,8 @@ isNaN(null)       // false，null会被转换0
 为变量赋值时，ECMAScript 的解释程序必须判断该值是原始类型，还是引用类型。要实现这一点，解释程序则需尝试判断**该值是否为 ECMAScript 的原始类型之一**，即 `Undefined、Null、Boolean、Number`和 `String`型。由于这些**原始类型占据的空间是固定的，所以可将他们存储在较小的内存区域 - 栈中。这样存储便于迅速查寻变量的值**。
 
 如果一个值是**引用类型的，那么它的存储空间将从堆中分配**。由于引用值的大小会改变，所以不能把它放在栈中，否则会降低变量查寻的速度。相反，放在**变量中的值是该对象存储在堆中的地址**。地址的大小是固定的，所以把它存储在栈中对变量性能无任何负面影响。
+
+另外：引用类型的值是保存在内存中的对象，与其他语言不同，js不允许直接访问内存中的位置，在操作对象时，实际操作的是对象的引用而不是实际的对象。
 
 JavaScript调用`valueOf`方法将对象转换为原始值。你很少需要自己调用`valueOf`方法；当遇到要预期的原始值的对象时，JavaScript会自动调用它。
 
@@ -477,11 +489,132 @@ str = 'java' + 'script'
 
 ---
 
+### **操作符**
+
+#### **逗号操作符**
+
+。使用逗号操作符可以在一条语句中执行多个操作，多用于声明多个变量。还用于赋值，在用于赋值时，逗号操作符总会返回表达式的最后一下：
+
+```js
+// 声明变量
+var num1 = 1, num2 = 2, num3 = 3;
+
+// 赋值
+var num = (5, 1, 4, 8);  // num的值为8
+```
+
+### **引用数据类型**
+
+---
+
+#### **Object类型**
+
+。尽管`ECMAScript`从技术上讲是一门面向对象的语言，但不具备传统面向对象语言所支持的类和接口等结构。
+
+对象是特定引用类型(比如`Object`)的实例，新对象是使用`new`操作符后跟一个**构造函数**来创建的。构造函数本身就是一个函数，只不过该函数是出于创建新对象的目的而定义的。
+
+```js
+var person = new Object();
+```
+
+上面代码创建了`Object`引用类型的一个新实例，然后把该实例保存在变量`person`中，使用的构造函数`Object`，他只是**为新对象定义了一些默认的属性和方法**。`ECMAScript`提供了很多原生引用类型(`Array、Date、RegExp、Function`等)，以便开发人员用以实现常见的计算任务。
+
+```js
+var person = {
+  name: 'jane',
+  'home': 'beijing',   // 属性名可以使字符串
+  66: true,            // 数值属性会自动转为字符串
+  age: 18              // 在老的浏览器，最后一个属性后加,号，会出错
+};
+```
+
+。当然还有字面量方式定义对象，上面例子中，左侧的`{`表示对象字面量的开始，因为它出现在表达式上下文中。在`ECMAScript`中的表达式上下文指的是能够返回一个值(表达式)，赋值操作符表示后面是一个值。
+
+一般来说，访问对象的属性使用点表示法，但还有方括号表示法，后者在通过变量访问或属性名有特殊字符、关键字或保留字时访问属性会很方便
+
+```js
+var propertyName = 'name';
+person[propertyName]      // 变量
+person['first name']      // 特殊字符空格
+```
+
+#### **Array类型**
+
+。`ECMAScript`中的数组和其他语言中的数组有很大差别，虽然都是有序列表，但`ECMAScript`中的数组的每一项可以保存任何类型的数据，而且数组大小还可动态调整。
+
+```js
+var arr1 = new Array();
+var arr2 = new Array(20);             // length为20的数组（传递一项且为数值则为长度）
+var arr3 = new Array('red');          // 只包含一项'red'的数组(传递一项且为非数值则为内容)
+var arr4 = new Array('red', 'blue');
+var arr5 = Array('red', 'blue');      // 还可以不用new操作符
+
+var arr6 = ['red', 'blue'];
+var arr6 = [1,2,];
+var arr6 = [,,,];                     // 几个逗号length便为几，值undefined
+```
+
+**注意：**数组的`length`属性并非只读，因此可以通过修改`length`属性达到扩大或裁剪数组。数组最多可以包含4 294 967 295个项，超出则会发生异常。
+
+`。检测数组，`自从ES3开始，就出现了检测某个对象是不是数组的问题，对于一个网页或一个全局作用域而言，使用`instanceof`即可。。。但是，`instanceof`的问题在于，它假定单一的全局执行环境。如果**网页中包含多个框架，那实际上就存在两个以上不同的全局执行环境，从而存在两个以上不同版本的Array构造函数**，则从一个框架向另一个框架传入一个数组，那么传入的数组与在第二个框架中原生创建的数组分别具有不同的构造函数。。。
+
+为了解决上面的问题，ES5新增了`Array.isArray()`方法，而它无论在哪个全局环境下都可以检测出，某个对象到底是不是数组。
+
+`。转换数组，`所有对象(指引用类型)都有`toLocaleString()、toString()、valueOf()`方法。
+
+```js
+var colors = ['red', 'blue', 'green'];
+ 
+colors.toString()         // 返回字符串，"red,blue,green"
+colors.valueOf()          // 返回数组，["red", "blue", "green"]
+alert(colors)             // alert接收字符串参数，后台会调用toString()方法
+```
+
+另外`toLocalestring()`方法经常也返回与`toString(),valueOf()`方法相同的值，但也不总是如此。因为当数组调用`toLocaleString()`时，数组的每一项会调用自己的`toLocaleString()`方法，如下：
+
+```js
+var person1 = {
+  toLocaleString : function () {
+    return "Nikolaos";
+  },
+  
+  toString : function() {
+    return "Nicholas";
+  }
+};
+
+var person2 = {
+  toLocaleString : function () {
+    return "Grigorios";
+  },
+  
+  toString : function() {
+    return "Greg";
+  }
+};
+
+var people = [person1, person2];
+alert(people);                      // Nicholas,Greg
+alert(people.toString());           // Nicholas,Greg
+alert(people.toLocaleString());     // Nikolaos,Grigorios
+```
+
+`。数组转字符串`，数组继承的`toLocaleString()、toString()、valueof()`方法，默认情况下都会返回逗号分隔的字符串，而如果使用`join()`方法，还可返回自定义分隔符的字符串。
+
+如果不给`join()`方法传递参数，或者传入`undefined`，则依然是逗号分隔。如果数组中某一项是`null、undefined`，那么在使用`toLocaleString()、toString()、valueOf()、join()`方法返回的结果中以空字符串表示。
+
+```js
+[null, undefined, 'see'].join()           // ',,see'
+[null, undefined, 'see'].toString()       // ',,see'
+[null, undefined, 'see'].toLocaleString() // ',,see'
+[null, undefined, 'see'].valueOf()        // 数组调用返回自身 [null, undefined, "see"]
+```
+
 ### **函数**
 
 ---
 
-#### **argunments**
+#### **arguments**
 
 ECMAScript函数可以封装任意多条语句，且不介意传进来多少参数，什么数据类型，即便定义的参数与实际调用时传递的数量不一致也没有关系，因为ECMAScript中的参数在内部是用一个**伪数组**来表示，这便是`arguments`对象,具有length属性但并不是数组的实例(也不具有数组常用api)。
 
@@ -524,6 +657,38 @@ function test(num1, num2){
 
 test() // 2 20
 ```
+
+#### **函数中参数传递**
+
+。ECMAScript中**所有函数的参数都是按值传递的**。也就是说，把函数外部的值赋值给函数内部的参数，就和把值从一个变量复制到另一个变量一样，即使针对引用类型，也只是将**指向内存的地址给复制了一份**。访问变量有**按值和按引用两种方式，但参数传递只能按值传递**。
+
+在向参数传递引用类型的值时，会把这个值在内存中的地址复制给一个局部变量，因为这个局部变量里的地址仍然指向外部的那个对象，因此局部变量的变化会反映在函数的外部。
+
+```js
+function setName(obj) {
+  obj.name = "Nicholas";
+  
+  obj.name = 'Change';
+}
+
+var person = new Object();
+setName(person);
+console.log(person.name);    // "Nicholas"
+```
+
+如上，只是把`person`对象在内存中的地址当做参数传给函数了，当执行`obj.name = "Nicholas";`时，局部变量`obj`和`person`确实都指向同一块内存空间。但执行`obj = new Object();`时，新创建一个内存空间的地址赋值给了局部变量`obj`(也会在函数执行完毕后被销毁)，但并没有影响函数外`person`对象的指向啊，因此依然打印`"Nicholas"`。。。这就证明了：**ECMAScript中所有函数的参数都是按值传递的**
+
+### **性能优化**
+
+#### **管理内存**
+
+。使用具备垃圾回收机制的语言编写程序，开发人员不用担心内存管理问题，但js在进行内存管理与垃圾回收方面面临的问题还是有点与众不同。
+
+其中最主要的问题是：分配给web浏览器的可用内存数量通常比桌面程序要少，这是出于安全考虑，目的就是**防止运行js的网页耗尽全部系统内存而导致系统崩溃**。内存限制问题，不但影响给变量分配内存，同时还会影响调用栈以及一个线程中能够同时执行的语句数量。
+
+因此为了提高性能，降低不必要的内存占用，一旦数据不再使用，最好通过将其值设为`null`来释放引用，适用于大多数全局变量和全局对象的属性，局部变量会在它们离开环境时自动解除引用。
+
+。**注意：解除引用并不意味着自动回收该值占用的空间，而是让值脱离执行环境，以便垃圾回收器下次运行时将其回收**
 
 [nullAndundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html '阮一峰'
 [IEEE_754URL]: https://zh.wikipedia.org/wiki/IEEE_754 '维基百科'
