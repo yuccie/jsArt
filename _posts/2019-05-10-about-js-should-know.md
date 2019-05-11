@@ -5,13 +5,17 @@ date: Fri May 10 2019 17:25:49 GMT+0800 (中国标准时间)
 ---
 >写在前面：平时开发中总是遇见相同的问题，但很多时候都需要重新查找相关资料才可以，不但浪费了时间，而且每次都有种重新开始的感觉。。。因此将这些常见问题总结在一起，后续再有相关问题，都将其归为一类进行总结对比学习。
 
-#### 参考资料
+### **参考资料**
 
-#### javascript的前世今生
+---
 
-#### 基本概念
+### **javascript的前世今生**
 
-##### 严格模式
+---
+
+### **基本概念**
+
+#### **严格模式**
 
 ECMAScript 5引入严格模式的概念，是为javascript定义了一种不同的解析与执行模型。在严格模式下，ECMAScript 3中不确定的行为或某些不安全的操作都做了一些限制或错误处理。要在整个脚本启用严格模式，可以在顶部添加：`use strict`
 
@@ -24,7 +28,7 @@ function doSomething(){
 }
 ```
 
-##### 自动分号
+#### **自动分号**
 
 语句的分号不是必须的，但建议任何时候都加上。因为：
 
@@ -32,7 +36,7 @@ function doSomething(){
 - 代码结尾处没有分号会导致压缩错误
 - 加上分号某些情况下会增进代码性能(解析器不必再花时间推测哪里插入分号)
 
-##### 代码块 {}
+#### **代码块 {}**
 
 可以借鉴c风格的语法把多条语句组合在一个代码块里，虽然if语句只在执行多条语句时，才要求使用代码块，但最佳实践是始终使用代码块，即使只有一条语句，如：
 
@@ -44,7 +48,7 @@ if (test) {
 }
 ```
 
-##### 变量
+#### **变量**
 
 ECMAScript的变量是松散型的，也就是可以保存任何类型的数据。换句话说，**每个变量仅仅是一个用于保存值得占位符**而已，定义变量时，要使用`var,let,const`等操作符(同时也是关键字)，后跟变量名（即标识符）
 
@@ -61,7 +65,9 @@ msg = 100 // 有效但不推荐
 
 像上面那样先初始化一个字符串数据类型，后又改为数字类型，这种即改变变量值又改变值类型的行为不推荐。
 
-#### 数据类型
+---
+
+#### **数据类型**
 
 鉴于ECMAScript是松散类型的，因此需要一种手段来检测变量的数据类型，`typeof`就是负责提供这方面信息的操作符。
 
@@ -74,7 +80,7 @@ typeof (null)       // 'object'
 typeof function(){} // 'function'
 ```
 
-##### Null 与 Undefined
+#### **Null 与 Undefined**
 
 **注意：**`typeof`是一个操作符而不是函数，因此例子中的圆括号可以使用，但不是必需的。这里`typeof null`返回`'object'`，因为`null`被认为是一个**空的对象引用**，其实更底层原因是因为不同的对象在计算机底层都表示为二进制，在`JavaScript`中二进制前三位都为 0 的话会被判断为 `object` 类型，`null`的二进制表示是全 0，自然前三位也是 0，所以执行`typeof` 时会返回`'object'`。
 
@@ -101,7 +107,7 @@ Number(null) === 0  // true
 
 参考：[null和undefined的由来及区别][nullAndundefined(阮一峰)]
 
-##### Number
+#### **Number**
 
 Number类型在ECMAScript中，使用[IEEE754][IEEE_754URL]格式来表示整数和浮点数(又称双精度数值)。常见的格式有10，2，8，16进制等。
 
@@ -127,7 +133,7 @@ var hexNum2 = 0XA  // 十六进制10
 var hexNum3 = 0x1f // 十六进制31 即 1 * 16^1 + 15 * 16^0
 ```
 
-###### 浮点数
+#### **浮点数**
 
 所谓浮点数，就是该数值必须包含一个小数点，且小数点后面至少有一个数字，**虽然小数点前可以没有数字但不推荐**。由于浮点数需要的内存空间是整数值的两倍，因此ECMAScript会不失时机的将浮点数转换为整数值。显然，如果小数点后面没有任何数字(如：1.)，或本身就是一个整数(如：10.0)，则都会转换成整数。
 
@@ -138,7 +144,7 @@ var floatNum1 = 3.125e7;    // 等于31250000，即3.125 * 10^7
 var floatNum2 = 0.0000003;  // 等于3e-7
 ```
 
-浮点数的最高精度是17位小数，但在进行算术运算时其精确度远远不如整数，如：
+**浮点数的最高精度是17位小数**，但在进行算术运算时其精确度远远不如整数，如：
 
 ```js
 0.1 + 0.2 === 0.30000000000000004 // 小数点后正好17位
@@ -155,9 +161,185 @@ parseFloat((0.1 + 0.2).toFixed(10)) // 0.3
 parseFloat((0.1+0.2).toPrecision(1))// 0.3
 ```
 
+#### **数值范围**
 
+由于内存的限制，ECMAScript无法存储所有数值，ECMAScript能够表示的最小，最大以及溢出如何处理如下：
 
-#### 函数
+```js
+// 针对大多数浏览器
+Number.MAX_VALUE // 保存着最大值 1.7976931348623157e+308
+Number.MIN_VALUE // 保存着最小值 5e-324
+
+Number.MAX_VALUE * 2      // 最大值溢出，显示为Infinity
+Number.MIN_VALUE - 2e+308 // 最小值溢出，显示为-Infinity
+
+Number.MIN_VALUE - 2e+307 // -2e+307
+Number.MIN_VALUE - 2      // -2，此时和精度有关
+Number.MIN_VALUE / 2      //  0，此时和精度有关
+
+Number.POSITIVE_INFINITY  //  Infinity，保存着溢出后的最大值
+Number.NEGATIVE_INFINITY  // -Infinity，保存着溢出后的最小值
+```
+
+**注意：**上面例子中如果想模拟溢出最小值，会有点出乎意料，但其实这是精度的问题，而且也就从308开始显示为`-Infinity`，而308也和最大值呼应起来。检测某个值是否在最大值与最小值之间，可以如下：
+
+```js
+var overflowMaxVal = Number.MAX_VALUE * 2
+var overflowMinVal = Number.MIN_VALUE - 2e+308
+
+isFinite(overflowMaxVal) // false
+isFinite(overflowMinVal) // false
+isFinite(666)            // true
+```
+
+#### **NaN**
+
+NaN，即非数值（not a number），是一个特殊的数值，用来表示**一个本来要返回数值的操作数未返回数值的情况（这样在程序运行中就不会抛出错误了）**，它有两个特点：
+
+- 任何涉及NaN的操作都返回NaN（如：NaN / 2）
+- 不等于任何值(包括自身，NaN == NaN 为false)
+
+当然可以利用`isNaN()`函数来检测是否为NaN，这个**函数在接收一个值以后，会尝试将这个值转为数值，如果不能转换为数值就会返回true**。
+
+```js
+isNaN(NaN)        // true
+isNaN('string')   // true
+isNaN(undefined)  // true
+isNaN({})         // true
+
+isNaN(10)         // false
+isNaN('10')       // false，'10'会被转换10
+isNaN(true)       // false，true会被转换1
+isNaN(null)       // false，null会被转换0
+```
+
+`isNaN()`函数也可以传入**对象**，此时会**先调用对象的`valueOf()`方法，然后确定该方法返回的值是否可以转换为数值，如果不能，则基于这个返回值再调用`toString()`方法，再测试其返回值。**
+
+#### **数值转化**
+
+有三个函数可以把非数值转化为数值：`Number()、parseInt()、parseFloat()`，**`Number()`适用于所有数据类型**，其他两个专门用于**将字符串转为数值**。`Number()`转换规则如下：
+
+1. 如果是`Boolean`值，`true`和`false`分别转为1和0
+2. 如果是数值，只是简单的传入和返回
+3. 如果是`null`，返回0
+4. 如果是`undefined`，返回`NaN`
+5. 如果是字符串，则有以下规则
+
+     - 字符串**只包含数字(可以有正负号)**，则转为10进制，如：'1' => 1,'-123' => -123，'011' => 11(忽略前导0)
+     - 字符串**只包含浮点格式(可以有正负号)**，则转为对应浮点数值，忽略前导0，如：'-01.1' => -1.1
+     - 字符串**包含十六进制格式**，转换为10进制，如：'0xa' => 10，'-0xa' => NaN
+     - 字符串为空(不含任何字符)，转换为0
+     - 如果字符串中包含上述格式以外的字符，转为`NaN`
+
+6. 如果是对象(如果是`Date`对象可直接调用`toString()`)，先调用对象的`valueOf()`方法，然后确定该方法**返回的值是否为原始值**，如果不是，则基于这个返回值再调用`toString()`方法，然后依次按照**前面的规则转换返回的字符串值**。
+
+下面一句话不太准确  
+~~如果是对象，先调用对象的`valueOf()`方法，然后按照前面的规则转换返回的值，如果结果为`NaN`,则调用对象的`toString()`方法，然后依次按照前面的规则转换返回的字符串值。~~
+
+#### **valueOf**
+
+`object.valueOf()`方法**返回该对象的原始值**，而**ECMAScript规定的变量可以存储在两种类型的值：原始值和引用值**。
+
+- **原始值：**存储在栈(stack)中的简单数据段，他们的值直接存储在变量访问的位置
+- **引用值：**存储在堆(heap)中的对象，存储在变量处的值是一个指针(point)，指向存储对象的内存处
+
+为变量赋值时，ECMAScript 的解释程序必须判断该值是原始类型，还是引用类型。要实现这一点，解释程序则需尝试判断**该值是否为 ECMAScript 的原始类型之一**，即 `Undefined、Null、Boolean、Number`和 `String`型。由于这些**原始类型占据的空间是固定的，所以可将他们存储在较小的内存区域 - 栈中。这样存储便于迅速查寻变量的值**。
+
+如果一个值是**引用类型的，那么它的存储空间将从堆中分配**。由于引用值的大小会改变，所以不能把它放在栈中，否则会降低变量查寻的速度。相反，放在**变量中的值是该对象存储在堆中的地址**。地址的大小是固定的，所以把它存储在栈中对变量性能无任何负面影响。
+
+JavaScript调用`valueOf`方法将对象转换为原始值。你很少需要自己调用`valueOf`方法；当遇到要预期的原始值的对象时，JavaScript会自动调用它。
+
+默认情况下，`valueOf`方法由Object后面的每个对象继承。 每个内置的核心对象都会覆盖此方法以返回适当的值。如果对象没有原始值，则`valueOf`将返回对象本身。
+
+JavaScript的**许多内置对象都重写了该函数，以实现更适合自身的功能需要**。因此，不同类型对象的`valueOf()`方法的返回值和返回值类型均可能不同。
+
+| 对象         | 返回值                                                  |
+| :---        | :---                                                   |
+| Array       | 返回数组对象本身                                          |
+| Boolean     | 布尔值。                                                 |
+| Date        | 存储的时间是从 1970 年 1 月 1 日午夜开始计的毫秒数 UTC。      |
+| Function    | 函数本身。                                               |
+| Number      | 数字值                                                   |
+| Object      | 对象本身。这是默认情况。                                    |
+| String      | 字符串值                                                 |
+|             | Math、Error 对象没有 valueOf 方法         |
+
+```js
+// 其实下面的这几个没必要调用valueOf，因为都是原始值
+1.230.valueOf()                  // 1.23
+'1.230'.valueOf()                // '1.230'
+true.valueOf()                   // true
+null.valueOf()                   // Cannot read property 'valueOf' of null
+undefined.valueOf()              // 同上
+
+// Date对象转换后，直接就是数字了，直接调用数字转化规则
+new Date().valueOf()             // 1551667119234 距今的毫秒数
+
+// 下面几个对象转换之后仍然是对象，因此需要再调用toString()
+[].valueOf()                     // []
+["ABC", true, 12, -5].valueOf()  // ["ABC", true, 12, -5]
+({}).valueOf()                   // {}
+({a:1}).valueOf()                // {a:1}
+(function(){}).valueOf()         // function(){}
+
+[].valueOf().toString()                     // ''
+["ABC", true, 12, -5].valueOf().toString()  // "ABC,true,12,-5"
+({}).valueOf().toString()                   // "[object Object]"
+({a:1}).valueOf().toString()                // "[object Object]"
+(function(){}).valueOf().toString()         // "function(){}"
+```
+
+**注意：**`({}).valueOf()`，这里的`{}`用`()`包括起来了，这是因为避免解析器将`{}`解析为代码块，此处应该为对象，所以包裹起来。
+
+上面便是数字转化的规则，因此遇到需要隐式转换的场景，应该熟练上述转化：
+
+```js
+console.log(1 + "5");               // "15"
+console.log([1, 3, 5] + 1);         // "1,3,51"
+console.log(10 + true);             // 11
+console.log(15 + {});               // "15[object Object]"
+console.log(8 + null);              // 8
+console.log("queen" + null);        // "queennull"
+console.log({} + null);             // "[object Object]null"
+console.log(12 + undefined);        // NaN
+console.log("w3cplus" + undefined); // "w3cplusundefined"
+console.log([] + null);             // "null"
+console.log([] + undefined);        // "undefined"
+console.log([] + "w3cplus");        // "w3cplus"
+```
+
+知道了对象转化为数字的规则，则当有加法运算时，也有一定规则：
+
+1. 如果操作符数中有一个对象，它将转换为原始值
+2. 如果操作符数中有一个字符串，第二个操作数将转换成字符串，并且连接在一起转换成一个字符串（和顺序无关）
+3. 在其它情况之下，两个操作数转换为数字并且将执行加法运算
+
+```js
+// 前置减号和前置加号，都优先转换为数字再计算
+console.log(+ '12' + '34')      // '1234'
+console.log(+ '12' + 34 )       // 46
+console.log(+ 12 + '34')        // '1234'
+console.log(+ 12 + 34 )         // 46
+
+console.log(- '12' + '34')      // '-1234'
+console.log(- '12' + 34)        // 22
+console.log(- 12 + '34')        // '-1234'
+console.log(- 12 + 34)          // 22
+
+// 减号在中间，两侧都转换为数值，否则为NaN
+console.log('11' + 2 - '1')       // 111  数字
+console.log('12' - '34')          // -22
+console.log('12' - '34a')         // NaN
+console.log('12' - 34)            // -22
+console.log(12 - '34')            // -22
+console.log(12 - 34)              // -22
+```
+
+参考：[js中的加号运算符][addOperatorUrl]、[js中的减号运算符][minusOperatorUrl]  
+
+---
+
+### **函数**
 
 ECMAScript函数可以封装任意多条语句，且不介意传进来多少参数，什么数据类型，即便定义的参数与实际调用时传递的数量不一致也没有关系，因为ECMAScript中的参数在内部是用一个**伪数组**来表示，这便是`arguments`对象,具有length属性但并不是数组的实例(也不具有数组常用api)。
 
@@ -203,3 +385,5 @@ test() // 2 20
 
 [nullAndundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html '阮一峰'
 [IEEE_754URL]: https://zh.wikipedia.org/wiki/IEEE_754 '维基百科'
+[minusOperatorUrl]: http://www.wenjiangs.com/article/javascript-string-number.html '减号运算符'
+[addOperatorUrl]: https://www.w3cplus.com/javascript/javascriptss-addition-operator-demystified.html '加号运算符'
