@@ -36,50 +36,6 @@ btn.addEventListener('click',function(){
 
 ***任意进制之间转换***<br/>
 参考：[进制转换][SysConvertUrl]<br/>
-从 ES5 开始，在严格模式之中，八进制就不再允许使用前缀0表示，ES6 提供了二进制和八进制数值的新的写法，分别用前缀0b（或0B）和0o（或0O）表示。
-
-**注意：**parseInt方法的可选参数是操作数的进制说明，不是目标的进制。要想进制转换可以利用`Number.prototype.toString()`
-```js
-// string 要被解析的值。如果参数不是一个字符串，则将其转换为字符串(使用ToString 抽象操作)。字符串开头的空白符将会被忽略。
-// radix 一个介于2和36之间的整数(数学系统的基础)，表示上述字符串的基数。当未指定基数时，不同的实现会产生不同的结果，通常将值默认为10。
-parseInt(string, radix);
-
-// 以下例子均返回15:
-console.log(_parseInt("F", 16)); 
-console.log(_parseInt("17", 8)); // 1*8 + 7*1 = 15
-console.log(_parseInt("15", 10)); 
-console.log(_parseInt(15.99, 10));
-console.log(_parseInt("FXX123", 16));
-console.log(_parseInt("1111", 2)); 
-console.log(_parseInt("15*3", 10));
-console.log(_parseInt("12", 13)); // 1*13 + 2*1 = 15
-
-// 以下例子均返回 NaN:
-console.log(_parseInt("Hello", 8)); // Not a number at all
-console.log(_parseInt("546", 2));   // Digits are not valid for binary representations
-
-// 以下例子均返回 -15：
-console.log(_parseInt("-F", 16));
-console.log(_parseInt("-0F", 16));
-console.log(_parseInt("-0XF", 16));
-console.log(_parseInt(-15.1, 10));
-console.log(_parseInt(" -17", 8));
-console.log(_parseInt(" -15", 10));
-console.log(_parseInt("-1111", 2));
-console.log(_parseInt("-15e1", 10));
-console.log(_parseInt("-12", 13));
-// 下例中也全部返回 17，因为输入的 string 参数以 "0x" 开头时作为十六进制数字解释，而第二个参数假如经过 Number 函数转换后为 0 或 NaN，则将会忽略。
-console.log(_parseInt("0x11", 16));
-console.log(_parseInt("0x11", 0));
-console.log(_parseInt("0x11"));
-
-// 下面的例子返回 224
-console.log(_parseInt("0e0",16));
-
-// 另外被解析参数的第一个字符若无法被转换，则返回NAN
-parseInt('211', 2) // 返回 NAN，因为二进制不可能有2
-parseInt('a11', 2) // 返回 NAN，因为二进制无法转换a字符
-```
 
 ```js
 // js实现parseInt
@@ -269,7 +225,7 @@ path.setAttribute( 'd', descriptions.join( ' ' ) );
 ```
 
 
-[SysConvertUrl]:http://www.cnblogs.com/gaizai/p/4233780.html
+[SysConvertUrl]:http://www.cnblogs.com/gaizai/p/4233780.html '任意进制转换'
 [circleProcessDemoUrl]: http://www.dengzhr.com/frontend/css/421
 [circleProcessDemoUrl1]: http://reygreen1.github.io/2015/09/08/canvas-circle-progress/
 [cssScrollLineProcessDemoUrl]: https://juejin.im/post/5c35953ce51d45523f04b6d2
