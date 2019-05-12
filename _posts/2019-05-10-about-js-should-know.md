@@ -1019,7 +1019,121 @@ matches.index;                    // undefined
 pattern.lastIndex;                // 0，上面设置无效
 ```
 
+另一个用于查找的方法是`search()`，参数为字符串或正则表达式，返回第一个匹配的索引，否则返回-1，始终从字符串开头查找。
 
+为了简化替换子字符串的操作，`ECMAScript`提供了`replalce()`方法，两个参数：参数一是字符串或正则表达式，参数二可以是字符串或者一个函数。如果第一个参数是字符串，则只会替换第一个子字符串，要想替换所有的，则需要用正则，而且需要加上全局`g`标识。
+
+```js
+var text = "cat, bat, sat, fat";
+var result = text.replace("at", "ond");
+alert(result);                          //"cond, bat, sat, fat"
+
+result = text.replace(/at/g, "ond");
+alert(result);                          //"cond, bond, sond, fond"
+```
+
+**如果第二个参数是字符串**，那么还可以使用一些特殊的字符序列，将正则表达式得到的值插入到结果字符串中。如下表：
+变量名      | 代表的值                        |
+:--------- | :-----------                   |
+$$         | 插入一个'$'                     |
+$&         | 插入匹配的子串                   |
+$`         | 插入当前匹配的子串左边的内容        |
+$'         | 插入当前匹配的子串右边的内容        |
+$n         | 假如第一个参数是 RegExp对象，并且 n 是个小于100的非负整数，那么插入第 n 个括号匹配的字符串。提示：索引是从1开始        |
+
+```js
+var text = "cat, bat, sat, fat";
+text.replace(/(.at)/g, "word ($1)");
+// "word (cat), word (bat), word (sat), word (fat)"
+
+text.replace(/(.at)/, 'hello $&');
+// "hello cat, bat, sat, fat"
+
+text.replace(/(.at)/g, 'hello $&');
+// "hello cat, hello bat, hello sat, hello fat"
+
+text.replace(/(.at)/, 'hello $`')
+// "hello , bat, sat, fat"
+
+text.replace(/(.at)/g, 'hello $`')
+// "hello , hello cat, , hello cat, bat, , hello cat, bat, sat, "
+
+text.replace(/(.at)/, 'hello $\'') // 需转义，或双引号包裹
+// "hello , bat, sat, fat, bat, sat, fat"
+```
+
+`replace()`方法的第二个参数也可以是一个函数，在只有一个匹配项时，会向这个函数传递3个参数：模式的匹配项、模式匹配项的索引和原始字符串。
+
+如果参数一定义了多个捕获组的情况下，传递给函数的参数依次为：模式的匹配项，第一个捕获组的匹配项、第二个捕获组的匹配项......，但最后两个参数仍然分别是模式的匹配项在字符串中的位置和原始字符串。
+
+变量名      | 代表的值                        |
+:--------- | :-----------                   |
+match      | 匹配的子串。（对应于上述的$&。）                    |
+p1,p2, ... | 假如replace()方法的第一个参数是一个RegExp 对象，则代表第n个括号匹配的字符串。（对应于上述的$1，$2等。）例如，如果是用 /(\a+)(\b+)/ 这个来匹配，p1 就是匹配的 \a+，p2 就是匹配的 \b+。                   |
+offset         | 匹配到的子字符串在原字符串中的偏移量。（比如，如果原字符串是 'abcd'，匹配到的子字符串是 'bc'，那么这个参数将会是 1）        |
+string         | 被匹配的原字符串。        |
+
+
+```js
+function replacer(match, p1, p2, p3, offset, string) {
+  return [p1, p2, p3].join(' - ');
+}
+// [^\d]中括号里的^表示除了，这里匹配除了数字项，因此匹配到'abc'
+// ()表示分组，每一组作为一个整体进行匹配，(\d*)匹配到'12345'
+// 同理([^\w]*)匹配特殊字符，这里匹配到'#$*%'
+var newString = 'abc12345#$*%'.replace(/([^\d]*)(\d*)([^\w]*)/, replacer);
+console.log(newString);  // abc - 12345 - #$*%
+```
+
+下面是一个转义`HTML`代码的函数：
+
+```js
+var text = "cat, bat, sat, fat";
+
+function htmlEscape(text){
+  return text.replace(/[<>"&]/g, function(match, pos, originalText){
+    switch(match){
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case "&":
+        return "&amp;";
+      case "\"":
+        return "&quot;";
+    }
+  });
+}
+
+htmlEscape("<p class=\"greeting\">Hello world!</p>");
+//&lt;p class=&quot;greeting&quot;&gt;Hello world!&lt;/p&gt;
+```
+
+最后一个与模式匹配有关的方法是`split()`方法，该方法可以基于指定的分隔符将一个字符串分割成多个字符串，并将结果放到一个数组里。分隔符还可以是正则，还可以接受第二个参数，用于指定数组的大小。
+
+```js
+var colorText = "red,blue,green,yellow";
+
+var colors1 = colorText.split(",");
+//["red", "blue", "green", "yellow"]
+
+var colors2 = colorText.split(",", 2);  // 指定数组长度
+//["red", "blue"]
+
+colorText.replace(/[^\,]+/g, '$');       // [$,$,$,$]
+var colors3 = colorText.split(/[^\,]+/); 
+//["", ",", ",", ",", ""]
+```
+
+**注意：**最后一次调用`split()`返回的数组中，第一项和最后一项是两个空字符串，因为**通过正则表达式指定的分隔符出现在了字符串的开头和末尾**。
+
+`7. fromCharCode()方法`  
+`String`构造函数本身有一个静态方法：`fromCharCode()`，接收一个或多个字符编码，然后将他们转换为字符串，其实就是`charCodeAt()`的逆操作。。。
+
+```js
+String.fromCharCode(104, 101, 108, 108, 111)
+// "hello"
+```
 
 ### **函数**
 
