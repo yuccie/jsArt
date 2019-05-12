@@ -784,10 +784,241 @@ Date.UTC(2019, 1)           // 1548979200000
 new Date(Date.UTC(2019, 1)) //Fri Feb 01 2019 08:00:00 GMT+0800 (中国标准时间)
 ```
 
+其实上面是通过`Date.parse()`获取时间戳，其实如果直接传入日期的字符串(如：`new Date('May 12, 2019')`)，后台调用的也是`Date.parse()`
+
 ##### .**Date.now**
 
-`ECMAScript`
-`ECMAScript5`添加了`Date.now()`方法，
+`ECMAScript 5`添加了`Date.now()`方法，返回此时的日期和时间的毫秒数。该方法简化了`Date`对象分析代码的工作，在不支持它的浏览器，可以使用`+`操作符把`Date`对象转为字符串已达到同样目的。
+
+```js
+function getDate(){
+  console.log(Date.now());   // 1557651029232
+  console.log(+ new Date()); // 1557651029232
+}
+```
+
+##### .**继承的方法**
+
+与其他引用类型一样，`Date`类型也重写了`toLocaleString()、toString()、valueOf()`方法，因此返回值与其他类型的也不同。
+
+- `toLocaleString()`会按照与浏览器设置的地区相适应的格式返回日期和时间
+- `toString()`方法通常会返回带有时区信息的日期和时间
+- `valueOf()`方法则根本不返回字符串，而是返回日期的毫秒数
+
+还有一些日期/时间组件的方法，参考：[日期/时间组件方法][date&timeFunUrlMdn]
+
+
+
+#### **基本包装类型**
+
+##### .**基本概念**
+
+为了便于操作基本类型值，`ECMAScript`还提供了3个特殊的引用类型：`Boolean、Number、String`。和其他引用类型相似但又不同。实际上，**每当读取一个基本类型值的时候，后台就会创建一个对应的基本包装类型的对象，从而让我们能够调用一些方法来操作这些数据**。
+
+```js
+var s1 = 'some text';
+var s2 = s1.substring(2); // "me text"
+```
+
+如上变量`s1`包含一个字符串，当然就是**基本类型值**，而下一行就调用了`substring()`方法。。。我们知道**基本类型值不是对象**，因而从**逻辑上讲他们不应该有方法**。
+
+其实为了实现这种直观的操作，后台自动完成了一些列的处理。当第二行访问`s1`时，访问过程处于一种读取模式，也就是要从内存中读取这个字符串的值，而在读取模式中访问字符串时，后台会自动完成下面操作：
+
+1. 创建`String`类型的一个实例(`var s1 = new String('some text')`)
+2. 在实例上调用指定的方法(`var s2 = s1.substring(2)`)
+3. 销毁这个实例(`s1 = null`)
+
+经过上面的处理，基本的字符串就变得跟对象一样了，而且上面的过程也分别适用于`Boolean、Number`类型对应的布尔值和数字值。
+
+**引用类型与基本包装类型**的主要区别就是**对象的内存期**。使用`new`操作符**创建的引用类型的实例，在执行流离开当前作用域之前都一直保存在内存中**。而**自动创建的基本包装类型的对象，则只存在于一行代码的执行瞬间，然后立即被销毁**。意味着，我们不能在运行时会基本类型添加属性或方法，如下：
+
+```js
+var s1 = 'some text';
+s1.color = 'red';
+s1.color              // undefined
+```
+
+原因就是第二行创建的`String`对象在执行第三行代码时已经被销毁了。第三行代码又创建自己的`String`对象，而该对象没有`color`属性。
+
+当然可以显式调用`String、Boolean、Number`来创建基本包装类型的对象，但最好不要这样做，因为很容易让人分不清自己处理的是基本类型还是引用类型的值。对**基本包装类型的实例（用new构造）调用`typeof`会返回`'object'`**，而且所有基本包装类型的对象都会被转换为布尔值`true`(因为是对象了)
+
+`Object`构造函数也像工厂方法一样，根据传入值的类型返回相应基本包装类型的实例。
+
+```js
+var str = new Object('test string');
+str instanceof String;             // true
+
+var num = new Object(666);
+num instanceof Number;             // true
+
+var booleanVal = new Object(true);
+booleanVal instanceof Boolean;     // true
+```
+
+**注意：使用`new`调用基本包装类型的构造函数，与直接调用同名的转型函数时不一样的**。例如：
+
+```js
+var val1 = Number('25'); // 转型函数
+typeof val1;             // 'number'
+
+var val2 = new Number('25'); // 构造函数
+typeof val2;                 // 'object'
+```
+
+##### .**Boolean类型**
+
+`Boolean`类型是引用类型，与基本类型布尔值不同。要创建`Boolean`对象，可以直接`new Boolean()`，可以传入`true、false`参数。`Boolean`的实例重写了`valueOf()`方法，返回**基本类型**`true、false`。也重写了`toString()`方法，返回字符串`'true'、'false'`。
+
+```js
+var falseObj = new Boolean(false);
+falseObj.valueOf()     // false
+falseObj.toString()    // 'false'
+falseObj && 'look me'  // 'look me'，切忌用基本包装对象的实例用在布尔表达式中
+```
+
+##### .**Number类型**
+
+与`Boolean`类型一样，`Number`类型也重写了`valueOf()、toLocaleString()、toString()`方法，重写后`valueOf()`返回基本类型值，而后两者返回字符串。
+
+除了继承的方法之外，`Number`类型还提供了一些用于**数值格式化为字符串的方法**，如下：
+
+```js
+// toFixed(n)方法会按照指定的小数位返回数值的字符串表示。
+// n取值0~20（可能有浏览器差异）
+var num = 10;
+num.toFixed(2); // '10.00'
+
+// 如果数值本身的小数位大于指定的数目，那么接近指定的最大小数位的值就会舍入
+// 可能有浏览器差异
+var num1 = 10.0005;
+num1.toFixed(2);     // '10.00'
+var num2 = 10.005;
+num2.toFixed(2);     // '10.01'
+
+// toExponential()方法会返回e表示法表示的数值的字符串形式。
+var num3 = 102000;
+num3.toExponential();  // "1.02e+5"
+
+// 但是还有一个方法可以自动分析采用toFixed()还是toExponential()
+// 也就是方法会根据传入的参数分析数值，选择更适合展示数值的方式
+// toPrecision()可以表现1~21位小数(可能有浏览器差异)
+var num4 = 99;
+num4.toPrecision(1); // '1e+2'
+num4.toPrecision(2); // '99'
+num4.toPrecision(3); // '99.0'
+```
+
+##### .**String类型**
+
+`String`对象的方法可以在所有基本的字符串值中访问到，继承的`valueOf()、toLocaleString()、toString()`方法都返回对象所表示的基本字符串值。且每个实例都有`length`属性，`String`类型还提供了很多方法，用于完成对字符串的解析和操作。
+
+`1. 字符方法`  
+两个用于访问字符串特定字符的方法：`charAt()、charCodeAt()`,参数都是一个基于0的字符位置。前者返回对应位置的字符，而后者返回字符的编码。
+
+```js
+var str = 'hello world';
+str.charAt(1);           // 'e'
+str[1];                  // 'e'
+str.charCodeAt(1);       // 101
+```
+
+`2. 字符串操作方法`  
+
+```js
+// concat()返回拼接后的新字符串，不影响原有字符串
+var str1 = 'hello';
+str1.concat(' world'); // 'hello world'
+str1; // 'hello'
+```
+
+`slice()、substring()、substr()`三个方法都是基于子字符串创建新字符串的方法，返回新的子字符串，都接受1或2个参数，参数一指定子字符串的开始位置，参数二表示子字符串到哪里结束（不包含）。**不同的是`substr()`的参数二指定的是返回的字符个数，而不是位置**。。。
+
+```js
+var str2 = 'hello world';
+str2.slice(3);            // 'lo world'
+str2.substring(3);        // 'lo world'
+str2.substr(3);           // 'lo world'
+
+str2.slice(3, 7);         // 'lo w' ，从3开始，不包含索引为7的字符
+str2.substring(3, 7);     // 'lo w' ，同上
+str2.slice(3, 7);         // 'lo worl'，从3开始，共7个字符
+```
+
+当`slice()、substring()、substr()`参数里有负数时，行为就不尽相同了，其实`slice()`方法会将传入的负数与字符串的长度相加。`substr()`方法将的负的第一参数加上字符串的长度，而将负的第二个参数转换为0。`substring()`则将所有负数都转换为0。
+
+```js
+var str3 = 'hello';
+str3.slice(-2);           // 'lo'
+str3.substr(-2);          // 'lo'
+str3.substring(-2);       // 'hello'
+
+str3.slice(-2, -1);       // 'l', 等价于slice(3, 4)
+str3.substr(-2, -1);      // '', 等价于substr(3, 0)
+str3.substring(-2, -1);   // '', 等价于slice(0, 0)
+```
+
+`3. 字符串位置方法`  
+有两个从字符串中查找子字符串的方法：`indexOf()、lastIndexOf()`，都是从一个字符串搜索给定的子字符串，然后返回子字符串的位置，没有找到则返回-1，前者是从字符串的开头向后搜索子字符串，而后者反之。都可选第二个参数，表示索引开始的位置。
+
+```js
+var str4 = 'hello world';
+str4.indexOf('o');        // 4
+str4.lastIndexOf('o');    // 7
+
+str4.indexOf('o', 5);      // 7
+str4.lastIndexOf('o', 8);  // 7
+str4.lastIndexOf('o', 1);  // -1，索引的位置都是从前向后数的，即使从最后开始遍历
+```
+
+利用上面的特性，则可以循环获取所有匹配的项
+
+```js
+var stringValue = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
+var positions = [];
+var pos = stringValue.indexOf("e");
+
+while(pos > -1){
+  positions.push(pos);
+  pos = stringValue.indexOf("e", pos + 1);
+}
+
+console.log(positions);    // [3, 24, 32, 35, 52]
+```
+
+`4. trim()方法`  
+`ECMAScipt 5`为所有字符串定义了`trim()`方法，该方法会创建一个字符串的副本，并删除前置和后置的所有空格，然后返回结果。
+
+`5. 字符串大小写转换方法`  
+`ECMAScipt`中涉及字符串大小写转换的方法有四个：`toLowerCase()、toLocaleLowerCase()、toUpperCase()、toLocaleUpperCase()`，其中`toLowerCase()、toUpperCase()`是两个经典的方法，借鉴自`java.lang.String`中的同名方法。**而其他两个则是针对特定地区的实现。对有些地方，针对地区的方法和通用方法得到的结果相同，但少数语言(如土耳其语)会为`Unicode`大小转换应用特殊的规则，这时候就必须使用针对特定地区的方法来保证实现正确的转换。**
+
+**注意：**一般来说，在不知道自己的代码将在那种语言环境中运行的情况下，还是使用针对地区的方法更加稳妥一些。
+
+
+`6. 字符串的模式匹配方法`  
+`String`类型定义了几个用于在字符串中匹配模式的方法。第一个方法就是`match()`，在字符串上调用这个方法，本质上与调用`RegExp`的`exec()`方法相同。`match()`只接受一个参数，要么是一个正则表达式，要么是一个`RegExp`对象。
+
+```js
+var text = "cat, bat, sat, fat";
+var pattern = /.at/;
+
+var matches = text.match(pattern);// ["cat", index: 0, input: "cat, bat, sat, fat", groups: undefined]
+matches.index;                   // 0
+matches[0];                      // "cat"
+pattern.lastIndex;               // 0，可以给正则表达式对象设置lastIndex，但对match方法无效，匹配总是从字符串的第一个字符开始
+```
+
+`match()`返回一个数组，第一项是与整个模式匹配的字符串，之后的每一项(如果有)保存着匹配的字符串相关的数据。`index`表示匹配到的字符串索引(`.`匹配所有字符)，`input`则是目标字符串，`groups`是？
+
+```js
+var text = "cat, bat, sat, fat";
+var pattern = /.at/g;             // g开启全局搜索模式，匹配到所有匹配的项
+pattern.lastIndex = 2;
+
+var matches = text.match(pattern);// ["cat", "bat", "sat", "fat"]，全局模式不含index，input等信息
+matches.index;                    // undefined
+pattern.lastIndex;                // 0，上面设置无效
+```
+
 
 
 ### **函数**
@@ -875,3 +1106,4 @@ console.log(person.name);    // "Nicholas"
 [minusOperatorUrl]: http://www.wenjiangs.com/article/javascript-string-number.html '减号运算符'
 [addOperatorUrl]: https://www.w3cplus.com/javascript/javascriptss-addition-operator-demystified.html '加号运算符'
 [SysConvertUrl]:http://www.cnblogs.com/gaizai/p/4233780.html '任意进制转换'
+[date&timeFunUrlMdn]: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date '获取时间的一些方法'
