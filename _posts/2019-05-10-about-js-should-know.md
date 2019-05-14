@@ -1332,6 +1332,64 @@ String.fromCharCode(104, 101, 108, 108, 111)
 // "hello"
 ```
 
+#### **单体内置对象**
+
+`ECMA262`对内置对象的定义是：“由`ECMAScript`实现提供的、不依赖于宿主环境的对象，这些对象在`ECMAScript`程序执行之前就已经存在了。”意思就是说，开发人员不必显式地实例化内置对象，因为它们已经实例化了。前面我们已经介绍了大多数内置对象，例如`Object、Array和String`。ECMA262还定义了两个单体内置对象：`Global和Math`。
+
+##### **Global对象**
+
+`Global`全局对象可以说是`ECMAScript`中最特别的一个对象了，因为不管你从什么角度上看，这个对象都是不存在的。ECMAScript中的Global对象在某种意义上是作为一个终极的“兜底儿对象”来定义的。**换句话说，不属于任何其他对象的属性和方法，最终都是它的属性和方法**。事实上，没有全局变量或全局函数；**所有在全局作用域中定义的属性和函数，都是Global对象的属性**。前面介绍过的那些函数，诸如`isNaN()、isFinite()、parseInt()`以及`parseFloat()`，实际上全都是`Global`对象的方法。除此之外，`Global`对象还包含其他一些方法。
+
+`1. URI编码方法`  
+Global对象的`encodeURI()和encodeURIComponent()`方法可以对`URI`（`Uniform Resource Identifiers`，通用资源标识符）进行编码，以便发送给浏览器。**有效的URI中不能包含某些字符，例如空格**。而这两个URI编码方法就可以对URI进行编码，**它们用特殊的UTF8编码替换所有无效的字符，从而让浏览器能够接受和理解**。
+
+```js
+// encodeURI()一般对整个uri进行编码，
+encodeURI(";,/?:@&=+$-_.!~*'()#"); // ";,/?:@&=+$-_.!~*'()#"，几乎常用的都没有被编码
+encodeURI(" ");                    // "%20"，空格被编码了
+decodeURI("%20");                  // " "
+
+// encodeURIComponent()只对一段，一般是编码location.origin后面的部分
+encodeURIComponent("().!~*'-_");   // "().!~*'-_"
+encodeURIComponent(":/ ?&=#");     // "%3A%2F%20%3F%26%3D%23"
+decodeURIComponent("%3A%2F%20%3F%26%3D%23"); // ":/ ?&=#"
+```
+
+`2. eval()方法`  
+大概也是整个`ECMAScript`语言中最强大的一个方法：`eval()`。`eval()`方法**就像是一个完整的`ECMAScript`解析器**，它只接受一个参数，即要执行的`ECMAScript（或JavaScript）`字符串。
+
+```js
+eval('alert("hi")');
+// 等价于
+alert("hi");
+```
+
+当解析器发现代码中调用`eval()`方法时，**它会将传入的参数当作实际的`ECMAScript`语句来解析，然后把执行结果插入到原位置。通过`eval()`执行的代码被认为是包含该次调用的执行环境的一部分，因此被执行的代码具有与该执行环境相同的作用域链。这意味着通过`eval()`执行的代码可以引用在包含环境中定义的变量，**举个例子：
+
+```js
+var msg = "hello world";
+eval("alert(msg)");  // "hello world"
+```
+
+在eval()中创建的任何变量或函数都不会被提升，因为在解析代码的时候，它们被包含在一个字符串中；它们只在eval()执行的时候创建。
+
+严格模式下，在外部访问不到eval()中创建的任何变量或函数，因此前面的例子都会导致错误。同样，在严格模式下，为eval赋值也会导致错误：
+
+```js
+"use strict"
+eval = "hi";  //causes error
+```
+
+`3. Global对象的属性`  
+Global对象还包含一些属性。例如，特殊的值`undefined、NaN以及Infinity`都是Global对象的属性。此外，所有原生引用类型的构造函数，像`Object和Function`，也都是`Global`对象的属性。下表列出了`Global`对象的所有属性。
+
+ECMAScript5明确禁止给`undefined、NaN和Infinity`赋值，这样做即使在非严格模式下也会导致错误。
+
+`4. Global对象的属性`  
+`ECMAScript`虽然没有指出如何直接访问Global对象，但**Web浏览器都是将这个全局对象作为window对象的一部分加以实现的。因此，在全局作用域中声明的所有变量和函数，就都成为了window对象的属性**。来看下面的例子。
+
+JavaScript中的**window对象除了扮演ECMAScript规定的Global对象的角色外**，还承担了很多别的任务。
+
 ### **函数**
 
 ---
