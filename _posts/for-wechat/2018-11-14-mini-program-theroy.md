@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 微信小程序原理
-date: Wed Nov 14 2018 13:42:14 GMT+0800
+date: Fri May 10 2019 17:25:32 GMT+0800 (中国标准时间)
 ---
 
 ![mini-program-logo](../assets/images/miniProgram/mini-logo.png)

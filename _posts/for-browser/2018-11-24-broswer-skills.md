@@ -32,4 +32,6 @@ jsBridge解析：[jsBridgeAnalysisUrl]<br/>
 [diffWebviewCommunicationUrl]: https://blog.csdn.net/luofen521/article/details/77869834
 [jsBridgeAnalysisUrl]: http://zjutkz.net/2016/04/17/%E5%A5%BD%E5%A5%BD%E5%92%8Ch5%E6%B2%9F%E9%80%9A%EF%BC%81%E5%87%A0%E7%A7%8D%E5%B8%B8%E8%A7%81%E7%9A%84hybrid%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F/
 
+[chromeDevtoolUrl]: https://developers.google.com/web/tools/chrome-devtools/?hl=zh-cn '开发者文档'
+
 

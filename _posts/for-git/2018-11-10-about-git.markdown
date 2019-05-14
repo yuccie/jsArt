@@ -1,7 +1,7 @@
 ---
 layout: post
 title: About git
-date: Sat Nov 10 2018 15:16:33 GMT+0800
+date: Fri May 10 2019 17:25:20 GMT+0800 (中国标准时间)
 ---
 
 参考：[阮一峰-常用git命令操作](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html) 

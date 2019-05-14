@@ -7,6 +7,8 @@ date: Fri May 10 2019 17:25:49 GMT+0800 (中国标准时间)
 
 ### **参考资料**
 
+[参考js秘密花园][jsSecretGardenUrl]、
+
 ---
 
 ### **javascript的前世今生**
@@ -993,7 +995,6 @@ console.log(positions);    // [3, 24, 32, 35, 52]
 
 **注意：**一般来说，在不知道自己的代码将在那种语言环境中运行的情况下，还是使用针对地区的方法更加稳妥一些。
 
-
 `6. 字符串的模式匹配方法`  
 `String`类型定义了几个用于在字符串中匹配模式的方法。第一个方法就是`match()`，在字符串上调用这个方法，本质上与调用`RegExp`的`exec()`方法相同。`match()`只接受一个参数，要么是一个正则表达式，要么是一个`RegExp`对象。
 
@@ -1033,6 +1034,7 @@ alert(result);                          //"cond, bond, sond, fond"
 ```
 
 **如果第二个参数是字符串**，那么还可以使用一些特殊的字符序列，将正则表达式得到的值插入到结果字符串中。如下表：
+
 变量名      | 代表的值                        |
 :--------- | :-----------                   |
 $$         | 插入一个'$'                     |
@@ -1121,7 +1123,7 @@ var colors2 = colorText.split(",", 2);  // 指定数组长度
 //["red", "blue"]
 
 colorText.replace(/[^\,]+/g, '$');       // [$,$,$,$]
-var colors3 = colorText.split(/[^\,]+/); 
+var colors3 = colorText.split(/[^\,]+/);
 //["", ",", ",", ",", ""]
 ```
 
@@ -1221,3 +1223,4 @@ console.log(person.name);    // "Nicholas"
 [addOperatorUrl]: https://www.w3cplus.com/javascript/javascriptss-addition-operator-demystified.html '加号运算符'
 [SysConvertUrl]:http://www.cnblogs.com/gaizai/p/4233780.html '任意进制转换'
 [date&timeFunUrlMdn]: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date '获取时间的一些方法'
+[jsSecretGardenUrl]: https://bonsaiden.github.io/JavaScript-Garden/zh/ 'js秘密花园'

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 状态管理器
-date: Wed Nov 14 2018 13:42:14 GMT+0800
+date: Fri May 10 2019 17:25:32 GMT+0800 (中国标准时间)
 ---
 参考：
 [React，flux，redux](https://juejin.im/entry/576cb79a2e958a0078d08b67)

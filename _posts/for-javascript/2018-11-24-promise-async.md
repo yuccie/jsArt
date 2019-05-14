@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Promise解析
-date: Sat Nov 24 2018 18:08:15 GMT+0800 (中国标准时间)
+date: Fri May 10 2019 17:25:32 GMT+0800 (中国标准时间)
 ---
 
 一直以来，自己都对promise的理解模模糊糊，接下来我想仔细研究一番
