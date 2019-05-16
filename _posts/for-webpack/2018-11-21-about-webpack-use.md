@@ -8,6 +8,7 @@ date: Fri May 10 2019 17:25:40 GMT+0800 (中国标准时间)
 2. [v4.15.1版本][v4.15.1WebpackUrl]
 3. [v4.26.0版本(最新)][v4.26.0WebpackUrl]
 4. [v4新版本变化][v4WebpackWhatHaveChangeUrl]
+5. [webpack v1迁移到v2][WebpackV1ToV2Url]
 
 
 #### 1、webpack管理pageage的好处
@@ -182,6 +183,7 @@ module.exports = {
 我们要知道，webpack从入口文件开始解析，然后遇到各种类型的资源会尝试寻找对应的loader规则，匹配上了就使用相应的loader处理，处理完再输出到指定目录。然后我们的页面引用的最终文件也是打包完成的，因此如果某些资源处理的不对，页面就会出现错误，同时构建日志会报错。。。
 
 处理样式文件配置流程应为：
+
 1. 安装`npm i -D style-loader,css-loader`
 2. 配置webpack匹配css规则
 
@@ -1268,6 +1270,7 @@ document.body.appendChild(component())
 更多懒加载参考：[es5模块化在浏览器里的懒加载][es5ModuleLazyLoadingInBrowserUrl]
 
 #### 13、**缓存**
+
 以上通过webpack构建生成dist目录，只要这个目录部署到服务器上，客户端（通常是浏览器）就能够访问网站此服务器的网站及其资源，而这一步很耗时间，这就是为什么浏览器使用一种名为缓存的技术。可以通过命中缓存，以降低网络流量，使网站加载速度更快。。。
 
 然而，如果我们在部署新版本时不更改资源的文件名，浏览器会认为它没有被更新，就会使用它的缓存版本。由于需要获取新的代码时，就会显得很棘手。
@@ -1318,15 +1321,31 @@ optimization: {
 - [NamedModulesPlugin][NamedModulesPluginUrl]（开发环境易读，生产环境则耗时很多）
 - [HashedModuleIdsPlugin][HashedModuleIdsPluginUrl]（推荐用于生产）
 
-
 ***webapck暂时告一段落，这篇文章涉及了很多技术点，有些技术点只是大概说说原理，如需更深入，则需要查看相关连接。。。随着技术栈理解的越来越深，上面的还会再变动，因此只做参考。。。***
 
 待整理：<br/>
 1. sass,less,css等文件的统一性处理
 2. webapck4框架学习
 
+#### 14、**scss & sass**
 
+注意 sass-loader 会默认处理不基于缩进的 scss 语法。为了使用基于缩进的 sass 语法，你需要向这个 loader 传递选项：
 
+```js
+{
+  test: /\.sass$/,
+  use: [
+    'vue-style-loader',
+    'css-loader',
+    {
+      loader: 'sass-loader',
+      options: {
+        indentedSyntax: true
+      }
+    }
+  ]
+}
+```
 
 
 [splitChunkPluginExamples1Url]: https://juejin.im/post/5af1677c6fb9a07ab508dabb
@@ -1341,6 +1360,7 @@ optimization: {
 [htmlLoaderUrl]: https://github.com/webpack-contrib/html-loader
 [oldWebpackUrl]: https://zhaoda.net/webpack-handbook/
 [v4.15.1WebpackUrl]: https://webpack.css88.com/loaders/node-loader.html
+[WebpackV1ToV2Url]: https://www.html.cn/doc/webpack2/guides/migrating/
 [v4.26.0WebpackUrl]: https://www.webpackjs.com/configuration/target/
 [csvLoaderUrl]: https://github.com/theplatapi/csv-loader
 [xmlLoaderUrl]: https://github.com/gisikw/xml-loader

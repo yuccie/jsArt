@@ -11,6 +11,14 @@ date: Fri May 10 2019 17:25:48 GMT+0800 (中国标准时间)
 
 ---
 
+### **跨站点请求伪造(CSRF)**
+
+---
+
+#### **CSRF简介**
+
+CSRF的全名是`Cross Site Request Forgery`，翻译成中文就是跨站点请求伪造。
+
 ### **认证与会话管理**
 
 ---
@@ -88,6 +96,27 @@ SessionID除了可以保存在Cookie中外，还可以保存在URL中，作为�
 
 在生成**SessionID时，需要保证足够的随机性**，比如采用足够强的伪随机数生成算法。现在的网站开发中，都有很多成熟的开发框架可以使用。这些成熟的开发框架一般都会提供Cookie管理、Session管理的函数，可以善用这些函数和功能。
 
+[查看更多关于服务端session][serverSessionUrl]
+
+#### **会话期Cookie和持久性Cookie**
+
+`会话期Cookie`是最简单的Cookie：**浏览器关闭之后它会被自动删除，也就是说它仅在会话期内有效。会话期Cookie不需要指定过期时间（Expires）或者有效期（Max-Age）**。**需要注意的是**，有些浏览器提供了会话恢复功能，这种情况下即使关闭了浏览器，会话期Cookie也会被保留下来，就好像浏览器从来没有关闭一样。
+
+针对`会话级Cookie`，当浏览器关闭后，是没有通知服务端的，服务端一般是在30分钟会销毁session。当然如果前端页面一直活着，则后端也会自动更新时间。
+
+和关闭浏览器便失效的会话期Cookie不同，**持久性`Cookie`**可以指定一个特定的过期时间`（Expires）`或有效期`（Max-Age）`
+
+```css
+/* 注意过期时间是相对于客户端 */
+Set-Cookie: id=a3fWa; Expires=Wed, 21 Oct 2015 07:28:00 GMT;
+```
+
+参考：[如何在不同平台设置cookie](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Cookies)
+
+#### **第三方Cookie**
+
+每个Cookie都会有与之关联的域（Domain），如果Cookie的域和页面的域相同，那么我们称这个Cookie为第一方`Cookie（first-party cookie）`，如果Cookie的域和页面的域不同，则称之为第三方`Cookie（third-party cookie.）`。一个页面包含图片或存放在其他域上的资源（如图片广告）时，第一方的Cookie也只会发送给设置它们的服务器。通过第三方组件发送的第三方Cookie主要用于广告和网络追踪。
+
 #### **Session Fixation攻击**
 
 什么是`Session Fixation`呢？举一个形象的例子，假设A有一辆汽车，A把汽车卖给了B，但是A并没有把所有的车钥匙交给B，还自己藏下了一把。这时候如果B没有给车换锁的话，A仍然是可以用藏下的钥匙使用汽车的。
@@ -114,7 +143,7 @@ X如何才能让Y使用这个SessionID呢？如果SessionID保存在Cookie中，
 
 这样的Session如何使其过期呢？很多应用都是利用Cookie的Expire标签来控制Session的失效时间，这就给了攻击者可乘之机。因为Cookie的Expire时间是完全可以由客户端控制的，
 
-攻击者甚至可以为Session Cookie增加一个Expire时间，使得原本浏览器关闭就会失效的Cookie持久化地保存在本地，变成一个第三方Cookie（third-party cookie）。
+攻击者甚至可以为Session Cookie增加一个Expire时间，使得原本浏览器关闭就会失效的Cookie持久化地保存在本地，~~变成一个第三方Cookie（third-party cookie）~~，这里应该变为持久性Cookie？。
 
 **如何对抗这种Session保持攻击呢**？
 
@@ -368,3 +397,4 @@ Web Server的安全**我们关注两点**：
 
 
 [chromeDevtoolUrl]: https://developers.google.com/web/tools/chrome-devtools/?hl=zh-cn '开发者文档'
+[serverSessionUrl]: https://tomcat.apache.org/tomcat-5.5-doc/servletapi/javax/servlet/http/HttpSession.html '服务器端HttpSession'
