@@ -1347,6 +1347,40 @@ optimization: {
 }
 ```
 
+#### **cssloader统一处理**
+
+[cli之utils分析(简书)](https://www.jianshu.com/p/6646738ebb7e)、[cli之utils分析(博客)](https://www.cnblogs.com/ye-hcj/p/7078047.html)
+
+#### **postcss是什么鬼**
+
+其实postcss就是一个平台，在平台上可以借助各种中间件，实现各种操作，如下是自动添加前缀的中间件。
+
+```js
+// 先安装postcss，autoprefixer，然后node运行这个文件
+var postcss = require('postcss');
+var autoprefixer = require('autoprefixer');
+var fs = require('fs');
+
+var css = '* { transition: all .1s; }';
+
+postcss([autoprefixer])
+  .process(css)
+  .then(function(result) {
+      // 这一行是学习的时候需要的，看一下到底对象里面包含什么
+      console.log(result);
+      if (result.css) {
+          fs.writeFileSync('index.css', result.css);
+      }
+      if (result.map) {
+          fs.writeFileSync('index.css.map', result.map);
+      }
+  });
+```
+
+```bash
+# 还可以直接命令行模式运行,用autoprefixer中间件添加浏览器前缀
+postcss index.css -u autoprefixer -r -o index.css
+```
 
 [splitChunkPluginExamples1Url]: https://juejin.im/post/5af1677c6fb9a07ab508dabb
 [NamedModulesPluginUrl]: https://www.webpackjs.com/plugins/named-modules-plugin/

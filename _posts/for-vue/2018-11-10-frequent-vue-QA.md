@@ -6,9 +6,6 @@ date: Sat Nov 10 2018 20:16:33 GMT+0800
 参考：[vue技术内幕][vueTechInsdStory]、[vue技术解密][vueTechDecrypt]<br/>
 
 
-#### token
-token是客户端登录的身份凭证，若做了异地登录判断，则会在异地登陆后，之前的token就会过期。。。另外，当退出当前app也会导致之前的token过期
-
 #### Object.assign
 Object.assign把数组视为属性名为 0 、 1 、 2 的对象，因此目标数组的 0 号属性4覆盖了原数组的 0 号属性1。
 ```js
