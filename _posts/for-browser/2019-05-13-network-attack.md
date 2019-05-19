@@ -17,7 +17,19 @@ date: Fri May 10 2019 17:25:48 GMT+0800 (中国标准时间)
 
 #### **CSRF简介**
 
-CSRF的全名是`Cross Site Request Forgery`，翻译成中文就是跨站点请求伪造。
+CSRF的全名是`Cross Site Request Forgery`，翻译成中文就是跨站点请求伪造。注意要和`Cross Origin Resource Share`CORS（跨域解决方案之一）区分开。
+
+#### **攻击过程**
+
+浏览器所持有的Cookie有两种，会话型Cookie和持久型Cookie，前者没有设置过期时间，浏览器关闭即销毁。
+
+
+
+
+
+#### **浏览器的Cookie策略**
+
+浏览器所持有的Cookie有两种，会话型Cookie和持久型Cookie，前者没有设置过期时间，浏览器关闭即销毁。
 
 ### **认证与会话管理**
 

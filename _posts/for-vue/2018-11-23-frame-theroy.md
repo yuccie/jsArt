@@ -4,13 +4,15 @@ title: 框架思想
 date: Fri May 10 2019 17:25:35 GMT+0800 (中国标准时间)
 ---
 
-#### 框架
+### 框架
+
 框架分好多种，比如说ui框架负责渲染ui层面，而像react，vue是数据到视图的映射，而angular不但有数据到视图的映射，还有自己路由等。。。每种框架做的东西不同，但各有特点，需要根据业务需要来选择。
 
 像我们常说的react和vue，他们核心虽然只解决一个很小的问题，但他们有各自的生态圈及配套的可选工具，当把这些工具一一加进来的时候，就可以组合成非常强大的栈，就可以涵盖其他的那些更完整的框架所涵盖的问题。
 
 
-#### MVVM由来
+### MVVM由来
+
 在html5还没火起来的时候，MVC作为web应用的最佳实践是ok的。这时web应用的view层相对简单，前端所需要的数据在后端基本上已经处理好了，view做一下展示就好，那时提倡的是controller来处理复杂的业务逻辑，view层相对轻量。
 
 等到html5大火以后，相对html4，html5最大的亮点是为**移动设备提供了一些非常有用的功能，使得 HTML5 具备了开发App的能力**，另外就是**跨平台、快速迭代和上线，节省人力成本和提高效率**，因此很多企业开始对传统app进行改造，逐渐在app里使用了大量的h5页面。
@@ -35,12 +37,14 @@ date: Fri May 10 2019 17:25:35 GMT+0800 (中国标准时间)
 
 其实，早期jquery 的出现就是为了前端能更简洁的操作DOM 而设计的(也解决了原生DOM api兼容问题)，但它只解决了第一个问题，另外两个问题始终伴随着前端一直存在。
 
-#### MVVM原理
+### MVVM原理
+
 MVVM 由 Model,View,ViewModel 三部分构成，Model 层代表数据模型，也可以在Model中定义数据修改和操作的业务逻辑；View 代表UI 组件，它负责将数据模型转化成UI 展现出来，ViewModel 是一个同步View 和 Model的对象。
 
 在MVVM架构下，View 和 Model 之间并没有直接的联系，而是通过ViewModel进行交互，**Model 和 ViewModel 之间的交互是双向的**，而 **View 与 ViewModel 之间是双向数据绑定**， 因此View 数据的变化会同步到Model中，而Model 数据的变化也会立即反应到View 上。而这一切都是通过框架的VM模型实现。。。
 
-#### Vue.js
+### Vue.js
+
 可以说Vue.js是MVVM架构的最佳实践，专注于MVVM中的VM，不仅做到了双向数据绑定，而且还是相对轻量级的js库。
 
 几个名词：
@@ -55,19 +59,47 @@ MVVM 由 Model,View,ViewModel 三部分构成，Model 层代表数据模型，�
 
 
 参考：
+
 - [mvvm由来][MVVMFromUrl]
 - [阮一峰MVVM][MVVM-阮一峰-Url]
 - [mvvm是什么][MVVM-廖雪峰-Url]
 - [浅谈mvvm][MVVM-other1-Url]
 
+#### **vue/cli 2.x**
+
+现在公司里大多都是基于老版本的`vue-cli`，也就是[`2.96版本`][vueCli296Url]。
+
+```bash
+# 安装cli
+npm install -g vue-cli
+# 初始化项目
+vue init <template-name> <project-name>
+# 比如
+vue init webpack my-project
+```
+
+官方模板有以下几种，当然还可以自定义模板，具体参考文档：
+
+- **webpack** - A full-featured Webpack + vue-loader setup with hot reload, linting, testing & css extraction
+- **webpack-simple** - A simple Webpack + vue-loader setup for quick prototyping
+- **browserify** - A full-featured Browserify + vueify setup with hot-reload, linting & unit testing.
+- **browserify-simple** - A simple Browserify + vueify setup for quick prototyping.
+- **pwa** - PWA template for vue-cli based on the webpack template
+- **simple** - The simplest possible Vue setup in a single HTML file
+
+#### **vue/cli 3.x**
+
+参考：[vue/cli 3.x官方文档][vueCli3xUrl]
+
+### 原生dom操作与框架
 
 
-#### 原生dom操作与框架
 框架的意义在于为你掩盖底层的dom操作，让你用更声明式的方式来描述你的目的，从而让你的代码更容易维护。
 没有任何框架可以比纯手动的优化 DOM 操作更快，因为框架的 DOM 操作层需要应对任何上层 API 可能产生的操作，它的实现必须是普适的。框架给你的保证是，你在不需要手动优化的情况下，依然可以给你提供过得去的性能。
 
 
-#### 对React的virtual DOM的误解
+### 对React的virtual DOM的误解
+
 React 从来没有说过 “React 比原生操作 DOM 快”。React 的基本思维模式是每次有变动就整个重新渲染整个应用。如果没有 Virtual DOM，简单来想就是直接重置 innerHTML。很多人都没有意识到，在一个大型列表所有数据都变了的情况下，重置 innerHTML 其实是一个还算合理的操作... 真正的问题是在 “全部重新渲染” 的思维模式下，即使只有一行数据变了，它也需要重置整个 innerHTML，这时候显然就有大量的浪费。
 
 我们可以比较一下 innerHTML vs. Virtual DOM 的重绘性能消耗：
@@ -83,7 +115,8 @@ Virtual DOM render + diff 显然比渲染 html 字符串要慢，但是！它依
 1. 不管你的数据变化多少，每次重绘的性能都可以接受；
 2. 你依然可以用类似 innerHTML 的思路去写你的应用。
 
-#### MVVM 与 virtual DOM
+### MVVM 与 virtual DOM
+
 相比起 React，其他 MVVM 系框架比如 Angular, Knockout 以及 Vue、Avalon 采用的都是数据绑定：通过 Directive/Binding 对象，观察数据变化并保留对实际 DOM 元素的引用，当有数据变化时进行对应的操作。**MVVM 的变化检查是数据层面的，而 React 的检查是 DOM 结构层面的。**MVVM 的性能也根据变动检测的实现原理有所不同：Angular 的脏检查使得任何变动都有固定的 O(watcher count) 的代价；Knockout/Vue/Avalon 都采用了依赖收集，在 js 和 DOM 层面都是 O(change)：
 
 - 脏检查：scope digest O(watcher count) + 必要 DOM 更新 O(DOM change)
@@ -99,7 +132,8 @@ Angular 和 Vue 都提供了列表重绘的优化机制，也就是 “提示”
 
 顺道说一句，React 渲染列表的时候也需要提供 key 这个特殊 prop，本质上和 track-by 是一回事。
 
-#### 性能比较也要看场合
+### 性能比较也要看场合
+
 在比较性能的时候，要分清楚初始渲染、小量数据更新、大量数据更新这些不同的场合。Virtual DOM、脏检查 MVVM、数据收集 MVVM 在不同场合各有不同的表现和不同的优化需求。Virtual DOM 为了提升小量数据更新时的性能，也需要针对性的优化，比如 shouldComponentUpdate 或是 immutable data。
 
 - 初始渲染：Virtual DOM > 脏检查 >= 依赖收集 <br/>
@@ -117,3 +151,5 @@ Angular 和 Vue 都提供了列表重绘的优化机制，也就是 “提示”
 [MVVM-阮一峰-Url]: http://www.ruanyifeng.com/blog/2015/02/mvcmvp_mvvm.html
 [MVVM-other1-Url]: https://draveness.me/mvx
 [MVVM-廖雪峰-Url]: https://www.liaoxuefeng.com/wiki/001434446689867b27157e896e74d51a89c25cc8b43bdb3000/001475449022563a6591e6373324d1abd93e0e3fa04397f000
+[vueCli296Url]: https://github.com/vuejs/vue-cli/tree/v2#vue-cli-- 'vue/cli 2.x版本'
+[vueCli3xUrl]: https://cli.vuejs.org/zh/guide/#%E8%AF%A5%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%BB%84%E4%BB%B6 'vue/cli 3.x'
