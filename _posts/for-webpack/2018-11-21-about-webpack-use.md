@@ -1392,7 +1392,6 @@ optimization: {
 </template>
 ```
 
-
 #### **热重载**
 
 "热重载"不是当你修改文件的时候简单重新加载页面。启用热重载后，当你修改 .vue 文件时，所有该组件的实例会被替换，并且不需要刷新页面。它甚至保持应用程序和被替换组件的当前状态！当你调整模版或者修改样式时，这极大的提高了开发体验。
@@ -1487,17 +1486,21 @@ postcss index.css -u autoprefixer -r -o index.css
 
 #### **autoprefixer之Browserslist**
 
-`finup-car-h5`项目在`app.vue`的css，构建出来可以自动加前缀，但如果在main.js里直接引入则不自动添加前缀
-
-`renmai-car`项目在`app.vue`的css，构建出来可以自动加前缀，但如果在main.js里直接引入则直接报错。。。因为单独引css文件时，没有找到对应的loader，
-
 [`autoprofixer使用的browserslist`][autoprefixerAndBrowserslistUrl]，也就是说`autoprefixer`自动添加前缀插件是根据浏览器来的，如果当前浏览器支持某条`css`命令，则默认是不添加的。因此如果`browserlist`浏览器列表**设置的都是高版本浏览器**，则可能`webpack`构建出来的文件是不带`css`前缀的。。。
 
 还有一种解决方法：[OptimizeCSSPlugin关闭autoprefixer](https://segmentfault.com/a/1190000016123664)，但是这种方法是将所有浏览器都添加前缀，不太友好，更好的方式是自动判断哪些浏览器需要才添加。
 
 而配置`browserslist`最好的方式是新建`.browserslistrc`在根目录，或者在`package.json`文件里添加`browserslist`字段。这样的配置还可以与`babel-preset-env 、Stylelint`共享。
 
-可以根据不同`browser`参数来查看都有哪些浏览器:[测试不同参数下的浏览器][getBrowserslistByQueryUrl]
+**注意：**`vue-loader 15`之前的版本，会默认对`.vue`文件里的`css`应用`PostCSS`，也就是即使在`.vue`文件里不应用`autoprefixer`也会自动添加前缀。
+
+可以根据不同`browser`参数来查看都有哪些浏览器:[测试不同参数下的浏览器][getBrowserslistByQueryUrl]。
+
+要测试某些属性在当前浏览器是否支持，可以查看[canIUse][canIUseUrl]
+
+- 红色，表示不支持
+- 黄色，表示部分支持或者需要添加前缀
+- 绿色，表示已成为标准，可以直接使用
 
 #### **postcss-cssnext**
 
@@ -1522,6 +1525,7 @@ module.exports = {
 
 
 [splitChunkPluginExamples1Url]: https://juejin.im/post/5af1677c6fb9a07ab508dabb
+[canIUseUrl]: https://caniuse.com/#search=transition 'caniuse'
 [NamedModulesPluginUrl]: https://www.webpackjs.com/plugins/named-modules-plugin/
 [HashedModuleIdsPluginUrl]: https://webpack.js.org/plugins/hashed-module-ids-plugin/
 [vueHandleAssetsPath]: https://vue-loader-v14.vuejs.org/zh-cn/configurations/asset-url.html
