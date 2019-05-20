@@ -4,6 +4,7 @@ title: webpack使用
 date: Fri May 10 2019 17:25:40 GMT+0800 (中国标准时间)
 ---
 #### webpack中文文档
+
 1. [老版本][oldWebpackUrl]
 2. [v4.15.1版本][v4.15.1WebpackUrl]
 3. [v4.26.0版本(最新)][v4.26.0WebpackUrl]
@@ -12,44 +13,33 @@ date: Fri May 10 2019 17:25:40 GMT+0800 (中国标准时间)
 
 
 #### 1、webpack管理pageage的好处
+
 很早之前，我们引用第三方依赖的方式，是通过script标签引入，这会有以下几个问题：
+
 1. 需要确保依赖下载完成之后才能使用
 2. 需要确保依赖的引入顺序
 3. 引入的依赖如果没有被使用，浏览器也会下载，占带宽
 4. 第三方依赖发生变化后，需要重新引入新的url地址
 
 因此，我们用webpack来管理这些脚本，从而解决以上的痛点
+
 1. 包管理器负责依赖的安装
 2. package.json定义项目需要的各种模块及项目的配置信息
 
 ```bash
-# bin目录是存放二进制执行程序的
-# 直接在node_modules/.bin目录找webpack脚本执行
-$ node node_modules/.bin/webpack
-
-# 有的在.bin目录没有，则需要去对应依赖包里找
-$ node node_modules/webpack/bin/webpack.js
-
-# npx 会自动查找webpack这个命令的执行脚本，如果没有找到，则下载
-$ npx webpack
-
-# 还可以指定具体的构建配置参数，如下
+# 可以指定具体的构建配置参数，如下
 $ npx webpack --config webpack.config.js
-
-# 这种的话就是直接去package.json里找scripts下的build字段
-$ npm run build
 ```
-**注意：**
->如果 webpack.config.js 存在，则 webpack 命令将默认选择使用它。我们在这里使用 - -config 选项只是向你表明，可以传递任何名称的配置文件。这对于需要拆分成多个文件的复杂配置是非常有用。
+
+**注意：**如果 `webpack.config.js` 存在，则 `webpack` 命令将默认选择使用它。我们在这里使用 `--config` 选项只是向你表明，可以传递任何名称的配置文件。这对于需要拆分成多个文件的复杂配置时非常有用。
 
 ***开始之前先了解一下resolve***
-resolve配置如何解析模块，例如当你`import 'lodash'`时，resolve选项会改变webpack去查找lodash模块的位置。
+`resolve`配置如何解析模块，例如当你`import 'lodash'`时，`resolve`选项会改变`webpack`去查找`lodash`模块的位置。
 
 ```js
 module.exports = {
   //...
   resolve: {
-    // 别名就是把长路径换成一个短路径，
     // 更多配置规则https://webpack.js.org/configuration/resolve/#resolve-alias
     alias: {
       app: path.resolve(__dirname, 'src/app/'),
@@ -58,7 +48,7 @@ module.exports = {
     // 一个模块可能适用于多端(比如浏览器，或者node端)，所以当引入一个模块时，也会针对不同的环境提供对应的文件
     // 而这里的字段是和要引入的包里对应package.json对应的。
     aliasFields: ['browser']
-    
+
     //如果为真，则不允许使用无扩展名文件
     enforceExtension: false
     // 是否要求对模块使用扩展(例如加载器)，默认fasle
@@ -91,12 +81,14 @@ module.exports = {
   }
 }
 ```
-对于resolve.modules
->绝对路径和相对路径都能使用，但是要知道它们之间有一点差异。通过查看当前目录以及祖先路径（即 ./node_modules, ../node_modules 等等），相对路径将类似于 Node 查找 'node_modules' 的方式进行查找。使用绝对路径，将只在给定目录中搜索。
+
+对于`resolve.modules`，绝对路径和相对路径都能使用，但是要知道它们之间有一点差异。通过查看当前目录以及祖先路径（即 `./node_modules, ../node_modules` 等等），相对路径将类似于 `Node` 查找 `node_modules` 的方式进行查找。使用绝对路径，将只在给定目录中搜索。
 
 
 #### 2、webpack输入与输出
+
 以下会在dist目录生成一个名为`mainName.js`的文件。
+
 ```js
 const path = require('path')
 
@@ -113,7 +105,8 @@ module.exports = {
 }
 ```
 
-以下会在dist目录生成一个名为`main.js`的文件。
+以下会在`dist`目录生成一个名为`main.js`的文件。
+
 ```js
 const path = require('path')
 module.exports = {
@@ -125,28 +118,35 @@ module.exports = {
   }
 }
 ```
-**综上**：默认情况下会构建出一个名为main的js文件，除非自定义文件名(如上的mainName)。然后在output里面[name]就是取自entry定义的名字。
 
-上面的 [name] 其实就是内置的name变量，这时可以把它看作一个字符串模板函数，每个要输出的文件（也叫chunk）都会通过这个函数去拼接出要输出的文件名称。
+**综上**：默认情况下会构建出一个名为`main`的`js`文件，除非自定义文件名(如上的`mainName`)。然后在`output`里面`[name]`就是取自`entry`定义的名字。
+
+上面的`[name]`其实就是内置的`name`变量，这时可以**把它看作一个字符串模板函数**，每个要输出的文件（也叫`chunk`）都会通过这个函数去拼接出要输出的文件名称。
 
 内置变量除了上面的name，还有下面几个：
-- id : chunk的唯一标识，从0开始(但我这里打印的依然是:main)
-- name : chunk的名称
-- hash ：compilation对象的hash值
-- chunkhash ：chunk内容的hash值
 
-其中hash和chunkhash的长度是可指定的，如[hash:8]代表8位的hash值，默认是20位。
+- `id` : chunk的唯一标识，从0开始(但我这里打印的依然是:main)
+- `name` : chunk的名称
+- `hash` ：compilation对象的hash值
+- `chunkhash` ：chunk内容的hash值
 
-**注意**：hash与chunkhash的区别，[参考](https://www.cnblogs.com/ihardcoder/p/5623411.html)
-1. [hash] `is replaced by the hash of the compilation.`
+其中`hash`和`chunkhash`的长度是可指定的，如[hash:8]代表8位的hash值，默认是20位。
+
+**参考**：[hash与chunkhash的区别][hash&chunkhashDiffUrl]
+
+- `[hash] is replaced by the hash of the compilation.`
+
   - compilation对象针对的是随时可变的项目文件，只要文件有变动，就会重建
   - hash是compilation对象计算所得，可以理解为项目总体文件的hash值
   - 因此当输出很多文件时，你肯定不想因为一个文件的改变，把所有其他文件的文件名都改变了。。。
-2. [chunkhash] `is replaced by the hash of the chunk.`
+
+- `[chunkhash] is replaced by the hash of the chunk.`
+
   - 代表具体模块(chunk)的hash值
   - 当输出多文件，同时想利用缓存，[chunkhash]无疑是最佳选择
 
 但hash与chunkhash一块使用会报错，如下：
+
 ```js
 const path = require('path')
 module.exports = {
@@ -170,14 +170,16 @@ module.exports = {
 **注意**：webpack编译的文件入口是js文件，不支持其他类型的文件， 因此要编译style文件，需要将其导入到js文件中然后再编译。但这样会造成一个问题，就是**此时无论修改style文件还是js文件，都会导致chunkhash改变**，因为将style样式文件打包到js文件里了，因此此时可以配合插件`extract-text-webpack-plugin`提供的`contenthash`来解决，表示文本内容的hash值，也就是只有style文件hash值。
 
 #### 3、**webpack管理资源**
-在webpack之前，我们利用grunt和gulp来处理资源，并将它们从 /src 文件夹移动到 /dist 或 /build 目录中。同样方式也被用于 JavaScript 模块，但是，像 webpack 这样的工具，将动态打包(dynamically bundle)所有依赖项（创建所谓的依赖图(dependency graph)）。这是极好的创举，因为现在每个模块都可以明确表述它自身的依赖，我们将避免打包未使用的模块。
 
-还可以通过loader来引入任何其他类型的文件
+在`webpack`之前，我们利用`grunt和gulp`来处理资源，并将它们从 `/src` 文件夹移动到 `/dist 或 /build` 目录中。同样方式也被用于 `JavaScript` 模块，但是，像 `webpack` 这样的工具，将动态打包(`dynamically bundle`)所有依赖项（创建所谓的依赖图(`dependency graph`)）。这是极好的创举，因为现在每个模块都可以明确表述它自身的依赖，我们将避免打包未使用的模块。
 
-#### 3.1、**处理css等样式文件**
-[参考1](https://github.com/zhengweikeng/blog/issues/9) <br/>
-[参考2](https://blog.csdn.net/u010982507/article/details/81337529)<br/>
-[现在推荐使用mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)<br/>
+还可以通过`loader`来引入任何其他类型的文件
+
+#### 3.1、**处理css等样式文件**'
+
+[参考1](https://github.com/zhengweikeng/blog/issues/9)
+[参考2](https://blog.csdn.net/u010982507/article/details/81337529)  
+[现在推荐使用mini-css-extract-plugin](https://github.com/webpack-contrib/mini-css-extract-plugin)  
 [webpack加载css,sass,less等资源并集成postcss](https://github.com/iSpring/babel-webpack-react-redux-tutorials/blob/master/tutorials/load-css-with-webpack/README.md)
 
 我们要知道，webpack从入口文件开始解析，然后遇到各种类型的资源会尝试寻找对应的loader规则，匹配上了就使用相应的loader处理，处理完再输出到指定目录。然后我们的页面引用的最终文件也是打包完成的，因此如果某些资源处理的不对，页面就会出现错误，同时构建日志会报错。。。
@@ -197,11 +199,14 @@ module: {
   ]
 }
 ```
+
 3. 编辑css文件，引入并使用
 
 其中[style-loader][styleLoaderUrl]插件作用是在最终页面插入`style`标签，同时自动引入对应的css文件。而且还要在页面中查看（不要检查页面源代码，因为它不会显示结果），查看head标签，就可以看到style标签。
 
-**疑问？**在不使用分离插件时，css文件被打包到了main.js文件里，👆的过程是如何实现的？<br/>
+**疑问？**在不使用分离插件时，css文件被打包到了main.js文件里，👆的过程是如何实现的？
+
+
 **答:**将原生的css文件打包成js文件时，会在js文件中生成很多额外的函数，用于在运行时将css注入到style标签里。这就会造成文件臃肿，如一个1KB的未被压缩的CSS文件生成的对应的js文件大约有16KB，这导致了输出文件过于庞大，影响传输速度。
 
 先来看看如何分离css,这里用到插件`extract-text-webpack-plugin`,因此先安装，然后增加配置如下：
@@ -230,11 +235,14 @@ module.exports = {
   ]
 }
 ```
-**注意**在webpack4中，若直接`npm i -D extract-text-webpack-plugin`,然后配置如上，构建时会报错`Error: Chunk.entrypoints: Use Chunks.groupsIterable and filter by instanceof Entrypoint instead`。<br/>
+
+**注意**在`webpack4`中，若直接`npm i -D extract-text-webpack-plugin`,然后配置如上，构建时会报错`Error: Chunk.entrypoints: Use Chunks.groupsIterable and filter by instanceof Entrypoint instead`  
+
 **答:**可以安装时添加`@next`解决(因为当前版本不支持webpack4.0.0以上版本)。
 
 如上处理时优缺点如下：
-```
+
+```css
 优点    更少 style 标签 (旧版本的 IE 浏览器有限制，IE8有上限)
 缺点    额外的 HTTP 请求
 优点    CSS SourceMap (使用 devtool: "source-map" 和 extract-text-webpack-plugin?sourceMap 配置)
@@ -246,12 +254,15 @@ module.exports = {
 优点    更快的浏览器运行时(runtime) (更少代码和 DOM 操作)
 缺点    ...
 ```
+
 `extract-text-webpack-plugin`插件还有不同的参数选项，[点击查看插件详情][extractTextWebpackPluginUrl]
-当然插件`extract-text-webpack-plugin`可以分离各种被匹配的资源，但经过上面处理后，文件是被分离出来了，**但style-loader失效了？？？**<br/>
+
+当然插件`extract-text-webpack-plugin`可以分离各种被匹配的资源，但经过上面处理后，文件是被分离出来了，**但style-loader失效了？？？**  
+
 **答:**单纯使用分离插件会使得热更新失效，因为每次生成的文件名都会变(这句说辞待完善)，因此要么手动每次引入，要么就是借助[html-webpack-plugin][htmlWebpackPluginUrl]插件
 
 
-***再来深入理解一下[css-loader][cssLoaderWebpackUrl]***
+***再来深入理解一下[css-loader][cssLoaderWebpackUrl]***  
 [css-loader][cssLoaderWebpackUrl]解释（interpret）@import和url()，会import/require()后解析（resolve）他们。
 
 ```js
@@ -266,7 +277,7 @@ module.exports = {
     // 是否禁用css-loader解析url(),
     // 如果false不解析，则原样输出url的内容，会导致路径错误
     url:true,
-    
+
     // 遵循与webpack的resolve.alias相同的语法
     // 当使用第三方的样式包时，会非常方便，如下
     alias:{
@@ -276,18 +287,20 @@ module.exports = {
     // 要禁用css-loader解析@import，可以设置为false,
     // 禁用之后，@import 方式导入的模块都将失效
     import: true,
-    
+
     // 是否启用局部作用域css。
     module: true,
-    
+
     // 默认情况下，css将所有的类名暴露到全局的选择器作用域中。样式可以在局部作用域中
     module: true,
 
     // 默认情况下，如果模块系统指定，css-loader 将压缩 css
     // 在某些情况下，压缩对于 css 来说是破坏性的，所以如果需要设置，可以向基于 cssnano 的 minifier(cssnano-based minifier) 提供自己的选项
     minimize: true || {/* CSSNano Options */},
+
     // 默认情况下不启用它们，因为它们会导致运行时的额外开销，并增加了 bundle 大小 (JS source map 不会)。
     sourceMap: false
+
     // 一般情况下，css样式的类名都是-连接，如果想经过css-loader处理后，使用驼峰，可以设置该选项
     // 如file.css为.class-name {} 可以这样 import { className } from 'file.css';
     camelCase:true
@@ -296,6 +309,7 @@ module.exports = {
 ```
 
 #### 3.2、**处理图片类文件**
+
 页面需要的图片类文件一般都是用相对路径引用，或使用[vue中的资源路径处理][vueHandleAssetsPath]。
 
 先来看看webpack上关于解析图片路径的原理：<br/>
@@ -438,29 +452,10 @@ module.exports = {
 ```
 
 #### 3.3、**处理js文件**
-***先来说说babel***<br/>
-babel 是js的编译器，是将下一代js的语法编译成各个平台都兼容的语法格式。官网不同平台上的使用方式，无非是安装babel的核心代码及各种presets，plugin。。。
 
-**注意**，presets与plugin的关系，其实babel有很多细粒度很小的插件，具体转译那种语法可以按需引入，这样有很强的灵活性。。。但假如有很多语法都需要转发，则需要引入很多，此时babel官方就提供了plugin的合集，也就是presets。
+***本地利用babel编译es6至es5***  
 
-而`babel-preset-env`就相当于 es2015 ，es2016 ，es2017 及最新版本。
-而stage是将TC39 提案分为以下几个阶段:
-- Stage 0 - 稻草人: 只是一个想法，可能是 babel 插件。
-- Stage 1 - 提案: 初步尝试。
-- Stage 2 - 初稿: 完成初步规范。
-- Stage 3 - 候选: 完成规范和浏览器初步实现。
-- Stage 4 - 完成: 将被添加到下一年度发布。
-stage只是提案，是否最终发布不能确定，只是实验性的语法，而env则是发布的。
-
-同时配置了plugin和presets后，会有一个执行顺序如下：
-- Plugin 会运行在 Preset 之前。
-- Plugin 会从第一个开始顺序执行。ordering is first to last.
-- Preset 的顺序则刚好相反(从最后一个逆序执行)。
-
-总结起来，`env`是纳入规范的新语法特性，而stage则是未纳入规范的提案，但有些api的调用并不是什么新的语法，比如Array.isArray这个方法在低版本ie浏览器中，就无法执行，因此还需要polyfill(当然自己写个方法实现也可以)。。。
-
-***本地利用babel编译es6至es5*** <br/>
-1、 初始化仓库 `npm init` <br/>
+1、 初始化仓库 `npm init`  
 2、 配置`.babelrc` <br/>
 
 >只有配置了相关的预处理插件，babel才知道将高级语法转译到什么类型，若不配，则原样输出
@@ -540,6 +535,7 @@ npm i -D babel-cli babel-preset-env
 [AST in Modern JavaScript][ASTInModernJavaScriptUrl]<br/>
 
 #### 4、**自动更新引入的文件**
+
 上面我们在index.html写死了引入的文件名如`<script src="main.js"></script>`,但如果我们更改了入口名或增加了入口数量，那岂不是每次都得手动改这个index.html。。。
 
 通过[html-webpack-plugin][htmlWebpackPluginUrl]解决上面的问题，这个插件的作用就是在每次compilation发生变化时，都会重新生成html文件。
@@ -565,6 +561,7 @@ module.exports = {
 
 
 #### 5、**定制输出模板**
+
 到这里你应该思考，这个`index.html`应该是某个模板文件生成，那既然如此，是不是可以定制这个模板呢，没错就是[html-webpack-template][htmlWebpackTemplateUrl],安装然后增加配置如下即可使用：
 
 ```js
@@ -595,6 +592,7 @@ module.exports = {
 
 
 #### 6、**插件删除dist目录**
+
 到目前为止，dist目录里的文件，一直都是手动删除，这不符合程序猿懒的特质，因此[clean-webpack-plugin][cleanWebpcakPluginUrl]需要了解一下：
 ```js
 const CleanWebpackPlugin = require('clean-webpack-plugin')
@@ -612,11 +610,13 @@ module.exports = {
 ```
 
 #### 7、**webpack管理资源的原理**
+
 你可能会感兴趣，webpack及其插件似乎“知道”应该哪些文件生成？<br/>
 答案是，通过 manifest，webpack 能够对「你的模块映射到输出 bundle 的过程」保持追踪。这里我们只需知道，webpack背后通过一定的策略来控制模块间的交互。。。（待完善）
 
 
 #### 8、**开发环境配置**
+
 1. scource map
 2. webpack's Watch Mode 
 3. webpack-dev-server
@@ -653,11 +653,13 @@ module.exports = {
 [滴滴出行说devtool的几种模式][didiDevtoolUrl]<br/>
 [阮一峰-sourceMap详解][ruanyifeng-sourceMapUrl]<br/>
 
-
 当然打包处理的代码有很多优点：
+
 1. 压缩混淆
 2. 多个文件合并，减少http请求
 3. 将其他类型文件编译成js，如ts
+
+**注意：**一般情况下`sourceMap`的值是`Boolean`型，表示是否开启`sourceMap`。。。但具体是哪种`sourceMap`，则是`devtool`的值。
 
 **2. [webpack's Watch Mode]** <br/>
 现在我们每次修改都需要重新构建，并刷新浏览器才能看到结果，这在开发过程中很繁琐，因此我们可以添加watch模式，也就是webapck会自动开启watch模式观察依赖图中的所有的文件，当文件发生变化时，就自动重新构建。。。
@@ -829,6 +831,7 @@ app.listen(3000, function(){
 
 
 #### 9、**tree shaking**
+
 随着项目越来越大，项目里可能会引入大量用不到的模块，如果这些模块都打包到chunk里，势必造成带宽浪费，因此需要一种手段将其清除，也就是`tree shaking`
 
 新的 webpack 4 正式版本，扩展了这个检测能力，通过 package.json 的 "sideEffects" 属性作为标记，向 compiler 提供提示，表明项目中的哪些文件是 "pure(纯的 ES2015 模块)"，由此可以安全地删除文件中未使用的部分。
@@ -889,6 +892,7 @@ console.log(cube(2))
 
 
 #### 10、**生产环境构建**
+
 因为生产和开发环境的构建目标差异还是很大的，在开发环境中，我们需要具有强大的、具有实时重新加载(live reloading)或热模块替换(hot module replacement)能力的 source map 和 localhost server。而在生产环境中，我们的目标则转向于关注更小的 bundle，更轻量的 source map，以及更优化的资源，以改善加载时间。
 由于要遵循逻辑分离，我们通常建议为每个环境编写彼此独立的 webpack 配置。
 
@@ -969,12 +973,10 @@ module.exports = merge(common, {
 - 如果这个值是一个对象，它所有的 key 会被同样的方式定义。
 - 如果在一个 key 前面加了 typeof,它会被定义为 typeof 调用。
 
-**注意：**
->注意，因为这个插件直接执行文本替换，给定的值必须包含字符串本身内的实际引号。通常，有两种方式来达到这个效果，使用 '"production"', 或者使用 JSON.stringify('production')。
-
-
+**注意：**因为这个插件直接执行文本替换，给定的值必须包含字符串本身内的实际引号。通常，有两种方式来达到这个效果，使用 '"production"', 或者使用 JSON.stringify('production')。
 
 #### 11、**代码分离**
+
 该特性能够把代码分离到不同的bundle中，然后可以按需加载或并行加载这些文件。代码分离可以用于获取更小的bundle，以及控制资源加载优先级，合理使用会极大影响加载时间。
 
 三种常用的代码分离方法：
@@ -1227,6 +1229,7 @@ module.exports = {
 ```
 
 #### 12、**懒加载**
+
 懒加载或者按需加载，是**先把代码在一些逻辑点处分离开，然后在一些代码块中完成某些操作，立即引用或即将引用另外一些新的代码块**。
 
 因为之前做代码分离，虽然分离了代码块lodash.bundle.js ，但这个包每次加载页面的时候都会请求，这会对性能造成负面影响，因此可以懒加载它，即当用户操作某一逻辑后，才去加载它。
@@ -1347,13 +1350,113 @@ optimization: {
 }
 ```
 
-#### **cssloader统一处理**
+### **vue-loader**
+
+参考：[`vue-loader`参考官方文档(old)][vueLoaderOfficialUrl]、[`vue-loader`官方文档(new)][vueLoaderOfficialNewUrl]、
+
+#### **CSS Modules**
+
+`CSS Modules`是一个用于模块化和组合 CSS 的流行系统。vue-loader 提供了与 CSS 模块的一流集成，可以作为模拟 CSS 作用域的替代方案。
+
+```css
+/* 在 .vue 中你可以定义不止一个 <style>，为了避免被覆盖，你可以通过设置 module 属性来为它们定义注入后计算属性的名称。如：module="a" ,用的时候直接a.red即可*/
+<style module>
+.red {
+  color: red;
+}
+.bold {
+  font-weight: bold;
+}
+</style>
+```
+
+```html
+<template>
+  <p :class="$style.red">
+    This should be red
+  </p>
+</template>
+
+<!-- 由于它是一个计算属性，它也适用于 :class 的 object/array 语法： -->
+<template>
+  <div>
+    <!-- 需要Bublé编译器，而非babel -->
+    <!-- {[$style.red]: isRed} 等价于 { isRed?[$style.red]:null  } -->
+    <p :class="{ [$style.red]: isRed }">
+      Am I red?
+    </p>
+    <p :class="[$style.red, $style.bold]">
+      Red and bold
+    </p>
+  </div>
+</template>
+```
+
+
+#### **热重载**
+
+"热重载"不是当你修改文件的时候简单重新加载页面。启用热重载后，当你修改 .vue 文件时，所有该组件的实例会被替换，并且不需要刷新页面。它甚至保持应用程序和被替换组件的当前状态！当你调整模版或者修改样式时，这极大的提高了开发体验。
+
+- 当编辑一个组件的 `<template>` 时，这个组件实例将就地重新渲染，并保留当前所有的私有状态。能够做到这一点是因为模板被编译成了新的无副作用的渲染函数。
+
+- 当编辑一个组件的 `<script>` 时，这个组件实例将就地销毁并重新创建。(应用中其它组件的状态将会被保留) 是因为 `<script>` 可能包含带有副作用的生命周期钩子，所以将重新渲染替换为重新加载是必须的，这样做可以确保组件行为的一致性。这也意味着，如果你的组件带有全局副作用，则整个页面将会被重新加载。
+
+- `<style>`会通过 `vue-style-loader` 自行热重载，所以它不会影响应用的状态。
+
+#### **使用预处理器**
+
+在 `webpack` 中，所有的预处理器需要匹配对应的 `loader`。`vue-loader` 允许你使用其它 `webpack loader` 处理 `Vue` 组件的某一部分。它会根据 `lang` 属性自动推断出要使用的 `loader`。
+
+```css
+<style lang="sass">
+  /* write sass here */
+</style>
+```
+
+在内部，`<style>` 标签中的内容将会先由 `sass-loader` 进行处理，然后再传递进行下一步处理。
+
+#### **资源路径处理**
+
+默认情况下，`vue-loader` 使用 `css-loader` 和 `Vue` 模版编译器自动处理样式和模版文件。在编译过程中，所有的资源路径例如 `<img src="...">、background: url(...)`和 `@import` 会作为模块依赖。
+
+- 如果路径是绝对路径，会原样保留。
+- 如果路径以 . 开头，将会被看作相对的模块依赖，并按照你的本地文件系统上的目录结构进行解析。
+- 如果路径以 ~ 开头，其后的部分将会被看作模块依赖。这意味着你可以用该特性来引用一个 node 依赖中的资源：
+- (13.7.0+) 如果路径以 @ 开头，也会被看作模块依赖。如果你的 webpack 配置中给 @ 配置了 alias，这就很有用了。所有 vue-cli 创建的项目都默认配置了将 @ 指向 /src。
+
+#### **提取vue中css**
+
+```js
+var ExtractTextPlugin = require("extract-text-webpack-plugin")
+
+module.exports = {
+  // other options...
+  module: {
+    rules: [
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader',
+        options: {
+          extractCSS: true
+        }
+      }
+    ]
+  },
+  plugins: [
+    new ExtractTextPlugin("style.css")
+  ]
+}
+```
+
+**注意：**上述内容将自动处理 `*.vue` 文件内的 `<style>` 提取，并与大多数预处理器一样开箱即用。注意这只是提取 `*.vue` 文件 - 但在 `JavaScript`中导入的 `CSS` 仍然需要单独配置。
+
+### **cssloader统一处理**
 
 [cli之utils分析(简书)](https://www.jianshu.com/p/6646738ebb7e)、[cli之utils分析(博客)](https://www.cnblogs.com/ye-hcj/p/7078047.html)
 
 #### **postcss是什么鬼**
 
-其实postcss就是一个平台，在平台上可以借助各种中间件，实现各种操作，如下是自动添加前缀的中间件。
+其实[`postcss`][postcssOfficialUrl]就是一个平台，在平台上可以借助各种中间件，实现各种操作，如下是自动添加前缀的中间件。
 
 ```js
 // 先安装postcss，autoprefixer，然后node运行这个文件
@@ -1381,6 +1484,42 @@ postcss([autoprefixer])
 # 还可以直接命令行模式运行,用autoprefixer中间件添加浏览器前缀
 postcss index.css -u autoprefixer -r -o index.css
 ```
+
+#### **autoprefixer之Browserslist**
+
+`finup-car-h5`项目在`app.vue`的css，构建出来可以自动加前缀，但如果在main.js里直接引入则不自动添加前缀
+
+`renmai-car`项目在`app.vue`的css，构建出来可以自动加前缀，但如果在main.js里直接引入则直接报错。。。因为单独引css文件时，没有找到对应的loader，
+
+[`autoprofixer使用的browserslist`][autoprefixerAndBrowserslistUrl]，也就是说`autoprefixer`自动添加前缀插件是根据浏览器来的，如果当前浏览器支持某条`css`命令，则默认是不添加的。因此如果`browserlist`浏览器列表**设置的都是高版本浏览器**，则可能`webpack`构建出来的文件是不带`css`前缀的。。。
+
+还有一种解决方法：[OptimizeCSSPlugin关闭autoprefixer](https://segmentfault.com/a/1190000016123664)，但是这种方法是将所有浏览器都添加前缀，不太友好，更好的方式是自动判断哪些浏览器需要才添加。
+
+而配置`browserslist`最好的方式是新建`.browserslistrc`在根目录，或者在`package.json`文件里添加`browserslist`字段。这样的配置还可以与`babel-preset-env 、Stylelint`共享。
+
+可以根据不同`browser`参数来查看都有哪些浏览器:[测试不同参数下的浏览器][getBrowserslistByQueryUrl]
+
+#### **postcss-cssnext**
+
+`cssnext`是下一代`css`插件，但与`css4`并不是一回事。另外就是如果用`postcss-cssnext`插件，则就不需要用`autoprefixer`了，因为已经内置在前者中了。
+
+```js
+// .postcssrc.js
+module.exports = {
+  "plugins": {
+    "postcss-import": {},
+    "postcss-url": {},
+    // to edit target browsers: use "browserslist" field in package.json
+    // browserslist: {},
+
+    // cssnext下一代css语法，内部包含了autoprefixer，再次声明则会有警告
+    "postcss-cssnext": {},
+    // "autoprefixer": {}
+  }
+}
+```
+
+
 
 [splitChunkPluginExamples1Url]: https://juejin.im/post/5af1677c6fb9a07ab508dabb
 [NamedModulesPluginUrl]: https://www.webpackjs.com/plugins/named-modules-plugin/
@@ -1431,3 +1570,9 @@ postcss index.css -u autoprefixer -r -o index.css
 [AST初学者教程Url]: https://juejin.im/entry/5947703f8d6d81cc72f16e71
 [HowBabelReadJsCodeUrl]: https://zhuanlan.zhihu.com/p/27289600
 [ASTInModernJavaScriptUrl]: https://juejin.im/entry/5b0371e56fb9a07ac85abbf7
+[autoprefixerAndBrowserslistUrl]: https://github.com/postcss/autoprefixer 'autoprefixer之browserslist'
+[getBrowserslistByQueryUrl]: https://browserl.ist/?q= '根据不同参数显示对应浏览器'
+[postcssOfficialUrl]: https://www.postcss.com.cn/ 'postcss官网'
+[vueLoaderOfficialUrl]: https://vue-loader-v14.vuejs.org/zh-cn/ 'vue-loader官方文档'
+[vueLoaderOfficialNewUrl]: https://vue-loader.vuejs.org/zh/ 'vue-loader官方文档（新）'
+[hash&chunkhashDiffUrl]: https://www.cnblogs.com/ihardcoder/p/5623411.html 'hash与chunkhash的区别'
