@@ -136,7 +136,6 @@ $ git merge origin/master
 $ git rebase origin/master
 ```
 
-
 ### git pull
 
 ```bash

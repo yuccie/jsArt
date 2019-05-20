@@ -307,6 +307,7 @@ promise.then(function (value) { console.log(value) });
 ```
 
 **注意点**，如果有多个catch，则最后一个catch捕获错误，如下：
+
 ```js
 someAsyncThing().then(function() {
   return someOtherAsyncThing();
@@ -321,17 +322,21 @@ someAsyncThing().then(function() {
 // carry on [ReferenceError: y is not defined]
 ```
 
-#### 5、Promise.prototype.finally() 
+#### 5、Promise.prototype.finally()
+
 finally方法用于指定不管 Promise 对象最后状态如何，都会执行的操作。该方法是 ES2018 引入标准的。
+
 ```js
 promise
 .then(result => {···})
 .catch(error => {···})
 .finally(() => {···});
 ```
+
 上面代码中，不管promise最后的状态，在执行完then或catch指定的回调函数以后，都会执行finally方法指定的回调函数。
 
 **注意点**，finally方法的回调函数不接受任何参数，这意味着没有办法知道，前面的 Promise 状态到底是fulfilled还是rejected。这表明，finally方法里面的操作，应该是与状态无关的，不依赖于 Promise 的执行结果。**而是总会返回原来的值**，如下是其实现：
+
 ```js
 Promise.prototype.finally = function (callback) {
   let P = this.constructor;
@@ -341,7 +346,9 @@ Promise.prototype.finally = function (callback) {
   );
 };
 ```
-从上面的实现可以看出，finally方法总是返回原来的值，其实下面代码的意思是说，使用finally后，可以只写一个回调，因为不管是resolve还是reject，都会执行finally里的回调。
+
+从上面的实现可以看出，finally方法总是返回原来的值，其实下面代码的意思是说，使用finally后，可以只写一个回调，因为不管是resolve还是reject，都会执行finally里的回调，而且回调不接收任何参数。
+
 ```js
 // resolve 的值是 undefined
 // 会打印 success 2
@@ -356,10 +363,15 @@ Promise.reject(3).then(() => {}, () => {})
 
 // reject 的值是 3
 Promise.reject(3).finally(() => {})
+
+// reject 的值是 3，执行完finally后，依然可以继续then
+Promise.reject(3).finally(() => {}).then(()=> {}, (val) => {console.log('val', val)}) // 'val' 3
 ```
 
-#### 6、Promise.all() 
+#### 6、Promise.all()
+
 该方法用于将多个Promise实例，包装成一个新的Promise实例。接受一个数组作为参数（可以不是数组，但必须具有Iterator接口，且返回的成员必须是Promise实例），假如参数不是Promise实例，会调用Promise.resolve方法将参数转为Promise实例，再进一步处理。
+
 ```js
 const p = Promise.all([p1, p2, p3]);
 ```
