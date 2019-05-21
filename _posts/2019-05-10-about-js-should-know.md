@@ -1390,6 +1390,182 @@ ECMAScript5明确禁止给`undefined、NaN和Infinity`赋值，这样做即使�
 
 JavaScript中的**window对象除了扮演ECMAScript规定的Global对象的角色外**，还承担了很多别的任务。
 
+##### **Math对象**
+
+`ECMAScript`还为保存数学公式和信息提供了一个公共位置，即`Math`对象。与我们在`JavaScript`直接编写的计算功能相比，**`Math`对象提供的计算功能执行起来要快得多**。
+
+`1. Math.max()和Math.min()`  
+前者用于确定一组数值中最大值，后者确定最小值，都接收任意多个值。但**注意**，接收的都是具体的数值，而非对象类型(比如数组)
+
+```js
+var max = Math.max(1, 2, 5, 10); // 10
+var min = Math.min(1, 2, 5, 10); // 1
+```
+
+但有时确实想获取一个数组中的最大或最小值呢？可以如下：
+
+```js
+// apply参数一设置this，参数二正好为数组
+var max = Math.max.apply(Math, [1, 2, 5, 10]); // 10
+
+// 利用展开语法
+var min = Math.min(...[1, 2, 5, 10]); // 1
+```
+
+**总结：**其实遇到类似场景，都可以换个角度，能不能利用别的什么扩展方法来实现，比如上面的`apply`
+
+`2. 舍入方法Math.ceil()、Math.floor()、Math.round()`  
+
+- `Math.ceil()`执行向上舍入
+- `Math.floor()`执行向下舍入
+- `Math.round()`执行标准舍入，也就是四舍五入
+
+```js
+Math.ceil(25.9); // 26
+Math.ceil(25.5); // 26
+Math.ceil(25.1); // 26
+
+Math.floor(25.9); // 25
+Math.floor(25.5); // 25
+Math.floor(25.1); // 25
+
+Math.round(25.9); // 26
+Math.round(25.5); // 26
+Math.round(25.1); // 25
+```
+
+`3. 随机数方法Math.random()`  
+该方法返回0~1之间(不包括0和1)的随机数，而且精度是小数点为后17位(也就是浮点数精度)。还可以配合舍入方法，生成指定的几到几的数值
+
+```js
+Math.random(); // 0.8441821044639932，小数点后17位
+
+Math.floor(Math.random() * 10 + 1); // 1到10之间的数，包含1和10
+Math.floor(Math.random() * 9 + 2); // 2到10之间的数，包含2和10
+
+// 总结规律，可以封装以下代码
+function selectFrom(lowerValue, upperValue) {
+  var choices = upperValue - lowerValue + 1;
+  return Math.floor(Math.random() * choices + lowerValue);
+}
+
+var num = selectFrom(2, 10);
+alert(num);   //number between 2 and 10
+```
+
+随机数函数常用在抽奖中，可以灵活使用。当然还有其他的一些方法，比如求绝对值的`Math.abs()`
+
+
+### **面向对象的程序设计**
+
+---
+
+#### **理解对象属性**
+
+面向对象`（ObjectOriented，OO）`的语言有一个标志，那就是它们都有类的概念，而通过类可以创建任意多个具有相同属性和方法的对象。前面提到过，**`ECMAScript`中没有类的概念**，因此它的对象也与基于类的语言中的对象有所不同。
+
+ECMA262把对象定义为：“无序属性的集合，其属性可以包含基本值、对象或者函数。，我们可以把ECMAScript的对象想象成散列表：无非就是一组名值对，其中值可以是数据或函数。
+
+早期我们创建自定义对象的方式是创建`Object`实例：
+
+```js
+var person = new Object();
+
+person.name = "Nicholas";
+person.age = 29;
+person.job = "Software Engineer";
+person.sayName = function(){
+  alert(this.name);
+};
+
+person.sayName();
+```
+
+后来，我们通过对象字面量方式创建：
+
+```js
+var person = {
+  name : "Nicholas",
+  age : 29,
+  job : "Software Engineer",
+
+  sayName : function(){
+    alert(this.name);
+  };
+};
+
+person.sayName();
+```
+
+这两种方式定义的对象相同，具有相同的属性和方法。但这些属性在创建时，其实都自动带有一些特征值(`characteristic`)，而js正是通过这些特征值来定义他们的行为。
+
+`属性类型`  
+ECMA262第5版在定义只有内部才用的特性（attribute）时，描述了属性（property）的各种特征。ECMA262**定义这些特性是为了实现JavaScript引擎用的，因此在JavaScript中不能直接访问它们。为了表示特性是内部值，该规范把它们放在了两对儿方括号中，例如`[[Enumerable]]`**。尽管ECMA262第3版的定义有些不同，
+
+ECMAScript中有两种属性：**数据属性和访问器属性**。
+
+数据属性：
+
+- `[[Configurable]]`，表示能否使用delete删除属性、能否修改属性的特性或者能否把属性修改为访问器属性。
+- `[[Enumerable]]`，表示能否使用for-in遍历属性
+- `[[Writable]]`，表示能否修改属性的值
+- `[[Value]]`，表示这个属性的数据值。默认为`undefined`
+
+前三个当自定义对象时，默认都为`true`。当然可以通过用`ECMAScript5`的`Object.defineProperty()`方法来修改默认的特性。这个方法接收三个参数：**属性所在的对象、属性的名字和一个描述符对象**。其中，描述符`（descriptor）`对象的属性必须是：`configurable、enumerable、writable和value`。设置其中的一或多个值，可以修改对应的特性值。例如：
+
+```js
+var person = Object.create(null); // 这样创建的空对象更纯
+
+Object.defineProperty(person, 'name', {
+  writable: false,                // 不可写
+  value: 'joan'
+})
+
+person.name ;             // 'joan'
+person.name = 'changed' ; // 尝试修改
+person.name ;             // 'joan'，
+```
+
+上面操作表示name为只读的，不可修改。非严格模式下修改，会忽略。严格模式下回报错。同样，也适用不可配置的属性，如下
+
+```js
+var person = Object.create(null); // 这样创建的空对象更纯
+
+Object.defineProperty(person, 'name', {
+  configurable: false,                // 不可配置
+  value: 'joan'
+})
+
+person.name ;        // 'joan'
+delete person.name ; // 尝试删除
+person.name ;        // 'joan'，
+```
+
+但需要**注意**，一旦`configurable`设置为false，就不能再把它变成可配置的了，也就是再次调用`Object.defineProperty()`修改除`writable`以外的特性都会报错。。。
+
+```js
+var person = Object.create(null);
+
+Object.defineProperty(person, 'name', {
+  configurable: false,                // 不可配置
+  value: 'joan'
+})
+
+// error : Cannot redefine property: name
+Object.defineProperty(person, 'name', {
+  configurable: true,                // 再次尝试修改,报错，无法重复定义
+  value: 'joan'
+})
+```
+
+**注意：**在调用`Object.defineProperty()`方法时，如果不指定，`configurable、enumerable和writable`特性的默认值都是`false`。而如果自定创建对象的话，则都默认为`true`。
+
+#### **理解并创建对象**
+
+#### **理解继承**
+
+
+
 ### **函数**
 
 ---
