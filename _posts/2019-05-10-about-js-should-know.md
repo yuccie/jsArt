@@ -1504,7 +1504,7 @@ ECMA262第5版在定义只有内部才用的特性（attribute）时，描述了
 
 ECMAScript中有两种属性：**数据属性和访问器属性**。
 
-数据属性：
+**数据属性**：
 
 - `[[Configurable]]`，表示能否使用delete删除属性、能否修改属性的特性或者能否把属性修改为访问器属性。
 - `[[Enumerable]]`，表示能否使用for-in遍历属性
@@ -1560,7 +1560,172 @@ Object.defineProperty(person, 'name', {
 
 **注意：**在调用`Object.defineProperty()`方法时，如果不指定，`configurable、enumerable和writable`特性的默认值都是`false`。而如果自定创建对象的话，则都默认为`true`。
 
-#### **理解并创建对象**
+**访问器属性**:
+
+**访问器属性不包含数据值**；它们包含一对儿getter和setter函数（不过，这**两个函数都不是必需的**）。在**读取访问器属性时，会调用getter函数**，这个函数负责返回有效的值；在**写入访问器属性时，会调用setter函数并传入新值**，访问器属性有如下4个特性。
+
+- `[[Configurable]]`，表示能否使用delete删除属性、能否修改属性的特性或者能否把属性修改为数据属性。
+- `[[Enumerable]]`，表示能否使用for-in遍历属性
+- `[[Get]]`，在读取属性时调用的函数，默认为`undefined`
+- `[[Set]]`，在写入属性时调用的函数。默认为`undefined`
+
+```js
+var book = {
+  _year: 2004,
+  edition: 1
+};
+
+// 注意虽然上面定义的是_year，但这里设置的year
+Object.defineProperty(book, 'year', {
+  get: function(){
+    return this._year
+  },
+  set: function(newVal){
+    if(newVal > 2004){
+      this._year = newVal;
+      this.edition += newVal - 2004;
+    }
+  }
+})
+book.year = 2005;
+book.edition ;    // 2
+```
+
+**注意：**，以上代码创建了一个book对象，并给它定义两个默认的属性：_year和edition。**_year前面的下划线是一种常用的记号，用于表示只能通过对象方法访问的属性**。而**访问器属性year**则包含一个getter函数和一个setter函数。getter函数返回_year的值，setter函数通过计算来确定正确的版本。因此，把year属性修改为2005会导致_year变成2005，而edition变为2。
+
+上面也是使用访问器属性常用的方式，即**设置一个属性的值会导致其他属性发生变化。**`vue`老版本的双向数据绑定就基于此。
+
+不一定非要同时指定`getter和setter`，只指定`getter`意味着属性不能写，尝试写入属性会被忽略，严格模式下，会报错。只指定`setter`意味着属性不能读，尝试读则返回`undefined`。
+
+`定义多个属性`  
+由于经常一次性给对象定义多个属性，因此可以用`Object.defineProperties()`方法实现。两个参数：参数一为要定义的对象，参数二的对象的属性与第一个对象中要添加或修改的属性一一对应，如下：
+
+```js
+var book = {};
+
+Object.defineProperties(book, {
+  _year: {
+    value: 2004;
+  },
+  edition: {
+    value: 1
+  },
+
+  year: {
+    get: function(){
+      return this._year
+    },
+    set: function(newVal){
+      if(newVal > 2004){
+        this._year = newVal;
+        this.edition += newVal -2004;
+      }
+    }
+  }
+})
+```
+
+以上代码在book对外上定义了两个数据属性（`_year和edition`）和一个访问器属性（year）。最终的对象与上面定义的对象相同。
+
+`读取属性的特性`  
+`Object.getOwnPropertyDescriptor()`获取**给定属性的描述符**，
+
+```js
+Object.getOwnPropertyDescriptor(book, '_year');
+// value: 2004,
+// writable: true,
+// enumerable: true,
+// configurable: true
+
+Object.getOwnPropertyDescriptor(book, 'year');
+// configurable: false,
+// enumerable: false,
+// get: ƒ (){},
+// set: ƒ (newVal){}
+```
+
+#### **创建对象**
+
+虽然`Object`**构造函数或对象字面量都可以用来创建单个对象**，但这些方式有个明显的缺点：**使用同一个接口创建很多对象，会产生大量的重复代码**。为解决这个问题，人们开始使用工厂模式的一种变体。
+
+`工厂模式`  
+工厂模式是软件工程领域一种广为人知的设计模式，这种模式**抽象了创建具体对象的过程**。考虑到在**ECMAScript中无法创建类，开发人员就发明了一种函数，用函数来封装以特定接口创建对象的细节**，如：
+
+```js
+function createPerson(name, age, job){
+  var o = new Object();
+  o.name = name;
+  o.age = age;
+  o.job = job;
+  o.sayName = function(){
+    alert(this.name);
+  };
+  return o;
+}
+
+var person1 = createPerson("Nicholas", 29, "Software Engineer");
+var person2 = createPerson("Greg", 27, "Doctor");
+
+person1.sayName();   //"Nicholas"
+person2.sayName();   //"Greg"
+```
+
+工厂模式虽然**解决了创建多个相似对象的问题，但却没有解决对象识别的问题（即怎样知道一个对象的类型）**
+
+`构造函数模式`  
+`ECMAScript`中的构造函数可以用来创建特定类型的对象，比如像`Object`和`Array`这样的原生构造函数。当然还可以自己定义构造函数，比如：
+
+```js
+function Person(name, age, job){
+  this.name = name;
+  this.age = age;
+  this.job = job;
+  this.sayName = function(){
+    alert(this.name);
+  };
+}
+
+var person1 = new Person("Nicholas", 29, "Software Engineer");
+var person2 = new Person("Greg", 27, "Doctor");
+
+person1.sayName();   //"Nicholas"
+person2.sayName();   //"Greg"
+
+alert(person1.sayName == person2.sayName);  //false 
+```
+
+上面代码中，`Person()`函数取代了`createPerson()`函数。但他们还有以下不同之处：
+
+- 没有显式创建对象
+- 直接将属性和方法赋值给this对象
+- 没有return语句
+
+此外**函数名`Person`使用的是大写字母P**。这个**做法借鉴自其他OO语言，主要是为了区别于ECMAScript中的其他函数；因为构造函数本身也是函数，只不过可以用来创建对象而已。**
+
+要创建`Person`的新实例，必须使用`new`操作符，以这种方式调用构造函数实际上会经历以下4个步骤：
+
+1. 创建一个对象
+2. 将构造函数的作用域赋给新对象（因此this就指向了这个新对象）；
+3. 执行构造函数中的代码（为这个新对象添加属性）；
+4. 返回新对象。
+
+在前面代码中，person1和person2分别保存着Person的一个不同的实例。这两个对象都有一个constructor（构造函数）属性，该属性指向Person，如下所示。
+
+```js
+alert(person1.constructor == Person);  //true
+alert(person2.constructor == Person);  //true
+```
+
+**注意：**对象的**constructor属性最初是用来标识对象类型的**，比如这里对象类型就是`Person`。而不像原生构造函数构造出来的全是`Object`类型没法区分。当然他们也都是`Object`类型，如下：
+
+```js
+alert(person1 instanceof Object);  //true
+alert(person1 instanceof Person);  //true
+alert(person2 instanceof Object);  //true
+alert(person2 instanceof Person);  //true
+```
+
+创建**自定义的构造函数(如此处的Person)意味着将来可以将它的实例标识为一种特定的类型；而这正是构造函数模式胜过工厂模式的地方。**
 
 #### **理解继承**
 
