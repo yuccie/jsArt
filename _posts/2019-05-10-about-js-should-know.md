@@ -7,7 +7,7 @@ date: Fri May 10 2019 17:25:49 GMT+0800 (中国标准时间)
 
 ### **参考资料**
 
-[参考js秘密花园][jsSecretGardenUrl]、
+[参考js秘密花园][jsSecretGardenUrl]、JavaScript高级程序设计、你不知道的JavaScript系列、
 
 ---
 
