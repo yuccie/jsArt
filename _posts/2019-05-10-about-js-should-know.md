@@ -1727,6 +1727,130 @@ alert(person2 instanceof Person);  //true
 
 创建**自定义的构造函数(如此处的Person)意味着将来可以将它的实例标识为一种特定的类型；而这正是构造函数模式胜过工厂模式的地方。**
 
+`构造函数的问题`  
+构造函数模式虽然好用，但使用**构造函数时每个方法都要在每个实例上重新创建一遍**。如上面`person1、person2`都有一个同名`sayName()`方法，**但那两个方法不是同一个`Function`实例**。因为函数也是对象，因此每次定一个函数，也就是实例化一个对象。。。因此也可以如下定义：
+
+```js
+function Person(name, age, job){
+  this.name = name;
+  this.age = age;
+  this.job = job;
+  this.sayName = new Function('alert(this.name)')
+  // this.sayName = function(){
+  //   alert(this.name);
+  // };
+}
+
+var p1 = new Person('a',17,'aa');
+var p2 = new Person('b',18,'bb');
+p1.sayName === p2.sayName         // false
+```
+
+从这个角度看构造函数，更容易明白**每个Person实例都包含一个不同的`Function`实例（以显示name属性）的本质**。说明白些，**以这种方式创建函数，会导致不同的作用域链和标识符解析**，但创建Function新实例的机制仍然是相同的。然而创建两个完成同样任务`Function`实例的确没有必要。况且有this对象在，根本不用在执行代码前就把函数绑定到特定对象上面。因此可以如下：
+
+```js
+function Person(name, age, job){
+  this.name = name;
+  this.age = age;
+  this.job = job;
+  this.sayName = sayName;
+}
+function sayName(){
+  alert(this.name)
+}
+
+var p1 = new Person('a',17,'aa');
+var p2 = new Person('b',18,'bb');
+p1.sayName === p2.sayName // true
+```
+
+这样一来，由于`sayName`包含的是一个指向函数的指针，因此`person1和person2`对象就共享了在全局作用域中定义的同一个`sayName()`函数。这样做确实解决了两个函数做同一件事的问题，但会有全局变量污染的问题。。。
+
+`原型模式`  
+我们创建的每个函数都有一个`prototype`（原型）属性，**这个属性是一个指针，指向一个对象**，而这个对象的用途是**包含可以由特定类型的所有实例共享的属性和方法**。使用原型对象的**好处是可以让所有对象实例共享它所包含的属性和方法**。
+
+创建了自定义的构造函数之后，其原型对象默认只会取得`constructor`属性；至于其他方法，则都是从`Object`继承而来的。当调用构造函数**创建一个新实例后，该实例的内部将包含一个指针（内部属性），指向构造函数的原型对象**。ECMA262第5版中管这个指针叫`[[Prototype]]`。虽然在脚本中没有标准的方式访问`[[Prototype]]`，但`Firefox、Safari和Chrome`在每个对象上都支持一个属性`__proto__`。
+
+虽然在所有实现中都无法访问到`[[Prototype]]`，但可以通过`isPrototypeOf()`方法来确定对象之间是否存在这种关系。
+
+```js
+// p1，p2内部都有一个指针指向Person.prototype
+Person.prototype.isPrototypeOf(p1); // true
+Person.prototype.isPrototypeOf(p2); // true
+```
+
+`ECMAScript 5`新增方法`Object.getPrototypeOf()`，可以返回`[[Prototype]]`的值。
+
+```js
+Object.getPrototypeOf(p1) === Person.prototype; // true
+```
+
+虽然可以通过实例对象访问原型中的值，但却不能通过对象实例重写原型中的值。我们在实例中增加的同名属性或方法只是屏蔽了原型中的那个属性或方法(和属性查找规则有关)。
+
+即使将这个属性设置为`null`，也只会在实例中设置这个属性，而不会恢复其指向原型的连接。不过，使用`delete`操作符则可以完全删除实例属性，从而让我们能够重新访问原型中的属性。
+
+使用`hasOwnProperty()`方法可以检测一个属性是**存在于实例中，还是存在于原型中，这个方法（不要忘了它是从Object继承来的）只在给定属性存在于对象实例中时，才会返回true。**。而`in和for-in`操作都可以遍历对象及原型上的属性。配合`hasOwnProperty()`可以只遍历对象或原型上的属性和方法。
+
+如果你想要得到**所有实例属性，无论它是否可枚举**，都可以使用`Object.getOwnPropertyNames()`方法。
+
+```js
+Object.getOwnPropertyNames(p1.__proto__); // ["constructor"]
+Object.getOwnPropertyNames(Person.prototype); // ["constructor"]
+```
+
+`原型语法`  
+
+```js
+function Person(){};
+Person.prototype = {
+  name : 'joan',
+  age : 17,
+  sayName : function(){ alert(this.name) }
+}
+```
+
+在上面的代码中，我们将`Person.prototype`设置为等于一个以对象字面量形式创建的新对象。最终结果相同，但有一个例外：**`constructor`属性不再指向`Person`**了，因为我们这里相当于重写了默认的`prototype`对象。
+
+```js
+var p = new Person();
+
+p instanceof Object ; // true
+p instanceof Person ; // true
+p.constructor === Object ; // true
+p.constructor === Person ; // false
+```
+
+如上，最后一行为`false`，因为`constrctor`最初就是用来表示对象类型的，如果都指向了`Object`，那也就没有意义了。。。因此可以如下修改：
+
+```js
+function Person(){};
+Person.prototype = {
+  // 增加下面一行
+  constructor : Person
+}
+```
+
+但是这样有个问题，以这种方式重设`constructor`属性会导致它的`[[Enumerable]]`特性被设置为`true`。**默认情况下，原生的constructor属性是不可枚举的**，因此如果你使用兼容`ECMAScript5的JavaScript`引擎，可以使用`Object.defineProperty()`
+
+```js
+function Person(){};
+Person.prototype = {
+  // ...
+}
+
+Object.defineProperty(Person.prototype, 'constructor', {
+  enumerable : false,
+  value : Person
+})
+```
+
+
+
+
+
+
+
+
 #### **理解继承**
 
 
