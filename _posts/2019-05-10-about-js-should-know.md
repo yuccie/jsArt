@@ -428,6 +428,8 @@ isNaN(null)       // false，null会被转换0
 
 `isNaN()`函数也可以传入**对象**，此时会**先调用对象的`valueOf()`方法，然后确定该方法返回的值是否可以转换为数值，如果不能，则基于这个返回值再调用`toString()`方法，再测试其返回值。**
 
+**注意：** `typeof NaN === 'number'`
+
 #### **数值转化**
 
 有三个函数可以把非数值转化为数值：`Number()、parseInt()、parseFloat()`，**`Number()`适用于所有数据类型**，其他两个专门用于**将字符串转为数值**。`Number()`转换规则如下：
@@ -1515,6 +1517,7 @@ ECMAScript中有两种属性：**数据属性和访问器属性**。
 
 ```js
 var person = Object.create(null); // 这样创建的空对象更纯
+// 控制台可以直接查看 {} 与 person ，后者没有原型上的属性或方法，
 
 Object.defineProperty(person, 'name', {
   writable: false,                // 不可写
