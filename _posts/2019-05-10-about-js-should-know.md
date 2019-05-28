@@ -942,9 +942,9 @@ arr                              // ['red', 'code', 'js', 'yellow']
 
 ##### .**缩小方法**  
 
-`ECMAScript`为数组提供了2个缩小方法:`reduce()、reduceRight()`,这两个方法会迭代数组的所有项，然后构建一个最终返回的值。前者从数组第一项开始迭代逐个到最后，后者从最后一项开始。两个方法都接收连个参数：在每一项上调用的函数和（可选的）作为缩小基础的初始值。传给`reduce()、reduceRight()`的函数接收4个参数：前一个值、当前值、当前项的索引和数组对象。
+`ECMAScript`为数组提供了2个缩小方法:`reduce()、reduceRight()`,这两个方法会迭代数组的所有项，然后构建一个最终返回的值。前者从数组第一项开始迭代逐个到最后，后者从最后一项开始。两个方法都接收两个参数：在每一项上调用的函数和（可选的）作为缩小基础的初始值，传给`reduce()、reduceRight()`的函数接收4个参数：前一个值、当前值、当前项的索引和数组对象。
 
-这个函数返回的任何值都会作为第一个参数自动传给下一项，第一次迭代发生在数组的第二项上，因此第一个参数是数组的第一项，第二个参数就是数组的第二项。
+这个函数返回的任何值都会作为第一个参数自动传给下一项，第一次迭代发生在数组的第二项上(**前提是没有给第二个参数**)，因此第一个参数是数组的第一项，第二个参数就是数组的第二项。
 
 ```js
 // 可以求和
@@ -954,6 +954,15 @@ var sum = values.reduce((prev, cur, index, array) => {
 })
 // 第一次执行回调，prev是1，cur是2。第二次prev是3（1加2的结果），cur是3（数组第三项）...直到将数组中项都访问一遍
 sum // 15
+
+// 还可以拍平数组求和，这里涉及数组判断，因此传入0，可以少判断
+var arr = [2, [3, 4], [4, [5, 6]]]
+var sum = arr => arr.reduce((p, c) => p + (Array.isArray(c) ? sum(c) : c), 0)
+sum(arr); // 24
+
+// 拍平数组
+var flattenArr = arr => arr.reduce((p, c) => p.concat(Array.isArray(c) ? flattenArr(c) : c), [])
+flattenArr(arr); // [2,3,4,4,5,6]
 ```
 
 #### **Date类型**
@@ -1847,13 +1856,6 @@ Object.defineProperty(Person.prototype, 'constructor', {
 })
 ```
 
-
-
-
-
-
-
-
 #### **理解继承**
 
 
@@ -1925,6 +1927,15 @@ console.log(person.name);    // "Nicholas"
 ```
 
 如上，只是把`person`对象在内存中的地址当做参数传给函数了，当执行`obj.name = "Nicholas";`时，局部变量`obj`和`person`确实都指向同一块内存空间。但执行`obj = new Object();`时，新创建一个内存空间的地址赋值给了局部变量`obj`(也会在函数执行完毕后被销毁)，但并没有影响函数外`person`对象的指向啊，因此依然打印`"Nicholas"`。。。这就证明了：**ECMAScript中所有函数的参数都是按值传递的**
+
+### **Ajax与Comet**
+
+#### **Ajax简介**
+
+2005年，`JesseJamesGarrett`发表了一篇在线文章，题为`“Ajax:A new Approach to Web Applications”`。他在这篇文章里介绍了一种技术，用他的话说，就叫`Ajax`，是对A`synchronous JavaScript+ XML`的简写。这一技术**能够向服务器请求额外的数据而无须卸载页面**，会带来更好的用户体验。`Garrett`还解释了怎样使用这一技术改变自从Web诞生以来就一直沿用的“单击，等待”的交互模式。
+
+
+
 
 ### **性能优化**
 
