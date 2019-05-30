@@ -23,10 +23,12 @@ $ git help commit
 
 原因是.gitignore只能忽略那些原来没有被track的文件，如果某些文件已经被纳入了版本管理中，则修改.gitignore是无效的。那么解决方法就是先把本地缓存删除（改变成未track状态），然后再提交：
 
+**注意：** `git rm`是删除暂存区和分支上的文件，同时本地也不需要了，使用。而`git rm --cached`只是删除暂存区和分支上的，本地还需要，只是不被版本控制了。其实若想用`git`管理文件，则使用`git rm`相关，若新建一个文件，并没有提交到暂存区，此时用`git rm或git rm --cache`是找不到这个文件的，此时应该直接用`rm`
+
 ```bash
-git rm -r --cached .
+git rm -r --cached 文件名
 git add .
-git commit -m 'update .gitignore
+git commit -m 'update .gitignore'
 ```
 
 #### git 常用操作

@@ -379,10 +379,12 @@ const p = Promise.all([p1, p2, p3]);
 注意：其实Promise.resolve(2) 等价于 new Promise( resolve => resolve(2))
 
 此时p的状态，根据这三者来确定，
+
 1. 当所有参数实例状态都为resolved，则p才为resolved，此时p1,p2,p3的返回值组成一个数组，传递给p的回调函数。
 2. 只要p1、p2、p3之中有一个被rejected，p的状态就变成rejected，此时第一个被reject的实例的返回值，会传递给p的回调函数。
 
 **注意：**如果作为参数的Promise实例，自己定义了catch方法，那么它一旦是rejected，并不会触发Promise.all()的catch方法。由于p2有自己的catch方法，而返回的实例又是新的Promise实例，因此该实例执行完本身的catch方法后，也会变成resolved，导致Promise.all([p1,p2])总的状态为resolved，因此不会调用Promise.all([p1,p2]).then().catch()的catch方法
+
 ```js
 const p1 = new Promise((resolve, reject) => {
   resolve('hello');
@@ -402,7 +404,44 @@ Promise.all([p1, p2])
 // ["hello", Error: 报错了]
 ```
 
+**手动实现Promise.all()**:  
+
+```js
+if(!Promise.all){
+  Promise.all = function(promiseArray){
+    return new Promise(function(resolve,reject){
+      //判断参数类型
+      if(!Array.isArray(promiseArray)){
+        return reject(new TypeError('arguments muse be an array'))
+      }
+
+      var counter = 0,
+          promiseNum = promiseArray.length,
+          resolvedArray = new Array(promiseNum);
+
+      for(var i = 0; i < promiseNum; i++){
+        (function(i){
+          Promise.resolve(promiseArray[i]).then(function(value){
+            counter++;
+            // resolvedArray.push(value);
+            resolvedArray[i] = value;      // 原始运算符始终比函数调用要高效
+            if(counter == promiseNum){
+              return resolve(resolvedArray)
+            }
+          },function(reason){
+            return reject(reason)
+          })
+        })(i)
+      }
+
+    })
+  }
+}
+```
+
+
 #### 7、迭代器Iterator,Iterable和Gennerator
+
 对于集合中每个元素进行处理是很常见的操作，比如操作数组遍历，对象的属性遍历。以往的操作是通过for循环，forEach,map等方式。同时提供定制 for...of 的机制。 借由迭代器机制为 Map、Array、String 等对象**提供了统一的遍历语法**，以及**更方便的相互转换（不同数据类型转换）**。 为**方便编写迭代器还提供了生成器（Generator）**语法。
 
 遍历器（Iterator）就是这样一种机制。它是一种接口，为各种不同的数据结构提供统一的访问机制。任何数据结构只要部署 Iterator 接口，就可以完成遍历操作（即依次处理该数据结构的所有成员）。
