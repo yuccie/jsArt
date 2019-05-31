@@ -330,6 +330,7 @@ p.then(function() {
   });
   setTimeout(() => {
     console.log("D");
+    p.then(() => {console.log('end')})
   });
   console.log("A");
 });
@@ -337,14 +338,14 @@ p.then(function() {
   console.log("B");
 });
 
-// A B C D
+// A B C D end
 ```
 
 一个 Promise 决议后，这个 Promise 上所有的通过 then(..) 注册的回调都会在下一个异步时机点上依次被立即调用。这些回调中的任意一个都无法影响或延误对其他回调的调用。这里，"C" 无法打断或抢占 "B"，这是因为 Promise 的运作方式。
 
 事件循环队列类似于一个游乐园游戏：玩过了一个游戏之后，你需要重新到队尾排队才能再玩一次。而任务队列类似于玩过了游戏之后，插队接着继续玩。一个任务可能引起更多任务添加到同一个任务队列中，所以，理论上任务循环可能会无限循环。。。每次事件循环可理解为 tick，如果遇到任务则属于当前 tick(类似 setTimeout(fn,0))，只有事件才属于下一轮 tick
 
-这对上面的例子，首先会注册 A,B 任务，然后打印 A、B，执行 A 的时候注册新的任务 C，C 属于任务，因此为在当前 tick 执行，而 D 属于事件，需要在下一个 tick 执行，因此最后执行
+这对上面的例子，首先会注册 A,B 任务，然后打印 A、B，执行 A 的时候注册新的任务 C，C 属于任务，因此为在当前 tick 执行，而 D 属于事件，需要在下一个 tick 执行
 
 ```js
 var p3 = new Promise(function(resolve, reject) {
