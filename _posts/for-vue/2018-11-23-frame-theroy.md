@@ -144,7 +144,7 @@ Angular 和 Vue 都提供了列表重绘的优化机制，也就是 “提示”
 
 ### Vue.js 内部运行机制之全局概览
 
-![dpr&ppi](/jsArt/assets/images/vue-source/总览图.png)
+![Vue内部机制](/jsArt/assets/images/vue-source/总览图.png)
 
 #### **初始化及挂载**
 
@@ -833,7 +833,7 @@ patch其实可以理解为打补丁，其核心就是diff算法，我们用 diff
 
 diff 算法是通过同层的树节点进行比较而非对树进行逐层搜索遍历的方式，所以时间复杂度只有 O(n)，是一种相当高效的算法，如下图。
 
-![dpr&ppi](/jsArt/assets/images/vue-source/diff.png)
+![diff算法图](/jsArt/assets/images/vue-source/diff.png)
 
 ```js
 function patch ( oldVnode, vnode, parentElm ) {
