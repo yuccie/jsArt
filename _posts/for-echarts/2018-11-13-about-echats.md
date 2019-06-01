@@ -113,93 +113,14 @@ window.addEventLister('resize', throttle(() => {
    8.3. 如果只使用 cover 属性值，则相比 8.2 只是一侧缩放，而 8.2 是两侧缩放
 9. 引用数据类型，修改子组件影响父组件数据<br/>
    9.1. 栈 (stack)分配固定大小内存（存放指针及基本数据类型），系统自动回收内存。堆 (heap)是动态分配内存大小， 不自动释放内存（引用数据类型的数据存放于此）<br/>
-   9.2. 赋值和浅拷贝不同，赋值只是改变指针但  仍指向同一个对象；浅拷贝是新建对象,但只复制一层对象的属性，不包括对象里面的为引用类型的数据,意味着仍然指向原始对象里的数据。参考[浅拷贝与深拷贝](https://juejin.im/post/59ac1c4ef265da248e75892b)。<br/>
-   9.3. 如下:修改通过赋值得到的 obj2 中的基本数据和引用数据类型，都会改变  原始对象 obj1;而修改浅拷贝得到的 obj2,只有修改引用数据才会改变原始对象。
-
-   ```js
-   var obj1 = {
-     name: "zhangsan",
-     age: "18",
-     language: [1, [2, 3], [4, 5]]
-   };
-
-   var obj2 = obj1;
-   var obj3 = shallowCopy(obj1);
-   function shallowCopy(src) {
-     var dst = {};
-     for (var prop in src) {
-       if (src.hasOwnProperty(prop)) {
-         dst[prop] = src[prop];
-       }
-     }
-     return dst;
-   }
-
-   obj2.name = "lisi";
-   obj3.age = "20";
-
-   obj2.language[1] = ["二", "三"];
-   obj3.language[2] = ["四", "五"];
-
-   console.log(obj1);
-   //obj1 = {
-   //    'name' : 'lisi',
-   //    'age' :  '18',
-   //    'language' : [1,["二","三"],["四","五"]],
-   //};
-
-   console.log(obj2);
-   //obj2 = {
-   //    'name' : 'lisi',
-   //    'age' :  '18',
-   //    'language' : [1,["二","三"],["四","五"]],
-   //};
-
-   console.log(obj3);
-   //obj3 = {
-   //    'name' : 'zhangsan',
-   //    'age' :  '20',
-   //    'language' : [1,["二","三"],["四","五"]],
-   //};
-   ```
+   9.2.  
+   9.3. 如下:
 
    9.4.  知道了赋值与浅拷贝的区别，那深拷贝就是递归浅拷贝了。可以借助第三方库 lodash 等实现，还可以通过如下方式：
 
 ```js
 // 但需要指出的是这种方法对于包含function函数或者Date类型的对象则不管用
 let deepCloneData = JSON.parse(JSON.stringify(originData));
-```
-
-9.5. 因此避免修改子组件的数据而影响到父组件的数据，那就用深拷贝吧。
-
-```js
-// 参考：https://juejin.im/post/5b20c9f65188257d7d719c1c
-function deepCopy(target) {
-  let copyed_objs = []; //此数组解决了循环引用和相同引用的问题，它存放已经递归到的目标对象
-  function _deepCopy(target) {
-    if (typeof target !== "object" || !target) {
-      return target;
-    }
-    for (let i = 0; i < copyed_objs.length; i++) {
-      if (copyed_objs[i].target === target) {
-        return copyed_objs[i].copyTarget;
-      }
-    }
-    let obj = {};
-    if (Array.isArray(target)) {
-      obj = []; //处理target是数组的情况
-    }
-    copyed_objs.push({ target: target, copyTarget: obj });
-    Object.keys(target).forEach(key => {
-      if (obj[key]) {
-        return;
-      }
-      obj[key] = _deepCopy(target[key]);
-    });
-    return obj;
-  }
-  return _deepCopy(target);
-}
 ```
 
 10. vw 及 vh 及 rem<br/>
