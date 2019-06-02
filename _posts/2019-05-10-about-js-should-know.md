@@ -270,6 +270,49 @@ msg = 100; // 有效但不推荐
 
 #### **this，bind，call，apply**
 
+它是一个很特别的关键字，被自**动定义在所有函数的作用域中**，那我们为甚么要使用`this`呢？
+
+```js
+function identify() {
+  return this.name.toUpperCase();
+}
+function speak() {
+  var greeting = "Hello, I'm " + identify.call(this);
+  console.log(greeting);
+}
+var me = {
+  name: "Kyle"
+};
+var you = {
+  name: "Reader"
+};
+identify.call(me); // KYLE
+identify.call(you); // READER
+speak.call(me); // Hello, 我是KYLE
+speak.call(you); // Hello, 我是 READER
+
+// 这段代码可以在不同的上下文对象（me 和you）中重复使用函数identify() 和speak()，
+// 不用针对每个对象编写不同版本的函数。
+// 其实根据最佳实践来说，共享函数都是定义在原型上，所以并不是针对谁的函数，而是大家都可以调用
+
+// 如果不使用this，那就需要给identify() 和speak() 显式传入一个上下文对象。
+function identify(context) {
+  return context.name.toUpperCase();
+}
+function speak(context) {
+  var greeting = "Hello, I'm " + identify(context);
+  console.log(greeting);
+}
+identify(you); // READER
+speak(me); //hello, 我是KYLE
+// 然而，this 提供了一种更优雅的方式来隐式“传递”一个对象引用，
+// 因此可以将API 设计得更加简洁并且易于复用。
+```
+
+
+
+this的指向问题
+
 ```js
 // this 永远指向最后调用它的那个对象
 var name = "windowsName";
@@ -495,10 +538,10 @@ fn();
 // 上面代码将func1的this指向了obj了，因此就可以打印出obj里的name属性。。。
 // 另外，修改this指向时传入了参数1，2也同样打印出来了。。。
 // 但fn()调用时没有传参，如果再继续传参又该如何处理呢？
-Function.prototype.myBind = (context, ...args) => {
+Function.prototype.myBind = function (context, ...args){
   // 要记住，返回的是一个函数，如果想执行的话，则需要调用
   return (...args2) => {
-    this.apply(context, [args, ...args2]);
+    this.apply(context, [...args, ...args2]);
   };
 };
 
@@ -524,6 +567,148 @@ var bar = foo();
 // 注意：对于正常的函数调用来说，理解了这些知识你就可以明白this 的绑定原理了。不过……凡事总有例外。
 // 也就是如果把null 或者undefined 作为this 的绑定对象传入call、apply 或者bind，
 // 这些值在调用时会被忽略，实际应用的是默认绑定规则
+```
+
+#### **柯力化**
+
+```js
+// 柯里化，可以理解为提前接收部分参数，延迟执行，不立即输出结果，
+// 而是返回一个接受剩余参数的函数。
+// 思考一个场景，设计一个算法记录一个月的加班时间？
+// 常规方法是首先记录每天加班时间，然后再将每天的时间相加。。。
+var monthTime = 0;
+
+function overtime(time) {
+  return (monthTime += time);
+}
+
+overtime(3.5); // 第一天
+overtime(4.5); // 第二天
+overtime(2.1); // 第三天
+//...
+
+console.log(monthTime); // 10.1
+// 缺点：浪费性能，没有必要每天都计算，尤其数据量大的时候
+
+// 因此我们可以只保存每天的加班时间，到月底只计算一次就好。。。
+function currying(fn) {
+  var allArgs = [];
+
+  // 利用闭包，将allArgs一直保存在内存中
+  return function next() {
+    var args = [].slice.call(arguments);
+
+    if (args.length > 0) {
+      // 收集参数，进行缓存
+      allArgs = allArgs.concat(args);
+      return next;
+    } else {
+      // 符合执行条件，执行计算
+      return fn.apply(null, allArgs);
+    }
+  };
+}
+var add = currying(function() {
+  var sum = 0;
+  for (var i = 0; i < arguments.length; i++) {
+    sum += arguments[i];
+  }
+  return sum;
+});
+
+// 因为是根据有无参数来决定是否执行计算，最后传空表示可以计算
+// 参考下面方法四更简单
+add(3.5)(4.5)(2.1)(); // 10.1
+
+// 扩展：
+// 实现 add(1)(2, 3)(4)(5) === 15 的效果。
+// 此时怎么知道执行的时机呢？
+// 其实，这里有个忍者技艺：valueOf和toString。
+// js在获取当前变量值的时候，会根据语境，隐式调用valueOf和toString方法进行获取需要的值。
+// 因此，代码如下(弊端是覆盖原型上的toString和valueOf，设计到隐式转换的都会触发)
+function currying(fn) {
+  var allArgs = [];
+
+  function next() {
+    var args = [].slice.call(arguments);
+    allArgs = allArgs.concat(args);
+    return next;
+  }
+  // 字符类型
+  next.toString = function() {
+    return fn.apply(null, allArgs);
+  };
+  // 数值类型
+  next.valueOf = function() {
+    return fn.apply(null, allArgs);
+  };
+
+  return next;
+}
+var add = currying(function() {
+  var sum = 0;
+  for (var i = 0; i < arguments.length; i++) {
+    sum += arguments[i];
+  }
+  return sum;
+});
+
+// 以下是几种柯力化方法，
+// 方法一
+let currying = (fn, length, ...args) =>
+  args.length === length
+    ? fn(...args)
+    : currying.bind(null, fn, args.length, ...args);
+
+// 方法二
+const curry = (fn, arr = []) => (...args) =>
+  (arg => (arg.length === fn.length ? fn(...arg) : curry(fn, arg)))([
+    ...arr,
+    ...args
+  ]);
+
+// 方法三
+// 参考：https://juejin.im/post/5bf9bb7ff265da616916e816
+const curry = fn => {
+  if (fn.length <= 1) return fn;
+  const generator = args =>
+    args.length === fn.length ? fn(...args) : arg => generator([...args, arg]);
+
+  return generator([], fn.length);
+};
+// 测试
+const sum = (a, b, c) => a + b + c;
+const curriedSum = curry(sum);
+const res = curriedSum(1)(2)(3);
+console.log(res); // 6
+
+const log = (a, b, c) => {
+  console.log(a, b, c);
+};
+const curriedLog = curry(log);
+curriedLog("a")("b")("c"); // a b c
+
+// 方法四
+// 参考：https://juejin.im/post/5bf18715e51d45244939acc5
+function curry(fn, ...args) {
+  return (..._arg) => {
+    return fn(...args, ..._arg);
+  };
+}
+function sum() {
+  let mySum = 0;
+  for (let i = 0; i < arguments.length; i++) {
+    mySum += arguments[i];
+  }
+  return mySum;
+}
+curry(sum, 1, 2)(); // 3
+curry(sum, 1, 2, 3)(); // 6
+
+// ---------反柯力化-------------
+// 反柯里化的作用是，当我们调用某个方法，不用考虑这个对象在被设计时，
+// 是否拥有这个方法，只要这个方法适用于它，我们就可以对这个对象使用它。
+
 ```
 
 ### **基本数据类型**
