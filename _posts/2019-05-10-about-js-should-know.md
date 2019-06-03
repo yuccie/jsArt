@@ -309,8 +309,6 @@ speak(me); //hello, 我是KYLE
 // 因此可以将API 设计得更加简洁并且易于复用。
 ```
 
-
-
 this的指向问题
 
 ```js
@@ -557,7 +555,7 @@ fn(3, 4);
 
 // ---------this指向规则判断优先级(完结)-------------
 // 1. 函数是否在new 中调用（new 绑定）？如果是的话this 绑定的是新创建的对象。
-var bar = new foo();
+var bar = new Foo();
 // 2. 函数是否通过call、apply（显式绑定）或者硬绑定调用？如果是的话，this 绑定的是指定的对象。
 var bar = foo.call(obj2);
 // 3. 函数是否在某个上下文对象中调用（隐式绑定）？如果是的话，this 绑定的是那个上下文对象。
@@ -1316,10 +1314,8 @@ var floatNum2 = 0.0000003; // 等于3e-7
 ```js
 // 注意结果有的为字符串格式
 (0.1 + 0.2).toFixed(10); // '0.3000000000'
-parseFloat((0.1 + 0.2).toFixed(10))(
-  // 0.3
-  0.1 + 0.2
-).toPrecision(1); // '0.3'
+parseFloat((0.1 + 0.2).toFixed(10));   // 0.3
+( 0.1 + 0.2 ).toPrecision(1); // '0.3'
 parseFloat((0.1 + 0.2).toPrecision(1)); // 0.3
 ```
 
@@ -1437,7 +1433,7 @@ JavaScript 的**许多内置对象都重写了该函数，以实现更适合自�
 
 const a = {
   value: [3,2,1],
-  valueOf(){return this.value.pop()}
+  valueOf(){ return this.value.pop() }
 }
 a == 1 && a == 2 && a == 3;    // true
 ```
@@ -1652,20 +1648,10 @@ str = "java" + "script";
 给 toString()传参，多数情况下不必传参，但是，在调用**数值**的`toString()`方法时，可以传递一个参数：**输出数值的基数**。默认情况下返回十进制的字符串表示
 
 ```js
-(10)
-  .toString()(
-    // '10' ，之所以加()，因为小数点优先级高，会把10.toString看成数值而出错
-    10
-  )
-  .toString(2)(
-    // '1010'
-    10
-  )
-  .toString(8)(
-    // '12'
-    10
-  )
-  .toString(8); // 'a'
+(10).toString(); // '10' ，之所以加()，因为小数点优先级高，会把10.toString看成数值而出错
+(10).toString(2);// '1010'
+(10).toString(8);// '12'
+(10).toString(16); // 'a'
 "10".toString(16); // '10'，注意此处传参了，但调用toString的不是数值，原样输出
 ```
 
@@ -1676,7 +1662,7 @@ str = "java" + "script";
 #### **逗号操作符**
 
 。**基本概念**  
-使用逗号操作符可以在一条语句中执行多个操作，多用于声明多个变量。还用于赋值，在用于赋值时，逗号操作符总会返回表达式的最后一下：
+使用逗号操作符可以在一条语句中执行多个操作，多用于声明多个变量。还用于赋值，在用于赋值时，逗号操作符总会返回表达式的最后一个：
 
 ```js
 // 声明变量
@@ -1708,7 +1694,7 @@ var person = new Object();
 ```js
 var person = {
   name: "jane",
-  home: "beijing", // 属性名可以使字符串
+  home: "beijing", // 属性名可以使用字符串
   66: true, // 数值属性会自动转为字符串
   age: 18 // 在老的浏览器，最后一个属性后加,号，会出错
 };
@@ -1788,6 +1774,7 @@ var person2 = {
 var people = [person1, person2];
 alert(people); // Nicholas,Greg
 alert(people.toString()); // Nicholas,Greg
+// 此处如果没有toLocaleString则调用toString()，如果都没有则返回'[object Object]'
 alert(people.toLocaleString()); // Nikolaos,Grigorios
 ```
 
@@ -1798,11 +1785,10 @@ alert(people.toLocaleString()); // Nikolaos,Grigorios
 如果不给`join()`方法传递参数，或者传入`undefined`，则依然是逗号分隔。如果数组中某一项是`null、undefined`，那么在使用`toLocaleString()、toString()、valueOf()、join()`方法返回的结果中以空字符串表示。
 
 ```js
-[null, undefined, "see"]
-  .join() // ',,see'
-  [(null, undefined, "see")].toString() // ',,see'
-  [(null, undefined, "see")].toLocaleString() // ',,see'
-  [(null, undefined, "see")].valueOf(); // 数组调用返回自身 [null, undefined, "see"]
+[null, undefined, "see"].join(); // ',,see'
+[null, undefined, "see"].toString(); // ',,see'
+[null, undefined, "see"].toLocaleString(); // ',,see'
+[null, undefined, "see"].valueOf(); // 数组调用返回自身 [null, undefined, "see"]
 ```
 
 ##### .**栈方法**
@@ -1831,7 +1817,7 @@ arr.shift(); // 弹出最前面一项并返回，没有参数
 
 ##### .**重排序方法**
 
-数组中两个已有的重排序方法`reverse()、sort()`，前者是反转数组，但不够灵活，因此有了`sort()`,默认情况下`sort()`是升序，在实现排序时，`sort()`会为**每个数组项调用`toString()`方法，然后比较得到的字符串，以确定如何排序**。即使数组项都为数值，`sort()`方法比较的也是字符串。**二者的返回值都是排序之后的数组**
+数组中两个已有的重排序方法`reverse()、sort()`，前者是反转数组，但不够灵活，因此有了`sort()`,默认情况下`sort()`是升序，在实现排序时，`sort()`会为**每个数组项调用`toString()`方法，然后比较得到的字符串，以确定如何排序**。即使数组项都为数值，`sort()`方法比较的也是字符串（也就是对应的字符编码）。**二者的返回值都是排序之后的数组**
 
 ```js
 var values = [0, 1, 5, 10, 15];
@@ -1857,7 +1843,7 @@ var values = [0, 1, 5, 10, 15];
 values.sort(compare); // [0, 1, 5, 10, 15]
 ```
 
-我们注意到上面的`compare`函数内部，只是用`<、>`号还比较，这是因为待排序的数组项有可能不是数值类型或其`valueOf()`没有返回数值类型，如果使用`-`运算符就会有问题，因此如果能确定数组项是数值型或转化后是数值型，则可以使用更加简单的比较函数，如下
+我们注意到上面的`compare`函数内部，只是用`<、>`号比较，这是因为待排序的数组项有可能不是数值类型或其`valueOf()`没有返回数值类型，如果使用`-`运算符就会有问题，因此如果能确定数组项是数值型或转化后是数值型，则可以使用更加简单的比较函数，如下
 
 ```js
 "a" < "b"; // true
@@ -1871,7 +1857,7 @@ function compare(val1, val2) {
 
 ##### .**操作方法**
 
-`contact()`方法，会先创建当前数组的副本(深拷贝)，然后将接收到的参数添加到副本的末尾，最后返回新数组。
+`concat()`方法，会先创建当前数组的副本(浅拷贝)，然后将接收到的参数添加到副本的末尾，最后返回新数组。
 
 `slice()`方法，基于当前数组的一项或多项创建新数组，有两个参数:返回项的起始位置和结束位置。只有一个参数，则至末尾所有项。两个参数的话，不包括结束位置的项。**注意：不会影响原来数组**，另外，若参数有负数，则用数组长度加上该数来确定相应的位置，如长度为 5 的数组调用`slice(-2, -1)`与调用`slice(3, 4)`相同，若结束位置小于起始位置，则返回空数组。
 
@@ -1942,7 +1928,7 @@ flattenArr(arr); // [2,3,4,4,5,6]
 
 #### **Date 类型**
 
-##### .**基本概念**
+##### **基本概念**：
 
 `ECMAScript`中的`Date`类型是在早期`Java`中的`java.util.Date`类的基础上构建的。为此，`Date`类型使用自`UTC（Coordinated Universal Time，国际协调时间）`1970 年 1 月 1 日午夜（零时）开始经过的毫秒数来保存日期。使用这种数据存储格式的条件下，`Date`类型保存的日期能够精确到 1970 年 1 月 1 日之前或之后的 285 616 年。
 
@@ -2313,6 +2299,29 @@ var colors3 = colorText.split(/[^\,]+/);
 ```js
 String.fromCharCode(104, 101, 108, 108, 111);
 // "hello"
+```
+
+`7. 驼峰命名转换`  
+
+```js
+// 下划线转换驼峰
+function toHump ( name ) {
+  return name.replace( /\_(\w)/g, function ( all, letter ) {
+    return letter.toUpperCase();
+  } );
+}
+// 驼峰转换下划线
+function toLine ( name ) {
+  return name.replace( /([A-Z])/g, "_$1" ).toLowerCase();
+}
+
+
+// 测试
+let a = 'a_b2_345_c2345';
+console.log( toHump( a ) );
+
+let b = 'aBdaNf';
+console.log( toLine( b ) );
 ```
 
 #### **单体内置对象**
