@@ -1158,6 +1158,170 @@ dispatch( type, payload ) {
 
 理解 Vuex 的核心在于理解其如何与 Vue 本身结合，如何利用 Vue 的响应式机制来实现核心 Store 的「响应式化」。
 
+### **vue-router**
+
+参考：[vue-router官网][vueRouterOfficialUrl]
+
+#### **导航守卫**
+
+```js
+// 全局前置守卫
+const router = new VueRouter({ ... })
+router.beforeEach((to, from, next) => {
+  // ...
+})
+// to: Route: 即将要进入的目标 路由对象
+// from: Route: 当前导航正要离开的路由
+// next: Function: 一定要调用该方法来 resolve 这个钩子。执行效果依赖 next 方法的调用参数。
+// next(): 进行管道中的下一个钩子。如果全部钩子执行完了，则导航的状态就是 confirmed (确认的)。
+// next(false): 中断当前的导航。如果浏览器的 URL 改变了 (可能是用户手动或者浏览器后退按钮)，那么 URL 地址会重置到 from 路由对应的地址。
+// next('/') 或者 next({ path: '/' }): 跳转到一个不同的地址。当前的导航被中断，然后进行一个新的导航。你可以向 next 传递任意位置对象，且允许设置诸如 replace: true、name: 'home' 之类的选项以及任何用在 router-link 的 to prop 或 router.push 中的选项。
+// next(error): (2.4.0+) 如果传入 next 的参数是一个 Error 实例，则导航会被终止且该错误会被传递给 router.onError() 注册过的回调。
+
+
+// 全局后置钩子
+// 你也可以注册全局后置钩子，然而和守卫不同的是，这些钩子不会接受 next 函数也不会改变导航本身：
+router.afterEach((to, from) => {
+  // ...
+})
+
+
+// 路由独享的守卫
+const router = new VueRouter({
+  routes: [
+    {
+      path: '/foo',
+      component: Foo,
+      beforeEnter: (to, from, next) => {
+        // ...
+      }
+    }
+  ]
+})
+
+
+// 组件内的守卫
+const Foo = {
+  template: `...`,
+  beforeRouteEnter (to, from, next) {
+    // 在渲染该组件的对应路由被 confirm 前调用
+    // 不！能！获取组件实例 `this`
+    // 因为当守卫执行前，组件实例还没被创建
+    // 因此可以通过传一个回调给 next来访问组件实例
+    next(vm => {
+      // 通过 `vm` 访问组件实例
+    })
+  },
+  // (2.2 新增)
+  beforeRouteUpdate (to, from, next) {
+    // 在当前路由改变，但是该组件被复用时调用
+    // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
+    // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+    // 可以访问组件实例 `this`
+  },
+  beforeRouteLeave (to, from, next) {
+    // 导航离开该组件的对应路由时调用
+    // 可以访问组件实例 `this`
+  }
+}
+
+// 完整的导航解析流程
+// 导航被触发。
+// 在失活的组件里调用离开守卫。
+// 调用全局的 beforeEach 守卫。
+// 在重用的组件里调用 beforeRouteUpdate 守卫 (2.2+)。
+// 在路由配置里调用 beforeEnter。
+// 解析异步路由组件。
+// 在被激活的组件里调用 beforeRouteEnter。
+// 调用全局的 beforeResolve 守卫 (2.5+)。
+// 导航被确认。
+// 调用全局的 afterEach 钩子。
+// 触发 DOM 更新。
+// 用创建好的实例调用 beforeRouteEnter 守卫中传给 next 的回调函数。
+```
+
+### **axios**
+
+参考：[axios官网][axiosOfficialUrl]
+
+```js
+axios.request(config);
+axios.get(url[, config]);
+axios.delete(url[, config]);
+axios.head(url[, config]);
+axios.options(url[, config]);
+axios.post(url[, data[, config]]);
+axios.put(url[, data[, config]]);
+axios.patch(url[, data[, config]]);
+
+axios.all(iterable);
+axios.spread(callback);
+axios.create([config]);   // 新建定制化实例
+const instance = axios.create({
+  baseURL: 'https://some-domain.com/api/',
+  timeout: 1000,
+  headers: {'X-Custom-Header': 'foobar'}
+});
+// 修改新建实例的默认值
+instance.defaults.headers.common['Authorization'] = AUTH_TOKEN;
+// 重写超时时间
+instance.defaults.timeout = 2500;
+// 针对某些请求设置超时
+instance.get('/longRequest', {
+  timeout: 5000
+});
+
+// 拦截器
+// Add a request interceptor
+axios.interceptors.request.use( function ( config ) {
+  // Do something before request is sent
+  return config;
+}, function ( error ) {
+  // Do something with request error
+  return Promise.reject( error );
+} );
+
+// Add a response interceptor
+axios.interceptors.response.use( function ( response ) {
+  // Do something with response data
+  return response;
+}, function ( error ) {
+  // Do something with response error
+  return Promise.reject( error );
+} );
+
+// 移除拦截器
+const myInterceptor = axios.interceptors.request.use(function () {/*...*/});
+axios.interceptors.request.eject(myInterceptor);
+
+// add interceptors to a custom instance of axios.
+const instance = axios.create();
+instance.interceptors.request.use(function () {/*...*/});
+
+// 取消请求
+const CancelToken = axios.CancelToken;
+const source = CancelToken.source();
+
+axios.get( '/user/12345', {
+  cancelToken: source.token
+} ).catch( function ( thrown ) {
+  if ( axios.isCancel( thrown ) ) {
+    console.log( 'Request canceled', thrown.message );
+  } else {
+    // handle error
+  }
+} );
+
+axios.post( '/user/12345', {
+  name: 'new name'
+}, {
+    cancelToken: source.token
+  } )
+
+// cancel the request (the message parameter is optional)
+source.cancel( 'Operation canceled by the user.' );
+```
+
 ### 参考链接
 
 [mvvmfromurl]: https://www.cnblogs.com/onepixel/p/6034307.html
@@ -1167,3 +1331,5 @@ dispatch( type, payload ) {
 [vuecli296url]: https://github.com/vuejs/vue-cli/tree/v2#vue-cli-- "vue/cli 2.x版本"
 [vuecli3xurl]: https://cli.vuejs.org/zh/guide/#%E8%AF%A5%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%BB%84%E4%BB%B6 "vue/cli 3.x"
 [editdom&frameurl(youda)]: https://www.zhihu.com/question/31809713/answer/53544875 "操作dom慢与框架"
+[vueRouterOfficialUrl]: https://router.vuejs.org/zh/ 'vue-router官网'
+[axiosOfficialUrl]: https://github.com/axios/axios 'axios官网'

@@ -57,4 +57,48 @@ var flatArr = arr.reduce( ( p, c ) => p.concat( ( Array.isArray( c ) ? flatArr( 
 
 
 
+// 
+const router = new VueRouter( { ... } )
 
+router.beforeEach( ( to, from, next ) => {
+  // ...
+} )
+
+const CancelToken = axios.CancelToken;
+const source = CancelToken.source();
+
+axios.get( '/user/12345', {
+  cancelToken: source.token
+} ).catch( function ( thrown ) {
+  if ( axios.isCancel( thrown ) ) {
+    console.log( 'Request canceled', thrown.message );
+  } else {
+    // handle error
+  }
+} );
+
+axios.post( '/user/12345', {
+  name: 'new name'
+}, {
+    cancelToken: source.token
+  } )
+
+// cancel the request (the message parameter is optional)
+source.cancel( 'Operation canceled by the user.' );
+
+// 单例模式
+var getInstance = function(fn){
+  let result;
+  return result || (result = fn.call(this, arguments));
+}
+
+// 防抖和节流都用闭包
+function debounce(fn, interval = 300){
+  let timeout = null;
+  return function(...args){
+    clearTimeout(timeout);
+    setTimeout(() => {
+      fn.apply(this, args)
+    }, interval)
+  }
+}
