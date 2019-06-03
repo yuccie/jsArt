@@ -102,3 +102,19 @@ function debounce(fn, interval = 300){
     }, interval)
   }
 }
+
+function throttle(fn, interval){
+  let canRun = true;
+  return function(...args){
+    if(!canRun) return;
+    canRun = false;
+    setTimeout(() => {
+      fn.apply(this, args);
+      canRun = true;
+    }, interval)
+
+  }
+}
+
+
+
