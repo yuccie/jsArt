@@ -3694,6 +3694,27 @@ instance2.sayAge(); //27
 
 // 寄生组合式继承，
 // 集寄生式继承和组合继承的优点与一身，是实现基于类型继承的最有效方式。
+
+// 测试题
+function A(name){
+  // 实例化的时候没有传参，因此此时name为undefined
+  // 也就是实例上不会执行if
+  if(name){
+    this.name = name;
+  }
+}
+A.prototype.name = 'jack';
+var a = new A();
+console.log(a.name); // 'jack'
+
+
+function B(name){
+  // 实例化时没有传参，但赋值了，为undefined
+  this.name = name;
+}
+B.prototype.name = 'jack';
+var b = new B();
+console.log(b.name); // undefined
 ```
 
 ### **函数**
