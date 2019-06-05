@@ -148,9 +148,9 @@ Angular 和 Vue 都提供了列表重绘的优化机制，也就是 “提示”
 
 #### **初始化及挂载**
 
-在 new Vue() 之后。 Vue 会调用 \_init 函数进行初始化，也就是这里的 init 过程，它会初始化生命周期、事件、 props、 methods、 data、 computed 与 watch 等。其中最重要的是通过 Object.defineProperty 设置 setter 与 getter 函数，用来实现「响应式」以及「依赖收集」，后面会详细讲到，这里只要有一个印象即可。
+在 new Vue() 之后。 Vue 会调用 `_init` 函数进行初始化，也就是这里的 init 过程，它会初始化生命周期、事件、 props、 methods、 data、 computed 与 watch 等。其中最重要的是通过 Object.defineProperty 设置 setter 与 getter 函数，用来实现「响应式」以及「依赖收集」，后面会详细讲到，这里只要有一个印象即可。
 
-初始化之后调用 \$mount 会挂载组件，如果是运行时编译，即不存在 render function 但是存在 template 的情况，需要进行**编译**步骤。
+初始化之后调用 `$mount` 会挂载组件，如果是运行时编译，即不存在 render function 但是存在 template 的情况，需要进行**编译**步骤。
 
 #### **编译**
 
@@ -201,6 +201,10 @@ new Vue({
 **注意：**当 render function 被渲染的时候，其实是说，当用`createElement`函数创建虚拟 DOM 的时候，会去获取对象的值，因此会触发 getter 函数进行「依赖收集」
 
 在修改对象的值的时候，会触发对应的 setter， setter 通知之前「依赖收集」得到的 Dep 中的每一个 Watcher，告诉它们自己的值改变了，需要重新渲染视图。这时候这些 Watcher 就会开始调用 update （**每个 Watcher 都有自己的 update 方法**）来更新视图，当然这中间还有一个 patch 的过程以及使用队列来异步更新的策略。
+
+使用`Object.defineProperty`只能重定义属性的读取(get)和设置(set)行为，到了ES6，提供了proxy，可以重新定义更多的行为。。。比如 in、delete、函数调用等更多行为。
+
+`Proxy`用于修改某些操作的默认行为，等同于在语言层面做出修改，所以属于一种**元编程**，即对编程语言进行编程。
 
 #### **Virtual DOM**
 
