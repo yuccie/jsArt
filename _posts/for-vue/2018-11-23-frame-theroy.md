@@ -167,7 +167,7 @@ generate 是将 AST 转化成 render function 字符串的过程，得到结果�
 
 compile 编译可以分成 parse、optimize 与 generate 三个阶段，最终需要得到 render function。
 
-**注意：**虚拟DOM和AST很相似，只是AST是侧重模板的映射，而虚拟DOM是侧重真实DOM的映射
+**注意：**虚拟 DOM 和 AST 很相似，只是 AST 是侧重模板的映射，而虚拟 DOM 是侧重真实 DOM 的映射
 
 `render function`为何？  
 在实例化 vue 实例时，代码会有代码`render: h => h(App)`，这里的 render 就是`render function`。
@@ -202,7 +202,7 @@ new Vue({
 
 在修改对象的值的时候，会触发对应的 setter， setter 通知之前「依赖收集」得到的 Dep 中的每一个 Watcher，告诉它们自己的值改变了，需要重新渲染视图。这时候这些 Watcher 就会开始调用 update （**每个 Watcher 都有自己的 update 方法**）来更新视图，当然这中间还有一个 patch 的过程以及使用队列来异步更新的策略。
 
-使用`Object.defineProperty`只能重定义属性的读取(get)和设置(set)行为，到了ES6，提供了proxy，可以重新定义更多的行为。。。比如 in、delete、函数调用等更多行为。
+使用`Object.defineProperty`只能重定义属性的读取(get)和设置(set)行为，到了 ES6，提供了 proxy，可以重新定义更多的行为。。。比如 in、delete、函数调用等更多行为。
 
 `Proxy`用于修改某些操作的默认行为，等同于在语言层面做出修改，所以属于一种**元编程**，即对编程语言进行编程。
 
@@ -324,6 +324,20 @@ let o = new Vue({
 o._data.test = "hello,world."; /* 视图更新啦～ */
 ```
 
+#### **响应式与数组**
+
+vue 为何不能监听数组长度……一种说法是通过改变 length 属性改变的数组，需要频繁触发监听，耗费性能……而用\$set 则可以理解为强制重新监听。其实话又说回来，如果对象初始化的时候没有定义某个变量，然后再定义一个变量，这个变量同样也是没有被监听啊，既然都这样，为何还一定要求数组监听通过 length 属性改变的呢？
+
+其实看看源码，其实 vue 并没有拦截通过 lenght 属性改变的属性
+
+#### **mixin 混入规则**
+
+选项合并：
+
+- 数据对象在内部会进行递归合并，并在发生冲突时以组件数据优先。
+- 同名钩子函数将合并为一个数组，因此都将被调用。另外，混入对象的钩子将在组件自身钩子之前调用。
+- 值为对象的选项，例如 methods、components 和 directives，将被合并为同一个对象。两个对象键名冲突时，取组件对象的键值对。
+
 ### **Vue.js 内部运行机制之依赖收集**
 
 依赖收集的目的无非就是，当某些数据变化了，如果这些数据被页面或其他的实例引用，则需要告知他们，数据变化了，你们可以更新了
@@ -427,7 +441,7 @@ VNode 归根结底就是一个 JavaScript 对象，只要这个类的一些属�
 
 ```js
 class VNode {
-  constructor (tag, data, children, text, elm) {
+  constructor(tag, data, children, text, elm) {
     /*当前节点的标签名*/
     this.tag = tag;
     /*当前节点的一些数据信息，比如props、attrs等数据*/
@@ -442,7 +456,7 @@ class VNode {
 }
 ```
 
-比如下面的一个vue组件
+比如下面的一个 vue 组件
 
 ```html
 <template>
@@ -452,33 +466,33 @@ class VNode {
 </template>
 ```
 
-用js代码形式(其实也就可以理解为渲染函数，只是下面的是直接实例化VNode)就是如下：
+用 js 代码形式(其实也就可以理解为渲染函数，只是下面的是直接实例化 VNode)就是如下：
 
 ```js
-function render () {
+function render() {
   // 下面虽然用new VNode，但感觉用createElement更加合适一些？
   return new VNode(
-    'span',
+    "span",
     {
       /* 指令集合数组 */
       directives: [
         {
           /* v-show指令 */
-          rawName: 'v-show',
-          expression: 'isShow',
-          name: 'show',
+          rawName: "v-show",
+          expression: "isShow",
+          name: "show",
           value: true
         }
       ],
       /* 静态class */
-      staticClass: 'demo'
+      staticClass: "demo"
     },
-    [ new VNode(undefined, undefined, undefined, 'This is a span.') ]
+    [new VNode(undefined, undefined, undefined, "This is a span.")]
   );
 }
 ```
 
-转成真正的VNode的情况就是：
+转成真正的 VNode 的情况就是：
 
 ```js
 // 再来看VNode的格式就和构造函数里的参数一一对应起来了。
@@ -511,25 +525,25 @@ function render () {
 }
 ```
 
-VNode是一个类，用来产生具体的节点，但还可以将其封装一些，以产生更多类型的节点，比如文本节点，空节点。。。只是根据不同的条件，传入的参数不同而已
+VNode 是一个类，用来产生具体的节点，但还可以将其封装一些，以产生更多类型的节点，比如文本节点，空节点。。。只是根据不同的条件，传入的参数不同而已
 
 比如下面几种方法：
 
 ```js
 // 创建空节点
-function createEmptyVNode () {
+function createEmptyVNode() {
   const node = new VNode();
-  node.text = '';
+  node.text = "";
   return node;
 }
 
 // 创建文本节点
-function createTextVNode (val) {
+function createTextVNode(val) {
   return new VNode(undefined, undefined, undefined, String(val));
 }
 
 // 克隆节点
-function cloneVNode (node) {
+function cloneVNode(node) {
   const cloneVnode = new VNode(
     node.tag,
     node.data,
@@ -553,16 +567,17 @@ compile 编译可以分成 parse、optimize 与 generate 三个阶段，最终�
 </div>
 
 <script>
-// 定义成字符串
-var html = '<div :class="c" class="demo" v-if="isShow"><span v-for="item in sz">{{item}}</span></div>';
+  // 定义成字符串
+  var html =
+    '<div :class="c" class="demo" v-if="isShow"><span v-for="item in sz">{{item}}</span></div>';
 </script>
 ```
 
 #### **parse**
 
-首先是 parse，parse 会用正则等方式将 template 模板中进行字符串解析，得到指令、class、style等数据，形成 AST（在计算机科学中，抽象语法树（abstract syntax tree或者缩写为AST），或者语法树（syntax tree），是源代码的抽象语法结构的树状表现形式，这里特指编程语言的源代码。）。
+首先是 parse，parse 会用正则等方式将 template 模板中进行字符串解析，得到指令、class、style 等数据，形成 AST（在计算机科学中，抽象语法树（abstract syntax tree 或者缩写为 AST），或者语法树（syntax tree），是源代码的抽象语法结构的树状表现形式，这里特指编程语言的源代码。）。
 
-而得到的AST类似下面代码：
+而得到的 AST 类似下面代码：
 
 ```js
 {
@@ -614,9 +629,9 @@ var html = '<div :class="c" class="demo" v-if="isShow"><span v-for="item in sz">
 因为我们解析 template 采用循环进行字符串匹配的方式，所以每匹配解析完一段我们需要将已经匹配掉的去掉，头部的指针指向接下来需要匹配的部分。
 
 ```js
-function advance (n) {
-  index += n
-  html = html.substring(n)
+function advance(n) {
+  index += n;
+  html = html.substring(n);
 }
 ```
 
@@ -629,6 +644,7 @@ optimize 主要作用就跟它的名字一样，用作「优化」。
 那么我们就需要为静态的节点做上一些「标记」，在 patch 的时候我们就可以直接跳过这些被标记的节点的比对，从而达到「优化」的目的。
 
 经过 optimize 这层的处理，每个节点会加上 static 属性，用来标记是否是静态的。上面的实例代码因为都是有可能变得，因此都不是静态的：
+
 ```js
 {
   /* 标签属性的map，记录了标签上属性 */
@@ -680,24 +696,24 @@ optimize 主要作用就跟它的名字一样，用作「优化」。
 }
 ```
 
-当然判断一个节点是否为静态是与规则的，首先实现一个 isStatic 函数，传入一个 node 判断该 node 是否是静态节点。判断的标准是当 type 为 2（表达式节点）则是非静态节点，当 type 为 3（文本节点）的时候则是静态节点，当然，如果存在 if 或者 for这样的条件的时候（表达式节点），也是非静态节点。
+当然判断一个节点是否为静态是与规则的，首先实现一个 isStatic 函数，传入一个 node 判断该 node 是否是静态节点。判断的标准是当 type 为 2（表达式节点）则是非静态节点，当 type 为 3（文本节点）的时候则是静态节点，当然，如果存在 if 或者 for 这样的条件的时候（表达式节点），也是非静态节点。
 
 ```js
-function isStatic (node) {
+function isStatic(node) {
   if (node.type === 2) {
-    return false
+    return false;
   }
   if (node.type === 3) {
-    return true
+    return true;
   }
-  return (!node.if && !node.for);
+  return !node.if && !node.for;
 }
 ```
 
 既然知道了哪些是静态，哪些是非静态，则就可以遍历所有节点并标记，如果子节点是非静态，则父节点也是非静态。
 
 ```js
-function markStatic (node) {
+function markStatic(node) {
   node.static = isStatic(node);
   if (node.type === 1) {
     for (let i = 0, l = node.children.length; i < l; i++) {
@@ -714,12 +730,13 @@ function markStatic (node) {
 接下来是 markStaticRoots 函数，用来标记 staticRoot（静态根）。这个函数实现比较简单，简单来将就是如果当前节点是静态节点，同时满足该节点并不是只有一个文本节点左右子节点（作者认为这种情况的优化消耗会大于收益）时，标记 staticRoot 为 true，否则为 false。
 
 ```js
-function markStaticRoots (node) {
+function markStaticRoots(node) {
   if (node.type === 1) {
-    if (node.static && node.children.length && !(
-    node.children.length === 1 &&
-    node.children[0].type === 3
-    )) {
+    if (
+      node.static &&
+      node.children.length &&
+      !(node.children.length === 1 && node.children[0].type === 3)
+    ) {
       node.staticRoot = true;
       return;
     } else {
@@ -732,7 +749,7 @@ function markStaticRoots (node) {
 最终则可以实现`optimize`了：
 
 ```js
-function optimize (rootAst) {
+function optimize(rootAst) {
   markStatic(rootAst);
   markStaticRoots(rootAst);
 }
@@ -744,88 +761,88 @@ generate 会将 AST 转化成 render funtion 字符串，最终得到 render 的
 
 经历过这些过程以后，我们已经把 template 顺利转成了 render function 了，接下来我们将介绍 patch 的过程，来看一下具体 VNode 节点如何进行差异的比对。
 
-### **diff与patch机制**
+### **diff 与 patch 机制**
 
 #### **数据更新视图**
 
-在对`model`进行操作时，会触发对应`Dep`中的`Wather`对象，`Wather`对象会调用对应的`update`来修改视图。最终是将新产生的VNode节点与老VNode节点进行一个patch的过程，比对得出差异，最终将这些差异更新到视图上。
+在对`model`进行操作时，会触发对应`Dep`中的`Wather`对象，`Wather`对象会调用对应的`update`来修改视图。最终是将新产生的 VNode 节点与老 VNode 节点进行一个 patch 的过程，比对得出差异，最终将这些差异更新到视图上。
 
 #### **跨平台**
 
-因为使用了 Virtual DOM 的原因，Vue.js具有了跨平台的能力，Virtual DOM 终归只是一些 JavaScript 对象罢了，那么最终是如何调用不同平台的 API 的呢？
+因为使用了 Virtual DOM 的原因，Vue.js 具有了跨平台的能力，Virtual DOM 终归只是一些 JavaScript 对象罢了，那么最终是如何调用不同平台的 API 的呢？
 
-这就需要依赖一层适配层了，将不同平台的 API 封装在内，以同样的接口对外提供。如下根据平台的不同来执行对应平台的api，而对外则提供一致的接口，供`Virtual DOM`来调用。
+这就需要依赖一层适配层了，将不同平台的 API 封装在内，以同样的接口对外提供。如下根据平台的不同来执行对应平台的 api，而对外则提供一致的接口，供`Virtual DOM`来调用。
 
 ```js
 const nodeOps = {
-  setTextContent (text) {
-    if (platform === 'weex') {
-      node.parentNode.setAttr('value', text);
-    } else if (platform === 'web') {
+  setTextContent(text) {
+    if (platform === "weex") {
+      node.parentNode.setAttr("value", text);
+    } else if (platform === "web") {
       node.textContent = text;
     }
   },
-  parentNode () {
+  parentNode() {
     //......
   },
-  removeChild () {
+  removeChild() {
     //......
   },
-  nextSibling () {
+  nextSibling() {
     //......
   },
-  insertBefore () {
+  insertBefore() {
     //......
   }
-}
+};
 ```
 
-接下来我们来介绍其他的一些 API，这些API在下面 patch 的过程中会被用到，他们最终都会调用 nodeOps 中的相应函数来操作平台。
+接下来我们来介绍其他的一些 API，这些 API 在下面 patch 的过程中会被用到，他们最终都会调用 nodeOps 中的相应函数来操作平台。
 
 ```js
 // insert 用来在 parent 这个父节点下插入一个子节点，如果指定了 ref 则插入到 ref 这个子节点前面。
-function insert ( parent, elm, ref ) {
-  if ( parent ) {
-    if ( ref ) {
-      if ( ref.parentNode === parent ) {
-        nodeOps.insertBefore( parent, elm, ref );
+function insert(parent, elm, ref) {
+  if (parent) {
+    if (ref) {
+      if (ref.parentNode === parent) {
+        nodeOps.insertBefore(parent, elm, ref);
       }
     } else {
-      nodeOps.appendChild( parent, elm )
+      nodeOps.appendChild(parent, elm);
     }
   }
 }
 
 // createElm 用来新建一个节点， tag 存在创建一个标签节点，否则创建一个文本节点。
-function createElm ( vnode, parentElm, refElm ) {
-  if ( vnode.tag ) {
-    insert( parentElm, nodeOps.createElement( vnode.tag ), refElm );
+function createElm(vnode, parentElm, refElm) {
+  if (vnode.tag) {
+    insert(parentElm, nodeOps.createElement(vnode.tag), refElm);
   } else {
-    insert( parentElm, nodeOps.createTextNode( vnode.text ), refElm );
+    insert(parentElm, nodeOps.createTextNode(vnode.text), refElm);
   }
 }
 
 // addVnodes 用来批量调用 createElm 新建节点。
-function addVnodes ( parentElm, refElm, vnodes, startIdx, endIdx ) {
-  for ( ; startIdx <= endIdx; ++startIdx ) {
-    createElm( vnodes[ startIdx ], parentElm, refElm );
+function addVnodes(parentElm, refElm, vnodes, startIdx, endIdx) {
+  for (; startIdx <= endIdx; ++startIdx) {
+    createElm(vnodes[startIdx], parentElm, refElm);
   }
 }
 
 // removeNode 用来移除一个节点。
-function removeNode ( el ) {
-  const parent = nodeOps.parentNode( el );
-  if ( parent ) {
-    nodeOps.removeChild( parent, el );
+function removeNode(el) {
+  const parent = nodeOps.parentNode(el);
+  if (parent) {
+    nodeOps.removeChild(parent, el);
   }
 }
 
 // removeVnodes 会批量调用 removeNode 移除节点。
-function removeVnodes ( parentElm, vnodes, startIdx, endIdx ) {
-  for ( ; startIdx <= endIdx; ++startIdx ) {
-    const ch = vnodes[ startIdx ]
-    if ( ch ) {
-      removeNode( ch.elm );
+function removeVnodes(parentElm, vnodes, startIdx, endIdx) {
+  for (; startIdx <= endIdx; ++startIdx) {
+    const ch = vnodes[startIdx];
+    if (ch) {
+      removeNode(ch.elm);
     }
   }
 }
@@ -833,28 +850,28 @@ function removeVnodes ( parentElm, vnodes, startIdx, endIdx ) {
 
 #### **patch**
 
-patch其实可以理解为打补丁，其核心就是diff算法，我们用 diff 算法可以比对出两颗树的「差异」，我们来看一下，假设我们现在有如下两颗树，它们分别是新老 VNode 节点，这时候到了 patch 的过程，我们需要将他们进行比对。
+patch 其实可以理解为打补丁，其核心就是 diff 算法，我们用 diff 算法可以比对出两颗树的「差异」，我们来看一下，假设我们现在有如下两颗树，它们分别是新老 VNode 节点，这时候到了 patch 的过程，我们需要将他们进行比对。
 
 diff 算法是通过同层的树节点进行比较而非对树进行逐层搜索遍历的方式，所以时间复杂度只有 O(n)，是一种相当高效的算法，如下图。
 
 ![diff算法图](/jsArt/assets/images/vue-source/diff.png)
 
 ```js
-function patch ( oldVnode, vnode, parentElm ) {
+function patch(oldVnode, vnode, parentElm) {
   // 当老VNode节点不存在，则相当于增加了新的
-  if ( !oldVnode ) {
-    addVnodes( parentElm, null, vnode, 0, vnode.length - 1 );
-  } else if ( !vnode ) {
+  if (!oldVnode) {
+    addVnodes(parentElm, null, vnode, 0, vnode.length - 1);
+  } else if (!vnode) {
     // 当新VNode不存在，相当于删除了老的
-    removeVnodes( parentElm, oldVnode, 0, oldVnode.length - 1 );
+    removeVnodes(parentElm, oldVnode, 0, oldVnode.length - 1);
   } else {
     // 如果新老节点都存在且相同，则进入下一步patch过程
-    if ( sameVnode( oldVNode, vnode ) ) {
-      patchVnode( oldVNode, vnode );
+    if (sameVnode(oldVNode, vnode)) {
+      patchVnode(oldVNode, vnode);
     } else {
       // 如果都存在，但不相同，这就替换
-      removeVnodes( parentElm, oldVnode, 0, oldVnode.length - 1 );
-      addVnodes( parentElm, null, vnode, 0, vnode.length - 1 );
+      removeVnodes(parentElm, oldVnode, 0, oldVnode.length - 1);
+      addVnodes(parentElm, null, vnode, 0, vnode.length - 1);
     }
   }
 }
@@ -864,47 +881,47 @@ function patch ( oldVnode, vnode, parentElm ) {
 
 #### **sameVnode**
 
-那判断节点相同的标识是啥呢？其实很简单，只有当 key、 tag、 isComment（是否为注释节点）、 data同时定义（或不定义），同时满足当标签类型为 input 的时候 type 相同（某些浏览器不支持动态修改`<input>`类型，所以他们被视为不同类型）即可。
+那判断节点相同的标识是啥呢？其实很简单，只有当 key、 tag、 isComment（是否为注释节点）、 data 同时定义（或不定义），同时满足当标签类型为 input 的时候 type 相同（某些浏览器不支持动态修改`<input>`类型，所以他们被视为不同类型）即可。
 
 ```js
-function sameVnode () {
+function sameVnode() {
   return (
     a.key === b.key &&
     a.tag === b.tag &&
     a.isComment === b.isComment &&
-    ( !!a.data ) === ( !!b.data ) &&
-    sameInputType( a, b )
-  )
+    !!a.data === !!b.data &&
+    sameInputType(a, b)
+  );
 }
 
-function sameInputType ( a, b ) {
-  if ( a.tag !== 'input' ) return true
-  let i
-  const typeA = ( i = a.data ) && ( i = i.attrs ) && i.type
-  const typeB = ( i = b.data ) && ( i = i.attrs ) && i.type
-  return typeA === typeB
+function sameInputType(a, b) {
+  if (a.tag !== "input") return true;
+  let i;
+  const typeA = (i = a.data) && (i = i.attrs) && i.type;
+  const typeB = (i = b.data) && (i = i.attrs) && i.type;
+  return typeA === typeB;
 }
 ```
 
-上面只是判断节点是否相同，还有很多api进行更进一步的patch，比如`patchVnode(),updateChildren()`等。其实核心就是从字符串两端开始向中间一一匹配。。。
+上面只是判断节点是否相同，还有很多 api 进行更进一步的 patch，比如`patchVnode(),updateChildren()`等。其实核心就是从字符串两端开始向中间一一匹配。。。
 
-### **异步更新策略及nextTick原理**
+### **异步更新策略及 nextTick 原理**
 
 #### **为什么要异步更新**
 
 现在我们知道了， Vue.js 是如何在我们修改 data 中的数据后修改视图了。简单回顾一下，这里面其实就是一个`setter -> Dep -> Watcher -> patch -> 视图`的过程。
 
-但如果一个数据，比如for循环，在很短时间内连续修改了数据n多次，那岂不是要更新n多次。。。
+但如果一个数据，比如 for 循环，在很短时间内连续修改了数据 n 多次，那岂不是要更新 n 多次。。。
 
-Vue.js 肯定不会以如此低效的方法来处理。Vue.js在默认情况下，每次触发某个数据的 setter 方法后，对应的 Watcher 对象其实会被 push 进一个队列 queue 中，在下一个 tick 的时候将这个队列 queue 全部拿出来 run（ Watcher 对象的一个方法，用来触发 patch 操作） 一遍。**而同一个 Watcher 只会被push一次**。。。
+Vue.js 肯定不会以如此低效的方法来处理。Vue.js 在默认情况下，每次触发某个数据的 setter 方法后，对应的 Watcher 对象其实会被 push 进一个队列 queue 中，在下一个 tick 的时候将这个队列 queue 全部拿出来 run（ Watcher 对象的一个方法，用来触发 patch 操作） 一遍。**而同一个 Watcher 只会被 push 一次**。。。
 
-那什么是tick呢？
+那什么是 tick 呢？
 
 #### **nextTick**
 
-Vue.js 实现了一个 nextTick 函数，传入一个 cb ，这个 cb 会被存储到一个队列中，在下一个 tick 时触发队列中的所有 cb 事件。cb就是我们等到数据更新到视图上后所要做的逻辑。。。
+Vue.js 实现了一个 nextTick 函数，传入一个 cb ，这个 cb 会被存储到一个队列中，在下一个 tick 时触发队列中的所有 cb 事件。cb 就是我们等到数据更新到视图上后所要做的逻辑。。。
 
-因为浏览器并没有现成的api实现nextTick的效果，因此只能模拟。。。要记住**每轮次的event loop中，每次执行一个task(宏任务)，并执行完microtask队列中的所有microtask之后，就会进行UI的渲染。**，因此要想拿到更新后的dom，只需触发一个微任务或宏任务即可（其实这时dom还没更新，只是很接近了更新后的dom了）
+因为浏览器并没有现成的 api 实现 nextTick 的效果，因此只能模拟。。。要记住**每轮次的 event loop 中，每次执行一个 task(宏任务)，并执行完 microtask 队列中的所有 microtask 之后，就会进行 UI 的渲染。**，因此要想拿到更新后的 dom，只需触发一个微任务或宏任务即可（其实这时 dom 还没更新，只是很接近了更新后的 dom 了）
 
 下面用`setTimeout`来模拟，首先定义一个 callbacks 数组用来存储 cb，在下一个 tick 处理这些回调函数之前，所有的 cb 都会被存在这个 callbacks 数组中。pending 是一个标记位，代表一个等待的状态。
 
@@ -914,29 +931,29 @@ setTimeout 会在 task 中创建一个事件 flushCallbacks ，flushCallbacks �
 let callbacks = [];
 let pending = false;
 
-function nextTick ( cb ) {
-  callbacks.push( cb );
+function nextTick(cb) {
+  callbacks.push(cb);
 
   // 调用nextTick会一直压入回调函数，但回调函数的执行并不是立即执行
   // 这个标志位就是控制什么时候清空回调函数列表
-  if ( !pending ) {
+  if (!pending) {
     pending = true;
-    setTimeout( flushCallbacks, 0 );
+    setTimeout(flushCallbacks, 0);
   }
 }
 
-function flushCallbacks () {
+function flushCallbacks() {
   pending = false;
   // copy一份
-  const copies = callbacks.slice( 0 );
+  const copies = callbacks.slice(0);
   callbacks.length = 0;
-  for ( let i = 0; i < copies.length; i++ ) {
-    copies[ i ]();
+  for (let i = 0; i < copies.length; i++) {
+    copies[i]();
   }
 }
 ```
 
-#### **再写Wather**
+#### **再写 Wather**
 
 对于同一个数据频繁变化，则会生成多个`Watcher`，但是这些`Watcher`其实都是同一个，因此我们需要添加一个标识位过滤一下。。。
 
@@ -944,20 +961,20 @@ function flushCallbacks () {
 let uid = 0;
 
 class Watcher {
-  constructor () {
+  constructor() {
     this.id = ++uid;
     Dep.target = this;
   }
 
-  update () {
-    console.log( 'watch' + this.id + ' update' );
+  update() {
+    console.log("watch" + this.id + " update");
     // 这里只是把将 Watcher 对象自身传递给 queueWatcher 方法，并没有执行patch更新
-    queueWatcher( this );
+    queueWatcher(this);
   }
 
-  run () {
+  run() {
     // 这里才是真正的更新
-    console.log( 'watch' + this.id + '视图更新啦～' );
+    console.log("watch" + this.id + "视图更新啦～");
   }
 }
 ```
@@ -969,31 +986,31 @@ let has = {};
 let queue = [];
 let waiting = false;
 
-function queueWatcher ( watcher ) {
+function queueWatcher(watcher) {
   const id = watcher.id;
   // 这里使用null，而且是非全等有两个好处，可以兼容undefined和null两种情况
   // 同时使用map效率也更高
-  if ( has[ id ] == null ) {
-    has[ id ] = true;
-    queue.push( watcher );
+  if (has[id] == null) {
+    has[id] = true;
+    queue.push(watcher);
 
     // waiting 是一个标记位，标记是否已经向 nextTick 传递了 flushSchedulerQueue 方法，
     // 在下一个 tick 的时候执行 flushSchedulerQueue 方法来 flush 队列 queue，
     // 执行它里面的所有 Watcher 对象的 run 方法。
-    if ( !waiting ) {
+    if (!waiting) {
       waiting = true;
-      nextTick( flushSchedulerQueue );
+      nextTick(flushSchedulerQueue);
     }
   }
 }
 
-function flushSchedulerQueue () {
+function flushSchedulerQueue() {
   let watcher, id;
 
-  for ( index = 0; index < queue.length; index++ ) {
-    watcher = queue[ index ];
+  for (index = 0; index < queue.length; index++) {
+    watcher = queue[index];
     id = watcher.id;
-    has[ id ] = null;
+    has[id] = null;
     watcher.run();
   }
 
@@ -1001,34 +1018,34 @@ function flushSchedulerQueue () {
 }
 ```
 
-总结：当频繁操作同一个数据，则会不断触发对应Dep中的Watcher对象的update方法，而update方法则将Watcher实例添加进队列qneue里，添加的过程中会过滤掉重复的watcher，在下一个tick的时候，触发qneue里所有的watcher的run方法来更新视图，从而页面的数据变成了更新后的数据了。。。
+总结：当频繁操作同一个数据，则会不断触发对应 Dep 中的 Watcher 对象的 update 方法，而 update 方法则将 Watcher 实例添加进队列 qneue 里，添加的过程中会过滤掉重复的 watcher，在下一个 tick 的时候，触发 qneue 里所有的 watcher 的 run 方法来更新视图，从而页面的数据变成了更新后的数据了。。。
 
-而tick可以通俗的理解成什么呢？
+而 tick 可以通俗的理解成什么呢？
 
 - 事件循环队列类似于一个游乐园游戏：玩过了一个游戏之后，你需要重新到队尾排队才能再玩一次。
 - 任务队列类似于玩过了游戏之后，插队接着继续玩。
 
-**一个任务可能引起更多任务被添加到同一个队列末尾**。所以，理论上说，任务循环（job loop）可能无限循环（一个任务总是添加另一个任务，以此类推），进而导致程序的饿死，无法转移到下一个事件循环tick。从概念上看，这和代码中的无限循环（就像while(true)..）的体验几乎是一样的。
+**一个任务可能引起更多任务被添加到同一个队列末尾**。所以，理论上说，任务循环（job loop）可能无限循环（一个任务总是添加另一个任务，以此类推），进而导致程序的饿死，无法转移到下一个事件循环 tick。从概念上看，这和代码中的无限循环（就像 while(true)..）的体验几乎是一样的。
 
-设想一个**调度任务（直接地，不要hack）的API**，称其为`schedule(..)`。考虑：
+设想一个**调度任务（直接地，不要 hack）的 API**，称其为`schedule(..)`。考虑：
 
 ```js
-console.log( "A" );
-setTimeout( function () {
-  console.log( "B" );
-}, 0 );
+console.log("A");
+setTimeout(function() {
+  console.log("B");
+}, 0);
 // 理论上的"任务API"
-schedule( function () {
-  console.log( "C" );
-  schedule( function () {
-    console.log( "D" );
-  } );
-} );
+schedule(function() {
+  console.log("C");
+  schedule(function() {
+    console.log("D");
+  });
+});
 ```
 
-可能你认为这里会打印出A B C D，但实际打印的结果是A C D B。因为任务处理是在当前事件循环tick 结尾处，且定时器触发是为了调度下一个事件循环tick（如果可用的话！）。
+可能你认为这里会打印出 A B C D，但实际打印的结果是 A C D B。因为任务处理是在当前事件循环 tick 结尾处，且定时器触发是为了调度下一个事件循环 tick（如果可用的话！）。
 
-### **Vuex状态管理**
+### **Vuex 状态管理**
 
 当我们使用 Vue.js 来开发一个单页应用时，经常会遇到一些组件间共享的数据或状态，或是需要通过 props 深层传递的一些数据。在应用规模较小的时候，我们会使用 props、事件等常用的父子组件的组件间通信方法，或者是通过事件总线来进行任意两个组件的通信。但是当应用逐渐复杂后，问题就开始出现了，这样的通信方式会导致数据流异常地混乱。
 
@@ -1060,7 +1077,7 @@ export default install (_Vue) {
 ```js
 /*将store放入Vue创建时的option中*/
 new Vue({
-  el: '#app',
+  el: "#app",
   store
 });
 ```
@@ -1068,9 +1085,9 @@ new Vue({
 但是我们却在每一个 vm 中都可以访问该 store，这个就需要靠 vuexInit 了。
 
 ```js
-function vuexInit () {
+function vuexInit() {
   const options = this.$options;
-  if ( options.store ) {
+  if (options.store) {
     this.$store = options.store;
   } else {
     this.$store = options.parent.$store;
@@ -1078,13 +1095,13 @@ function vuexInit () {
 }
 ```
 
-因为之前已经用Vue.mixin 方法将 vuexInit 方法混淆进 beforeCreate 钩子中，所以每一个 vm 实例都会调用 vuexInit 方法。
+因为之前已经用 Vue.mixin 方法将 vuexInit 方法混淆进 beforeCreate 钩子中，所以每一个 vm 实例都会调用 vuexInit 方法。
 
-如果是根节点（$options中存在 store 说明是根节点），则直接将 options.store 赋值给 this.$store。否则则说明不是根节点，从父节点的 $store 中获取。
+如果是根节点（$options中存在 store 说明是根节点），则直接将 options.store 赋值给 this.$store。否则则说明不是根节点，从父节点的 \$store 中获取。
 
-通过这步的操作，我们已经可以在任意一个 vm 中通过 this.$store 来访问 Store 的实例啦～
+通过这步的操作，我们已经可以在任意一个 vm 中通过 this.\$store 来访问 Store 的实例啦～
 
-#### **Store之数据响应式**
+#### **Store 之数据响应式**
 
 首先我们需要在 Store 的构造函数中对 state 进行「响应式化」。
 
@@ -1104,23 +1121,23 @@ constructor() {
 
 ```js
 let globalData = {
-  d: 'hello world'
+  d: "hello world"
 };
 
-new Vue( {
-  data () {
+new Vue({
+  data() {
     return {
       $$state: {
         globalData
       }
-    }
+    };
   }
-} );
+});
 
 /* modify */
-setTimeout( () => {
-  globalData.d = 'hi~';
-}, 1000 );
+setTimeout(() => {
+  globalData.d = "hi~";
+}, 1000);
 
 Vue.prototype.globalData = globalData;
 ```
@@ -1133,9 +1150,9 @@ Vue.prototype.globalData = globalData;
 
 上述代码在全局有一个 globalData，它被传入一个 Vue 对象的 data 中，之后在任意 Vue 模板中对该变量进行展示，**因为此时 globalData 已经在 Vue 的 prototype 上了所以直接通过 this.prototype 访问**，也就是在模板中的 {{globalData.d}}。此时，setTimeout 在 1s 之后将 globalData.d 进行修改，我们发现模板中的 globalData.d 发生了变化。其实上述部分就是 Vuex 依赖 Vue 核心实现数据的“响应式化”。
 
-#### **Store之commit**
+#### **Store 之 commit**
 
-commit 方法是用来触发 mutation 的。从 _mutations 中取出对应的 mutation，循环执行其中的每一个 mutation。
+commit 方法是用来触发 mutation 的。从 \_mutations 中取出对应的 mutation，循环执行其中的每一个 mutation。
 
 ```js
 commit( type, payload, _options ) {
@@ -1146,9 +1163,9 @@ commit( type, payload, _options ) {
 }
 ```
 
-#### **Store之dispatch**
+#### **Store 之 dispatch**
 
-dispatch 同样道理，用于触发 action，可以包含异步状态。同样的，取出 _actions 中的所有对应 action，将其执行，如果有多个则用 Promise.all 进行包装。
+dispatch 同样道理，用于触发 action，可以包含异步状态。同样的，取出 \_actions 中的所有对应 action，将其执行，如果有多个则用 Promise.all 进行包装。
 
 ```js
 dispatch( type, payload ) {
@@ -1164,7 +1181,7 @@ dispatch( type, payload ) {
 
 ### **vue-router**
 
-参考：[vue-router官网][vueRouterOfficialUrl]
+参考：[vue-router 官网][vuerouterofficialurl]
 
 #### **导航守卫**
 
@@ -1246,7 +1263,7 @@ const Foo = {
 
 ### **axios**
 
-参考：[axios官网][axiosOfficialUrl]
+参考：[axios 官网][axiosofficialurl]
 
 ```js
 axios.request(config);
@@ -1335,5 +1352,5 @@ source.cancel( 'Operation canceled by the user.' );
 [vuecli296url]: https://github.com/vuejs/vue-cli/tree/v2#vue-cli-- "vue/cli 2.x版本"
 [vuecli3xurl]: https://cli.vuejs.org/zh/guide/#%E8%AF%A5%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%BB%84%E4%BB%B6 "vue/cli 3.x"
 [editdom&frameurl(youda)]: https://www.zhihu.com/question/31809713/answer/53544875 "操作dom慢与框架"
-[vueRouterOfficialUrl]: https://router.vuejs.org/zh/ 'vue-router官网'
-[axiosOfficialUrl]: https://github.com/axios/axios 'axios官网'
+[vuerouterofficialurl]: https://router.vuejs.org/zh/ "vue-router官网"
+[axiosofficialurl]: https://github.com/axios/axios "axios官网"
