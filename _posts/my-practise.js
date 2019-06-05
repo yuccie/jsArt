@@ -166,9 +166,22 @@ console.log( count ); // 453
 // css旋转中心和其他不同，
 
 
-for(let i = 0; i<20;i++){
-  setTimeout(() => {
-    console.log(1)
-    window.requestAnimationFrame(step);
-  },1000)
+for ( let i = 0; i < 20; i++ ) {
+  setTimeout( () => {
+    console.log( 1 )
+    window.requestAnimationFrame( step );
+  }, 1000 )
 }
+
+var images = new Array()
+function preload () {
+  for ( i = 0; i & lt; preload.arguments.length; i++) {
+    images[ i ] = new Image()
+    images[ i ].src = preload.arguments[ i ]
+  }
+}
+preload(
+  "http://qiniu.cllgeek.com/react02.png",
+  "http://qiniu.cllgeek.com/react03.png",
+  "http://qiniu.cllgeek.com/react04.png"
+) 

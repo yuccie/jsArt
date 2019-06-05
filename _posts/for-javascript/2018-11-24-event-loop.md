@@ -612,6 +612,39 @@ console.log('1', a) // -> '1' 1
 
 上述解释中提到了 `await` 内部实现了 `generator`，其实 `await` 就是 `generator` 加上 `Promise`的语法糖，且内部实现了自动执行 `generator`。如果你熟悉 co 的话，其实自己就可以实现这样的语法糖。
 
+#### 多个script
+
+```html
+<script>
+  // 多个script标签也是按模块进行执行，不会交叉执行(定时器除外)
+  // 最终打印1 3 4 5 6 s 2
+  var p = new Promise( ( resolve, reject ) => {
+    console.log( '1' );
+    setTimeout( () => {
+      console.log( 's' );
+      Promise.resolve().then( () => {
+        console.log( 2 );
+      } )
+    } )
+    // 如果不改变状态，then方法则不会执行
+    resolve()
+  } )
+  console.log( '3' )
+  p.then( () => {
+    console.log( '4' )
+  } )
+  p.then( () => {
+    console.log( '5' )
+  } )
+</script>
+
+<script>
+  // 多个script标签加载，除了定时器，其他的代码也是按模块执行，
+  // 也就是前一个script执行完才会执行这个
+  console.log( '6' );
+</script>
+```
+
 [requestanimationframe-ruanyifeng-url]: https://javascript.ruanyifeng.com/htmlapi/requestanimationframe.html
 [requestanimationframe-taobao-fed-url]: http://taobaofed.org/blog/2017/03/02/thinking-in-request-animation-frame/
 [requestanimationframe-zhangxinxu-url]: https://www.zhangxinxu.com/wordpress/2013/09/css3-animation-requestanimationframe-tween-%E5%8A%A8%E7%94%BB%E7%AE%97%E6%B3%95/
