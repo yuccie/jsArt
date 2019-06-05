@@ -1,26 +1,26 @@
 class myPromse {
   constructor ( executor ) {
-    let state = 'pending',
-      value, reason;
+    let state = "pending",
+      value,
+      reason;
 
     let resolve = val => {
-      if ( this.state === 'pending' ) {
-        this.state = 'fulfilled';
+      if ( this.state === "pending" ) {
+        this.state = "fulfilled";
         this.value = val;
       }
     };
     let reject = reason => {
-      if ( this.state === 'pending' ) {
-        this.state = 'rejected';
+      if ( this.state === "pending" ) {
+        this.state = "rejected";
         this.reason = reason;
       }
     };
     try {
       executor( resolve, reject );
     } catch ( err ) {
-      reject( err )
+      reject( err );
     }
-
   }
 }
 
@@ -38,7 +38,6 @@ var person2 = {
   // toLocaleString: function () {
   //   return "Grigorios";
   // },
-
   // toString: function () {
   //   return "Greg";
   // }
@@ -49,42 +48,43 @@ console.log( people ); // Nicholas,Greg
 console.log( people.toString() ); // Nicholas,Greg
 console.log( people.toLocaleString() ); // Nikolaos,Grigorios
 
-var sum = arr.reduce( ( p, c ) => p + ( Array.isArray( c ) ? sum( c ) : c ), 0 )
-var flatArr = arr.reduce( ( p, c ) => p.concat( ( Array.isArray( c ) ? flatArr( c ) : c ) ), [] )
-
-
-
-
-
-
-// 
-const router = new VueRouter( { ... } )
+var sum = arr.reduce( ( p, c ) => p + ( Array.isArray( c ) ? sum( c ) : c ), 0 );
+var flatArr = arr.reduce(
+  ( p, c ) => p.concat( Array.isArray( c ) ? flatArr( c ) : c ),
+  []
+);
 
 router.beforeEach( ( to, from, next ) => {
   // ...
-} )
+} );
 
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
 
-axios.get( '/user/12345', {
-  cancelToken: source.token
-} ).catch( function ( thrown ) {
-  if ( axios.isCancel( thrown ) ) {
-    console.log( 'Request canceled', thrown.message );
-  } else {
-    // handle error
-  }
-} );
-
-axios.post( '/user/12345', {
-  name: 'new name'
-}, {
+axios
+  .get( "/user/12345", {
     cancelToken: source.token
   } )
+  .catch( function ( thrown ) {
+    if ( axios.isCancel( thrown ) ) {
+      console.log( "Request canceled", thrown.message );
+    } else {
+      // handle error
+    }
+  } );
+
+axios.post(
+  "/user/12345",
+  {
+    name: "new name"
+  },
+  {
+    cancelToken: source.token
+  }
+);
 
 // cancel the request (the message parameter is optional)
-source.cancel( 'Operation canceled by the user.' );
+source.cancel( "Operation canceled by the user." );
 
 // 单例模式
 var getInstance = function ( fn ) {
@@ -98,9 +98,9 @@ function debounce ( fn, interval = 300 ) {
   return function ( ...args ) {
     clearTimeout( timeout );
     setTimeout( () => {
-      fn.apply( this, args )
-    }, interval )
-  }
+      fn.apply( this, args );
+    }, interval );
+  };
 }
 
 function throttle ( fn, interval ) {
@@ -112,10 +112,18 @@ function throttle ( fn, interval ) {
       fn.apply( this, args );
       canRun = true;
     }, interval )
-
   }
 }
 
+var count = 0;
+var fibonacci = function ( n ) {
+  count++;
+  return n < 2 ? n : fibonacci( n - 1 ) + fibonacci( n - 2 );
+};
+for ( var i = 0; i <= 10; i++ ) {
+  fibonacci( i );
+}
+console.log( count ); // 453
 
 
 // 下拉刷新
@@ -154,3 +162,13 @@ function throttle ( fn, interval ) {
     // todo...
   }, false );
 } )( window );
+// CSS,canvas,svg，js
+// css旋转中心和其他不同，
+
+
+for(let i = 0; i<20;i++){
+  setTimeout(() => {
+    console.log(1)
+    window.requestAnimationFrame(step);
+  },1000)
+}
