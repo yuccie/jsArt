@@ -231,3 +231,4 @@ arr.forEach(() => {
   console.log(1)
 })
 console.timeEnd()
+
