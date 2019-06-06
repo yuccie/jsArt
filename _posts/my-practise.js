@@ -185,3 +185,49 @@ preload(
   "http://qiniu.cllgeek.com/react03.png",
   "http://qiniu.cllgeek.com/react04.png"
 ) 
+
+class Person {
+  constructor(){
+    this.name = 'jack';
+  }
+  a = function(){console.log(this.name)}
+  b(){console.log(this.name)}
+  // 下面的this绑定的是Person，而不是实例
+  c = () => {console.log(this.name, this)}
+}
+var newPerson = new Person()
+var son = {
+  name: 'son',
+  a:newPerson.a,
+  b:newPerson.b,
+  c:newPerson.c,
+}
+son.c()
+
+function test(){
+  myDom.on('keyup', ()=> {
+    $.ajax(
+      {
+        data: this.value,
+        url:url,
+        success:function(res){
+          body.html(res.html)
+        }
+      }
+    )
+  })
+}
+
+var arr = new Array(10000).fill(0)
+
+console.time();
+for(var i = 0;i<10000;i++){
+  console.log(0)
+}
+console.timeEnd()
+
+console.time();
+arr.forEach(() => {
+  console.log(1)
+})
+console.timeEnd()
