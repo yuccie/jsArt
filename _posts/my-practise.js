@@ -239,7 +239,6 @@ this.append = function(element) {
 
 this.removeAt = function() {};
 
-
 class Person {
   constructor(){
     this.name = 'jack';
