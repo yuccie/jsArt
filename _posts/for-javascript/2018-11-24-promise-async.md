@@ -675,29 +675,41 @@ new Set(["Alice", "Bob", "Carol"][Symbol.iterator]());
 
 从 Set 生成 Array
 
-````js
+```js
 let set = new Set(['Alice', 'Bob', 'Carol'])
 Array.from(set) // 'Alice', 'Bob', 'Carol'
 // 等价于
 Array.from(set[Symbol.iterator]())
 
 Array.from() 方法从一个类似数组或可迭代对象中创建一个新的数组实例。
-```js
-Array.from(arrayLike[, mapFn[, thisArg]])
-````
+
+
+Array.from(arrayLike[, mapFn[, thisArg]]);
+// arrayLike
+// 想要转换成数组的伪数组对象或可迭代对象。
+// mapFn (可选参数)
+// 如果指定了该参数，新数组中的每个元素会执行该回调函数。
+// thisArg (可选参数)
+// 可选参数，执行回调函数 mapFn 时 this 对象。
+console.log(Array.from('foo'));
+// expected output: Array ["f", "o", "o"]
+
+console.log(Array.from([1, 2, 3], x => x + x));
+// expected output: Array [2, 4, 6]
 
 // 还可以使用展开运算符 ...
 let names = [...set] // 'Alice', 'Bob', 'Carol'
 
-````
+```
 
-从String到Set，得到字符串中具体的字符
+从 String 到 Set，得到字符串中具体的字符
+
 ```js
-let alphabet = 'abcdefghijklmnopqrstuvwxyz';
-new Set(alphabet) // {'a', 'b', 'c', ...}
+let alphabet = "abcdefghijklmnopqrstuvwxyz";
+new Set(alphabet); // {'a', 'b', 'c', ...}
 // 等价于
-new Set('alice bob'[Symbol.iterator]())
-````
+new Set("alice bob"[Symbol.iterator]());
+```
 
 从 Object 生成[Map][setmaptheoryurl](类似 Object，只是键不再局限于字符串，各种类型的值都可以作为键)
 Object 结构提供了“字符串—值”的对应，Map 结构提供了“值—值”的对应，是一种更完善的 Hash 结构实现
