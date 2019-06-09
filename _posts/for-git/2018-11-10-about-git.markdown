@@ -242,6 +242,18 @@ $ alias 别名=命令
 $ unalias 别名
 ```
 
+#### **问题总结**
+
+##### ** git push时提示Username for 'https://github.com':**     
+
+本地已经配了ssh登录，但推代码时提示这个，表示现在是https的方式，两种方式修改：
+
+```bash
+# 命令行修改
+git remote set-url origin git@github.com:yuccie/jsArt.git
+# 直接修改 .git/config文件
+url = git@github.com:yuccie/jsArt.git
+```
 
 
 
