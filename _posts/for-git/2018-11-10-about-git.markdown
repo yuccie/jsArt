@@ -4,24 +4,26 @@ title: About git
 date: Fri May 10 2019 17:25:20 GMT+0800 (中国标准时间)
 ---
 
-参考：[阮一峰-常用git命令操作](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html) 
+参考：[阮一峰-常用 git 命令操作](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)
 
-参考：[阮一峰-远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html) 
+参考：[阮一峰-远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)
 
 参考：[阮一峰-工作流](http://www.ruanyifeng.com/blog/2015/12/git-workflow.html)
 
-工作区：就是我们本地的目录，还没有被git管理
-暂存区：git开始管理，只是还没有提交到分支上
-commit: commit后就将暂存区的内容提到分支上了，如果此时在git push则把本地修改同步到远程
+工作区：就是我们本地的目录，还没有被 git 管理
+暂存区：git 开始管理，只是还没有提交到分支上
+commit: commit 后就将暂存区的内容提到分支上了，如果此时在 git push 则把本地修改同步到远程
+
 #### git 查看终端帮助文档
+
 ```bash
 # 比如查看git commit相关，可以如下
 $ git help commit
 ```
 
-#### .gitignore规则不生效的解决办法
+#### .gitignore 规则不生效的解决办法
 
-原因是.gitignore只能忽略那些原来没有被track的文件，如果某些文件已经被纳入了版本管理中，则修改.gitignore是无效的。那么解决方法就是先把本地缓存删除（改变成未track状态），然后再提交：
+原因是.gitignore 只能忽略那些原来没有被 track 的文件，如果某些文件已经被纳入了版本管理中，则修改.gitignore 是无效的。那么解决方法就是先把本地缓存删除（改变成未 track 状态），然后再提交：
 
 **注意：** `git rm`是删除暂存区和分支上的文件，同时本地也不需要了，使用。而`git rm --cached`只是删除暂存区和分支上的，本地还需要，只是不被版本控制了。其实若想用`git`管理文件，则使用`git rm`相关，若新建一个文件，并没有提交到暂存区，此时用`git rm或git rm --cache`是找不到这个文件的，此时应该直接用`rm`
 
@@ -32,15 +34,16 @@ git commit -m 'update .gitignore'
 ```
 
 #### git 常用操作
+
 ```bash
 # 丢弃暂存区修改,注意这里是已经被跟踪的文件
-$ git checkout -- . 
+$ git checkout -- .
 
 # 丢弃暂存某个文件修改
 $ git checkout -- xxx
 
 # 丢弃未追踪(untracked)的文件（也就是工作区）,后可跟具体文件，不跟则全部删除
-$ git clean -f 
+$ git clean -f
 
 # 连untracked的目录（工作区）也一块删掉
 $ git clean -fd
@@ -62,9 +65,16 @@ $ git stash pop
 
 # 重命名本地分支名
 $ git branch -m old-name new-name
+
+# 查看带详细分支图的提交日志
+$ git log --graph
+
+# 修改已经提交的commit，会让你修改上次的提交内容
+git commit --amend
 ```
 
-#### 禁用package-lock.json
+#### 禁用 package-lock.json
+
 ```bash
 # 当前项目里禁用
 echo 'package-lock=false' >> .npmrc
@@ -74,8 +84,8 @@ echo 'package-lock.json' >> .gitignore
 npm config set package-lock false
 ```
 
-
 #### 命令行初始化一个仓库
+
 ```bash
 echo "# test" >> README.md
 git init
@@ -86,16 +96,18 @@ git push -u origin master
 ```
 
 #### 添加一个已有的仓库
+
 ```bash
 # 只是初始化一个仓库的后两个步骤
 git remote add origin git@xxx/xxx.git
 git push -u origin master
 ```
 
-### git 远程主机常用操作
+#### git 远程主机常用操作
+
 ```bash
 # 查看远程主机名(-v 查看远程主机的详细地址)
-$ git remote  
+$ git remote
 // origin
 
 # 查看远程主机详细信息
@@ -117,7 +129,7 @@ $ git remote set-url origin [url]
 $ git remote prune origin
 ```
 
-### git fetch
+#### git fetch
 
 ```bash
 # 获取指定远程主机上所有分支的更新
@@ -138,7 +150,7 @@ $ git merge origin/master
 $ git rebase origin/master
 ```
 
-### git pull
+#### git pull
 
 ```bash
 # 获取远程next分支的更新，然后合并到本地master分支
@@ -165,7 +177,7 @@ $ git pull
 $ git pull -p
 ```
 
-### git push
+#### git push
 
 ```bash
 # 将本地master分支的更新推送到远程主机next分支上
@@ -196,18 +208,19 @@ $ git push -u origin master
 $ git push --force origin
 ```
 
-### git rebase
+#### git rebase
 
-参考：[廖雪峰-git rebase解析](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/0015266568413773c73cdc8b4ab4f9aa9be10ef3078be3f000) 
+参考：[廖雪峰-git rebase 解析](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/0015266568413773c73cdc8b4ab4f9aa9be10ef3078be3f000)
 
 参考：[failed to push some refs to](https://blog.csdn.net/MBuger/article/details/70197532)
+
 ```bash
 # 多人开发一个分支时，远程更新后，本地commit后直接push后会出错，此时若先pull后push，则提交记录会分叉
 # 为了让提交记录在一条直线上同时解决问题，可以如下，然后push即可
 $ git pull --rebase origin master
 ```
 
-### bash 常用操作
+#### bash 常用操作
 
 ```bash
 # 查看gcam中每个参数的意义
@@ -225,7 +238,9 @@ $ alias gcam
 ```
 
 ### oh my zsh 常用操作
-参考：[oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh/blob/master/plugins/git/git.plugin.zsh) 
+
+参考：[oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh/blob/master/plugins/git/git.plugin.zsh)
+
 ```bash
 # 查看所有别名,当然除了oh-my-zsh的命令别名，还有系统级别的，比如ls
 $ alias
@@ -244,9 +259,9 @@ $ unalias 别名
 
 #### **问题总结**
 
-##### ** git push时提示Username for 'https://github.com':**     
+##### ** git push 时提示 Username for 'https://github.com':**
 
-本地已经配了ssh登录，但推代码时提示这个，表示现在是https的方式，两种方式修改：
+本地已经配了 ssh 登录，但推代码时提示这个，表示现在是 https 的方式，两种方式修改：
 
 ```bash
 # 命令行修改
@@ -254,7 +269,3 @@ git remote set-url origin git@github.com:yuccie/jsArt.git
 # 直接修改 .git/config文件
 url = git@github.com:yuccie/jsArt.git
 ```
-
-
-
-
