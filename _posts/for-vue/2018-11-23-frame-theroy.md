@@ -1049,6 +1049,115 @@ schedule(function() {
 
 可能你认为这里会打印出 A B C D，但实际打印的结果是 A C D B。因为任务处理是在当前事件循环 tick 结尾处，且定时器触发是为了调度下一个事件循环 tick（如果可用的话！）。
 
+### **异步组件记载**
+
+```js
+// 异步组件加载
+// Vue.js允许将组件定义为一个工厂函数，动态地解析组件的定义。
+// 工厂函数接收一个resolve回调，成功获取组件时调用。也可以调用reject(reason)指示失败。
+
+// 无所不在的百度统计代码，这便是常规的按需加载，用的时候执行以下就好(可以用事件触发)
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?<xxxxx>";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+
+// 手动实现一个异步加载
+function load(componentName, path) {
+  return new Promise(function(resolve, reject) {
+    var script = document.createElement("script");
+    script.src = path;
+    script.async = true;
+    // 监听onload事件
+    script.onload = function() {
+      // 通过Vue.component验证组件，存在就resolve,否则reject
+      var component = Vue.component(componentName);
+      if (component) {
+        resolve(component);
+      } else {
+        reject();
+      }
+    };
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+}
+var router = new VueRouter({
+  routes: [
+    {
+      path: "/home",
+      component: {
+        template: "<div>Home page</div>"
+      }
+    },
+    {
+      path: "/about",
+      component: function(resolve, reject) {
+        load("about", "about.js").then(resolve, reject);
+      }
+    }
+  ]
+});
+var app = new Vue({
+  el: "#app",
+  router: router
+});
+
+// 配合webpack
+const router = new VueRouter({
+  routes: [
+    { path: "/home", component: Home },
+    {
+      path: "/about",
+      // Vue.js支持component定义为一个函数：function (resolve) {}，
+      // 在函数内，可以使用类似node.js的库引入模式
+      // 这个特殊的require语法告诉webpack自动将编译后的代码分割成不同的块，这些块将通过按需自动下载。
+      component: function(resolve) {
+        require(["./components/about"], resolve);
+      }
+    },
+    { path: "/", redirect: "/home" }
+  ]
+});
+
+// 现在项目使用这种方式
+// 1. import() 不同于 import，该方法为了动态加载模块而引入的新语法
+// 2. import() 返回结果是 Promise
+const router = new VueRouter({
+  routes: [
+    {
+      path: `${rootPath}/pages`,
+      redirect: { name: "Home" },
+      // import() 用于动态加载模块，其引用的模块及子模块会被分割打包成一个独立的 chunk。
+      component: () => import("views/layout"),
+      children: [
+        {
+          path: "home",
+          // Webpack 还允许以注释的方式传参，进而更好的生成 chunk。
+          component: () =>
+            import(
+              /* webpackInclude: /\.json$/ */
+              /* webpackExclude: /\.noimport\.json$/ */
+              /* webpackChunkName: "my-chunk-name" */
+              /* webpackMode: "lazy" */
+              "views/blank"
+            ),
+          meta: { title: "首页", isHomePage: true },
+          name: "Home"
+        }
+      ]
+    }
+  ]
+});
+
+// webpack中使用的三种异步加载方式
+// 1、System.import()； 已废除，不推荐
+// 2、require.ensure()； v1和v2均可使用
+// 3、import()；v2支持，v1不支持
+```
+
 ### **Vuex 状态管理**
 
 当我们使用 Vue.js 来开发一个单页应用时，经常会遇到一些组件间共享的数据或状态，或是需要通过 props 深层传递的一些数据。在应用规模较小的时候，我们会使用 props、事件等常用的父子组件的组件间通信方法，或者是通过事件总线来进行任意两个组件的通信。但是当应用逐渐复杂后，问题就开始出现了，这样的通信方式会导致数据流异常地混乱。
