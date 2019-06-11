@@ -57,6 +57,15 @@ $ git branch -d xxx
 # 删除远程分支
 $ git push origin -delete xxx
 
+# 修改分支名（未推到远程）
+$ git branch -m oldName newName
+
+# 修改分支名（推到远程）
+$ git branch -m oldName newName                 # 1. 修改本地
+$ git push origin -delete oldName               # 2. 删除远程
+$ git push origin newName                       # 3. 推到远程
+$ git branch --set-upstream-to=origin/newName   # 4. 本地与远程相关联
+
 # 保存当前修改，再拉取远程更新或切换到远程
 $ git stash
 

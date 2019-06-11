@@ -83,6 +83,10 @@ vue init webpack my-project
 
 vue/cli 3.x 官方文档参考：[vue/cli 3.x 官方文档][vuecli3xurl]
 
+#### **加载异步组件**
+
+有三种方式加载异步组件
+
 ### 操作 dom 慢，但测试结果却比 React 快
 
 来源：[操作 dom 慢，但测试结果却比 React 快][editdom&frameurl(youda)]
