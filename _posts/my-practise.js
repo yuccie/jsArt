@@ -351,3 +351,31 @@ function getUniqueArr2(arr) {
   }, {});
   return Object.keys(obj);
 }
+
+Promise.all = function(pArr) {
+  let arr = [],
+    i = 0;
+  function processData(index, data) {
+    // 序号和数据要一一对应
+    arr[index] = data;
+    i++;
+    if (i === pArr.length) {
+      Promise.resolve(arr);
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    for (let i = 0; i < pArr.length; i++) {
+      pArr[i].then(data => {
+        processData(i, data);
+      }, reject);
+    }
+  });
+};
+
+const flatten = function(arr) {
+  while (arr.some(item => Array.isArray(item))) {
+    arr = [].concat(...arr);
+  }
+  return arr;
+};

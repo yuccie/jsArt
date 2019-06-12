@@ -457,6 +457,14 @@ var a = {
 // 此时func2的上下文就是a
 a.func2(); // this.func1 is not a function
 
+// 改造下面代码，让打印10
+var b = 10;
+(function b(){
+    b = 20;
+    // 只需console.log(this.b)
+    console.log(b); // 默认打印函数体
+})();
+
 // ---------使用call,apply,bind-------------
 var a = {
   // 省略
@@ -1924,6 +1932,14 @@ sum(arr); // 24
 var flattenArr = arr =>
   arr.reduce((p, c) => p.concat(Array.isArray(c) ? flattenArr(c) : c), []);
 flattenArr(arr); // [2,3,4,4,5,6]
+
+// 循环
+const flatten = function(arr) {
+  while (arr.some(item => Array.isArray(item))) {
+    arr = [].concat(...arr);
+  }
+  return arr;
+};
 ```
 
 #### **Date 类型**
