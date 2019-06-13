@@ -2529,6 +2529,7 @@ ECMAScript 中有两种属性：**数据属性和访问器属性**。
 ```js
 var person = Object.create(null); // 这样创建的空对象更纯
 // 控制台可以直接查看 {} 与 person ，后者没有原型上的属性或方法，
+// 直接字面量{} 和 new Object()继承的属性相同
 
 Object.defineProperty(person, "name", {
   writable: false, // 不可写

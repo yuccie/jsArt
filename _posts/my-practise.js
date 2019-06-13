@@ -379,3 +379,17 @@ const flatten = function(arr) {
   }
   return arr;
 };
+
+// 脱敏手机号
+"17610835815".replace(/(\d{4})*(\d{4})/g, "$1****$2");
+"17610835815".replace(/(\d{3})\d*(\d{4})/g, "$1****$2");
+
+// 下划线或中划线变驼峰
+"-a_bc-e_f-".replace(/\b([-|_]\w*)/g, function(all, letter) {
+  console.log(all, letter);
+});
+
+"aBcDfe".replace(/([A-Z])/g, "-$1");
+"aBcDfe".replace(/([A-Z])/g, (all, letter) => {
+  return `-${letter.toUpperCase()}`;
+});
