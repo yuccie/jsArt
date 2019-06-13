@@ -157,6 +157,7 @@ let deepCloneData = JSON.parse(JSON.stringify(originData));
         setRootFontSize = function() {
           el.style.fontSize = (el.clientWidth / dipWidth) * size + "px";
           window.$rootFontSize = el.style.fontSize.replace("px", "");
+          
         };
       setRootFontSize();
       window.addEventListener(eventType, setRootFontSize, false);
