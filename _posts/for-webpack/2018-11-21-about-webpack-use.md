@@ -1240,7 +1240,9 @@ export default () => {
   console.log('Button Clicked: Here\'s "some text"!');
 }
 ```
+
 2、修改index.js，如下:
+
 ```js
 import _ from 'lodash'
 
@@ -1261,12 +1263,14 @@ function component(){
 }
 document.body.appendChild(component())
 ```
+
 3、启动服务或构建完打开index.html即可
 打开控制台，可以看到print.bundle.js文件页面初始化时并没有加载，而是在单击按钮之后才发起了请求
 
 >注意当调用 ES6 模块的 import() 方法（引入模块）时，必须指向模块的 .default 值，因为它才是 promise 被处理后返回的实际的 module 对象。
 
 许多框架和类库对于如何用它们自己的方式来实现（懒加载）都有自己的建议。这里有一些例子：
+
 - React: [Code Splitting and Lazy Loading][reactCodeSplittingAndLazyLoadingUrl]
 - Vue: [Lazy Load in Vue using Webpack's code splitting][vueLazyLoadAndCodeSplittingUrl]
 
@@ -1292,6 +1296,7 @@ document.body.appendChild(component())
 >当编译器(compiler)开始执行、解析和映射应用程序时，它会保留所有模块的详细要点。这个数据集合称为 "Manifest"，当完成打包并发送到浏览器时，会在运行时通过 Manifest 来解析和加载模块。无论你选择哪种模块语法，那些 import 或 require 语句现在都已经转换为 __webpack_require__ 方法，此方法指向模块标识符(module identifier)。通过使用 manifest 中的数据，runtime 将能够查询模块标识符，检索出背后对应的模块。
 
 比如懒加载一个模块，如果单纯修改这个模块，并将运行时抽离出去之后，是不会影响到主文件，此时只会改变该模块和抽离出去的manifest文件(或runtime.js文件)，另外就是可以在manifest文件里索引到该模块的hash值，如下看`f8def119`字段：
+
 ```js
 // manifest.69245d81.js
 /******/   // script path function
@@ -1521,6 +1526,8 @@ module.exports = {
   }
 }
 ```
+
+#### **webpack生命周期**
 
 
 
