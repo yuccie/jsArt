@@ -183,9 +183,11 @@ let deepCloneData = JSON.parse(JSON.stringify(originData));
 
 11. LED 字体 <br/>
     11_1. @font-face 的 CSS @规则 ，它允许网页开发者为其网页指定在线字体。意味着你可以为网页定制各种字体
-    ```scss
+
+    ```js
     // 下载需要的字体，然后定义字体，font-family即是名字，使用时将定义的字体导入，直接使用即可
     // TrueType是苹果与微软开发的字体格式,扩展名为：.ttf
+    // 注意这里的波浪线和别名之间没有斜杠
     @font-face {
       font-family: "Digital7Mono";
       src: url("~assets/xxx/Digital-7Mono-font.ttf") format("truetype");
