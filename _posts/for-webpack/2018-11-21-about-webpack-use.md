@@ -11,6 +11,7 @@ date: Fri May 10 2019 17:25:47 GMT+0800 (中国标准时间)
 4. [v4新版本变化][v4WebpackWhatHaveChangeUrl]
 5. [webpack v1迁移到v2][WebpackV1ToV2Url]
 
+### webpack解说版本一
 
 #### 1、webpack管理pageage的好处
 
@@ -1352,6 +1353,316 @@ optimization: {
       }
     }
   ]
+}
+```
+
+### webpack解说版本二
+
+参考：[webpack原理](https://juejin.im/entry/5b0e3eba5188251534379615)
+
+#### 流程概括
+
+Webpack 的运行流程是一个串行的过程，从启动到结束会依次执行以下流程：
+
+1. 初始化参数：从配置文件和 Shell 语句中读取与合并参数，得出最终的参数；
+2. 开始编译：用上一步得到的参数初始化 Compiler 对象，加载所有配置的插件，执行对象的 run 方法开始执行编译；
+3. 确定入口：根据配置中的 entry 找出所有的入口文件；
+4. 编译模块：从入口文件出发，调用所有配置的 Loader 对模块进行翻译，再找出该模块依赖的模块，再递归本步骤直到所有入口依赖的文件都经过了本步骤的处理；
+5. 完成模块编译：在经过第4步使用 Loader 翻译完所有模块后，得到了每个模块被翻译后的最终内容以及它们之间的依赖关系；
+6. 输出资源：根据入口和模块之间的依赖关系，组装成一个个包含多个模块的 Chunk，再把每个 Chunk 转换成一个单独的文件加入到输出列表，这步是可以修改输出内容的最后机会；
+7. 输出完成：在确定好输出内容后，根据配置确定输出的路径和文件名，把文件内容写入到文件系统。
+
+在以上过程中，Webpack 会在特定的时间点广播出特定的事件，插件在监听到感兴趣的事件后会执行特定的逻辑，并且插件可以调用 Webpack 提供的 API 改变 Webpack 的运行结果。
+
+#### 流程细节
+
+```js
+// Webpack 的构建流程可以分为以下三大阶段(初始化 -> 编译 -> 输出)：
+// 1. 初始化：启动构建，读取与合并配置参数，加载 Plugin，实例化 Compiler。
+// 2. 编译：从 Entry 发出，针对每个 Module 串行调用对应的 Loader 去翻译文件内容，再找到该 Module 依赖的 Module，递归地进行编译处理。
+// 3. 输出：对编译后的 Module 组合成 Chunk，把 Chunk 转换成文件，输出到文件系统。
+
+// 在每个阶段都会发生很多事件，webpack会把这些事件广播出来供plugin使用。
+
+// 过程一：初始化阶段
+// 1. 初始化参数，从配置文件和 Shell 语句中读取与合并参数，得出最终的参数。 这个过程中还会执行配置文件中的插件实例化语句 new Plugin()。
+// 2. 实例化compiler，用上一步得到的参数初始化 Compiler 实例，Compiler 负责文件监听和启动编译。Compiler 实例中包含了完整的 Webpack 配置，全局只有一个 Compiler 实例。
+// 3. 加载插件，依次调用插件的 apply 方法，让插件可以监听后续的所有事件节点。同时给插件传入 compiler 实例的引用，以方便插件通过 compiler 调用 Webpack 提供的 API。
+// 4. environment，开始应用 Node.js 风格的文件系统到 compiler 对象，以方便后续的文件寻找和读取。
+// 5. entry-option，读取配置的Entrys，为每个 Entry 实例化一个对应的 EntryPlugin，为后面该 Entry 的递归解析工作做准备。
+// 6. after-plugins，调用完所有内置的和配置的插件的 apply 方法。
+// 7. after-resolvers，根据配置初始化完 resolver，resolver 负责在文件系统中寻找指定路径的文件。
+
+
+// 过程二：编译阶段
+// 1. run，启动一次新的编译
+// 2. watch-run，和 run 类似，区别在于它是在监听模式下启动的编译，在这个事件中可以获取到是哪些文件发生了变化导致重新启动一次新的编译。
+// 3. compile，该事件是为了告诉插件一次新的编译将要启动，同时会给插件带上 compiler 对象。
+// 4. compilation，当 Webpack 以开发模式运行时，每当检测到文件变化，一次新的 Compilation 将被创建。一个 Compilation 对象包含了当前的模块资源、编译生成资源、变化的文件等。Compilation 对象也提供了很多事件回调供插件做扩展。
+// 5. make，一个新的 Compilation 创建完毕，即将从 Entry 开始读取文件，根据文件类型和配置的 Loader 对文件进行编译，编译完后再找出该文件依赖的文件，递归的编译和解析。
+// 6. after-compile，一次 Compilation 执行完成。
+// 7. invalid，当遇到文件不存在、文件编译错误等异常时会触发该事件，该事件不会导致 Webpack 退出。
+
+// 注意：编译阶段中，最重要的要数 compilation 事件了，
+// 因为在 compilation 阶段调用了 Loader 完成了每个模块的转换操作，
+// 在 compilation 阶段又包括很多小的事件，它们分别是：
+// 1. build-module，使用对应的 Loader 去转换一个模块。
+// 2. normal-module-loader，在用 Loader 对一个模块转换完后，使用 acorn 解析转换后的内容，输出对应的抽象语法树（AST），以方便 Webpack 后面对代码的分析。
+// 3. program，从配置的入口模块开始，分析其 AST，当遇到 require 等导入其它模块语句时，便将其加入到依赖的模块列表，同时对新找出的依赖模块递归分析，最终搞清所有模块的依赖关系。
+// 4. seal，所有模块及其依赖的模块都通过 Loader 转换完成后，根据依赖关系开始生成 Chunk。
+
+
+// 过程三：输出阶段
+// 1. should-emit，所有需要输出的文件已经生成好，询问插件哪些文件需要输出，哪些不需要。
+// 2. emit，确定好要输出哪些文件后，执行文件输出，可以在这里获取和修改输出内容。
+// 3. after-emit，文件输出完毕
+// 4. done，成功完成一次完成的编译和输出流程。
+// 5. failed，如果在编译和输出流程中遇到异常导致 Webpack 退出时，就会直接跳转到本步骤，插件可以在本事件中获取到具体的错误原因。
+
+// 在输出阶段已经得到了各个模块经过转换后的结果和其依赖关系，并且把相关模块组合在一起形成一个个 Chunk。
+// 在输出阶段会根据 Chunk 的类型，使用对应的模版生成最终要要输出的文件内容。
+
+// 输出代码分析
+// 为什么bundle.js能直接运行在浏览器中？
+// 答：原因在于输出的文件中通过 __webpack_require__ 函数定义了一个可以在浏览器中执行的加载函数来模拟 Node.js 中的 require 语句。
+
+// 为何将很多模块放在一个bundle.js里？
+// 答：原因在于浏览器不能像 Node.js 那样快速地去本地加载一个个模块文件，而必须通过网络请求去加载还未得到的文件。 如果模块数量很多，加载时间会很长，因此把所有模块都存放在了数组中，执行一次网络加载。
+// __webpack_require__ 函数有优化，加载过的模块不会二次加载。
+
+
+// 分隔代码的输出
+// 异步加载 show.js
+import('./show').then((show) => {
+  // 执行 show 函数
+  show('Webpack');
+});
+
+// 上面代码构建后，会输出两个文件，分别是执行入口文件 bundle.js 和 异步加载文件 0.bundle.js。
+// 其中 0.bundle.js的内容如下：
+webpackJsonp(
+  // 在其它文件中存放着的模块的 ID
+  [0],
+  // 本文件所包含的模块
+  [
+    // show.js 所对应的模块
+    (function (module, exports) {
+      function show(content) {
+        window.document.getElementById('app').innerText = 'Hello,' + content;
+      }
+
+      module.exports = show;
+    })
+  ]
+);
+
+// 1. __webpack_require__.e 用于加载被分割出去的，需要异步加载的 Chunk 对应的文件;
+// 2. webpackJsonp 函数用于从异步加载的文件中安装模块。
+// 在使用了 CommonsChunkPlugin 去提取公共代码时输出的文件和使用了异步加载时输出的文件是一样的，
+// 都会有 __webpack_require__.e 和 webpackJsonp。 原因在于提取公共代码和异步加载本质上都是代码分割。
+
+// loader基础
+// 由于 Webpack 是运行在 Node.js 之上的，一个 Loader 其实就是一个 Node.js 模块，这个模块需要导出一个函数。 
+// 这个导出的函数的工作就是获得处理前的原内容，对原内容执行处理后，返回处理后的内容。
+
+// 一个最简单的 Loader 的源码如下：
+module.exports = function(source) {
+  // source 为 compiler 传递给 Loader 的一个文件的原内容
+  // 该函数需要返回处理后的内容，这里简单起见，直接把原内容返回了，相当于该 Loader 没有做任何转换
+  return source;
+};
+
+// 由于 Loader 运行在 Node.js 中，你可以调用任何 Node.js 自带的 API，或者安装第三方模块进行调用：
+const sass = require('node-sass');
+module.exports = function(source) {
+  return sass(source);
+};
+
+// loader进阶
+// Webpack 还提供一些 API 供 Loader 调用
+// 可以获取Loader的options
+// 还可以返回其他的数据，比如sourceMap
+// loader有同步和异步之分，有些需要通过网络请求，才能得到结果，同步则会阻塞整个构建，导致构建非常缓慢。
+
+// 在转换步骤是异步时，可以：
+module.exports = function(source) {
+  // 告诉 Webpack 本次转换是异步的，Loader 会在 callback 中回调结果
+  var callback = this.async();
+  someAsyncOperation(source, function(err, result, sourceMaps, ast) {
+      // 通过 callback 返回异步执行后的结果
+      callback(err, result, sourceMaps, ast);
+  });
+};
+
+// 处理二进制数据
+// 在默认的情况下，Webpack 传给 Loader 的原内容都是 UTF-8 格式编码的字符串。 但有些场景下 Loader 不是处理文本文件，而是处理二进制文件，
+// 例如 file-loader，就需要 Webpack 给 Loader 传入二进制格式的数据。 为此，你需要这样编写 Loader：
+module.exports = function(source) {
+  // 在 exports.raw === true 时，Webpack 传给 Loader 的 source 是 Buffer 类型的
+  source instanceof Buffer === true;
+  // Loader 返回的类型也可以是 Buffer 类型的
+  // 在 exports.raw !== true 时，Loader 也可以返回 Buffer 类型的结果
+  return source;
+};
+// 通过 exports.raw 属性告诉 Webpack 该 Loader 是否需要二进制数据 
+module.exports.raw = true;
+
+
+// 缓存加速
+// 有些转换操作需要大量计算非常耗时，如果每次构建都重新执行重复的转换操作，构建将会变得非常缓慢。
+// Webpack 会默认缓存所有 Loader 的处理结果，也就是说在需要被处理的文件或者其依赖的文件没有发生变化时， 是不会重新调用对应的 Loader 去执行转换操作的。
+module.exports = function(source) {
+  // 关闭该 Loader 的缓存功能
+  this.cacheable(false);
+  return source;
+};
+
+// ResolveLoader
+// ResolveLoader 用于配置 Webpack 如何寻找 Loader。 默认情况下只会去 node_modules 目录下寻找，
+// 为了让 Webpack 加载放在本地项目中的 Loader 需要修改 resolveLoader.modules。
+
+// 假如本地的 Loader 在项目目录中的 ./loaders/loader-name 中，则需要如下配置：
+module.exports = {
+  resolveLoader:{
+    // 去哪些目录下寻找 Loader，有先后顺序之分
+    modules: ['node_modules','./loaders/'],
+  }
+}
+// 加上以上配置后， Webpack 会先去 node_modules 项目下寻找 Loader，如果找不到，会再去 ./loaders/ 目录下寻找。
+```
+
+#### 开发一个插件
+
+该插件的名称取名叫 EndWebpackPlugin，作用是在 Webpack 即将退出时再附加一些额外的操作，例如在 Webpack 成功编译和输出了文件后执行发布操作把输出的文件上传到服务器。 同时该插件还能区分 Webpack 构建是否执行成功。使用该插件时方法如下：
+
+```js
+module.exports = {
+  plugins:[
+    // 两个参数分别为成功回调和失败回调。
+    new EndWebpackPlugin(() => {
+      // Webpack 构建成功，并且文件输出以后会执行到这里，在这里可以做发布文件操作
+    }, (err) => {
+      console.error(err);
+    })
+  ]
+}
+
+// 要实现该插件，需要借助两个事件：
+// 1. done：在成功构建并且输出了文件后，Webpack 即将退出时发生；
+// 2. failed：在构建出现异常导致构建失败，Webpack 即将退出时发生；
+
+class EndWebpackPlugin {
+  constructor(doneCb, failCb){
+    // 存在在构造函数中传入的回调函数
+    this.doneCallback = doneCb;
+    this.failCallback = failCb;
+  }
+
+  apply(compailer){
+    compailer.plugin('done', (stats) => {
+      // 在done事件中回调doneCallback
+      this.doneCallback(stats);
+    });
+
+    compailer.plugin('failed', (err) => {
+      this.failCallback(err);
+    })
+  }
+}
+
+module.exports = EndWebpackPlugin
+
+// 调用过程
+// 1. Webpack 启动后，在读取配置的过程中会先执行 new EndWebpackPlugin(options) 初始化一个 EndWebpackPlugin 获得其实例。
+// 2. 在初始化 compiler 对象后，再调用 EndWebpackPlugin.apply(compiler) 给插件实例传入 compiler 对象。
+// 3. 插件实例在获取到 compiler 对象后，就可以通过 compiler.plugin(事件名称, 回调函数) 监听到 Webpack 广播出来的事件。 
+// 4. 并且可以通过 compiler 对象去操作 Webpack。
+```
+
+#### 常见细节：
+
+```js
+// Compiler 和 Compilation
+// 1. Compiler 对象包含了 Webpack 环境所有的的配置信息，包含 options，loaders，plugins 这些信息，
+// 这个对象在 Webpack 启动时候被实例化，它是全局唯一的，可以简单地把它理解为 Webpack 实例；
+// 2. Compilation 对象包含了当前的模块资源、编译生成资源、变化的文件等。当 Webpack 以开发模式运行时，每当检测到一个文件变化，一次新的 Compilation 将被创建。
+// Compilation 对象也提供了很多事件回调供插件做扩展。通过 Compilation 也能读取到 Compiler 对象。
+
+// Compiler 和 Compilation 的区别在于：
+// Compiler 代表了整个 Webpack 从启动到关闭的生命周期，而 Compilation 只是代表了一次新的编译。
+
+
+// Webpack 的事件流机制应用了观察者模式，和 Node.js 中的 EventEmitter 非常相似。
+// 可以直接在 Compiler 和 Compilation 对象上广播和监听事件，方法如下：
+/**
+* 广播出事件
+* event-name 为事件名称，注意不要和现有的事件重名
+* params 为附带的参数
+*/
+compiler.apply('event-name',params);
+
+/**
+* 监听名称为 event-name 的事件，当 event-name 事件发生时，函数就会被执行。
+* 同时函数中的 params 参数为广播事件时附带的参数。
+*/
+compiler.plugin('event-name',function(params) {
+  // todo
+});
+
+
+// 监听文件变化
+// Webpack 会从配置的入口模块出发，依次找出所有的依赖模块，当入口模块或者其依赖的模块发生变化时， 就会触发一次新的 Compilation。
+// 默认情况下 Webpack 只会监视入口和其依赖的模块是否发生变化，在有些情况下项目可能需要引入新的文件，例如引入一个 HTML 文件。
+// 由于 JavaScript 文件不会去导入 HTML 文件，Webpack 就不会监听 HTML 文件的变化，编辑 HTML 文件时就不会重新触发新的 Compilation。
+//  为了监听 HTML 文件的变化，我们需要把 HTML 文件加入到依赖列表中，为此可以使用如下代码：
+compiler.plugin('after-compile', (compilation, callback) => {
+  // 把 HTML 文件添加到文件依赖列表，好让 Webpack 去监听 HTML 模块文件，在 HTML 模版文件发生变化时重新启动一次编译
+    compilation.fileDependencies.push(filePath);
+    callback();
+});
+
+
+// 修改输出资源
+// 有些场景下插件需要修改、增加、删除输出的资源，要做到这点需要监听 emit 事件，
+// 因为发生 emit 事件时所有模块的转换和代码块对应的文件已经生成好，需要输出的资源即将输出，
+// 因此 emit 事件是修改 Webpack 输出资源的最后时机。
+// 所有需要输出的资源会存放在 compilation.assets 中，compilation.assets 是一个键值对，键为需要输出的文件名称，值为文件对应的内容。
+compiler.plugin('emit', (compilation, callback) => {
+  // 设置名称为 fileName 的输出资源
+  compilation.assets[fileName] = {
+    // 返回文件内容
+    source: () => {
+      // fileContent 既可以是代表文本文件的字符串，也可以是代表二进制文件的 Buffer
+      return fileContent;
+      },
+    // 返回文件大小
+      size: () => {
+      return Buffer.byteLength(fileContent, 'utf8');
+    }
+  };
+  callback();
+});
+
+// 读取 compilation.assets 的代码如下：
+compiler.plugin('emit', (compilation, callback) => {
+  // 读取名称为 fileName 的输出资源
+  const asset = compilation.assets[fileName];
+  // 获取输出资源的内容
+  asset.source();
+  // 获取输出资源的文件大小
+  asset.size();
+  callback();
+});
+
+
+// 还可以判断webpack安装哪些插件，无非也就是利用compiler对象
+// 判断当前配置是否使用了 ExtractTextPlugin?
+// compiler 参数即为 Webpack 在 apply(compiler) 中传入的参数
+function hasExtractTextPlugin(compiler) {
+  // 当前配置所有使用的插件列表
+  const plugins = compiler.options.plugins;
+  // 去 plugins 中寻找有没有 ExtractTextPlugin 的实例
+  return plugins.find(plugin=>plugin.__proto__.constructor === ExtractTextPlugin) != null;
 }
 ```
 
