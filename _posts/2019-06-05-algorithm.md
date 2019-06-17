@@ -8,7 +8,7 @@ date: Wed Jun 05 2019 23:26:32 GMT+0800 (中国标准时间)
 
 ### **参考资料**
 
-[小白一路走来，连续刷题三年，谈谈我的算法学习经验(掘金)][haotostudyalgorithmurl(juejin)]、
+[小白一路走来，连续刷题三年，谈谈我的算法学习经验(掘金)][haotostudyalgorithmurl(juejin)]、[漫画算法][comicalgorithmurl]
 
 ### **基本概念**
 
@@ -255,3 +255,4 @@ bfs(root);
 ### **相关链接**
 
 [haotostudyalgorithmurl(juejin)]: https://juejin.im/post/5cf5d203e51d45590a445afd "小白说算法如何学"
+[comicalgorithmurl]: https://cloud.tencent.com/developer/article/1101517 "程序员小灰漫画算法"
