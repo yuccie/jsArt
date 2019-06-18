@@ -229,6 +229,22 @@ $ git push --force origin
 $ git pull --rebase origin master
 ```
 
+#### 代码回滚
+
+```bash
+# 代码已经提送至远程，可以用 git revert，
+# 注意另外一个好处就是：不是重写之前的提交记录，而是增加记录，而且是撤销指定的提交。
+# 表示回滚到上一次提交(其实就是撤销最近一次的提交)
+git revert HEAD
+
+# 指定回滚到哪一次，如果想撤销不连续的提交，可以空格分开
+git revert HEAD~3
+
+# 若是想直接回滚到某个点，可以直接
+# 之前的提交记录会被移除，慎用
+git reset --hard 提交鸡柳
+```
+
 #### bash 常用操作
 
 ```bash
