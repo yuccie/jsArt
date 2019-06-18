@@ -447,15 +447,21 @@ var a = {
     console.log(this.name);
   },
   func2: function() {
-    // 修改为箭头函数即可消除错误
-    // 因为最后调用setTimeout是window
     setTimeout(function() {
-      this.func1();
+      this.func1(); // this为window
     }, 100);
-  }
+  },
+  func3: function(){
+    setTimeout(() => {
+      this.func1();
+    })
+  },
+  func4: () => {console.log(this)}
 };
-// 此时func2的上下文就是a
+
 a.func2(); // this.func1 is not a function
+a.func3(); // "Cherry"，此时this为对象a
+a.func4(); // window
 
 // 改造下面代码，让打印10
 var b = 10;
