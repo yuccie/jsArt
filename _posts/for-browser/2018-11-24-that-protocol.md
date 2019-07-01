@@ -42,6 +42,7 @@ ssh-keygen -t rsa -C "your_mail@example.com" -f ~/.ssh/my_example_rsa
 # 此时将my_example_rsa.pub拷贝到远程
 # 还需要在~/.ssh目录增加(若没有)config文件，然后里面配置如下信息
 
+#------------
 # missfresh-gitlab（这是区分不同的用户名，自定义即可）
 Host gitlab.missfresh.net
     HostName gitlab.missfresh.net
@@ -53,6 +54,13 @@ Host gitlab.missfresh.net
 # HostName : 要登录主机的主机名(git@gitlab.missfresh.net:xxx.git,则为：gitlab.missfresh.net)
 # User : 登录名
 # IdentityFile : 指明对应用户的私钥文件地址(私钥的权限600)
+#------------
+
+# 配置完可以测试一下：
+# @前面的协议一般都为git，后面的地址就是上面HostName
+ssh -T git@gitlab.missfresh.net
+# 若输出类似一下信息，则代表成功：
+Hi xxx! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 
 使用密码登录，每次都需要输入密码，非常麻烦，好在`ssh`还提供公钥登录，可以省去输入密码的步骤。所谓公钥登录，原理就是用户将自己的公钥存储在远程主机上，登录时，远程主机会向用户发送一段随机字符串，用户用自己的私钥加密后再发给远程主机，远程主机用事先存储用户的公钥解密，如果成功，则客户的是可信的，直接允许登录`shell`，不再要求密码。
