@@ -32,7 +32,27 @@ ssh分客户端openssh-client 和openssh-server，如果只是想登陆别人的
 
 ```bash
 # ~/.ssh 目录是一些密钥信息
+# 若不添加任何信息可以直接执行下面命令，然后一路回车，
+# 此时会生成id_rsa，id_rsa_pub，只需要将后者拷贝到远程对应服务器即可
+ssh-keygen
 
+# 但是若想一台电脑建立多个ssh连接，则需要为每个秘钥生成不同的名字
+ssh-keygen -t rsa -C "your_mail@example.com" -f ~/.ssh/my_example_rsa
+# 此时会在~/.ssh目录生成my_example_rsa和my_example_rsa.pub两个文件
+# 此时将my_example_rsa.pub拷贝到远程
+# 还需要在~/.ssh目录增加(若没有)config文件，然后里面配置如下信息
+
+# missfresh-gitlab（这是区分不同的用户名，自定义即可）
+Host gitlab.missfresh.net
+    HostName gitlab.missfresh.net
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/missfresh-gitlab-rsa
+
+# 配置文件参数
+# Host : Host进行配置对应的的主机名和ssh文件
+# HostName : 要登录主机的主机名(git@gitlab.missfresh.net:xxx.git,则为：gitlab.missfresh.net)
+# User : 登录名
+# IdentityFile : 指明对应用户的私钥文件地址(私钥的权限600)
 ```
 
 使用密码登录，每次都需要输入密码，非常麻烦，好在`ssh`还提供公钥登录，可以省去输入密码的步骤。所谓公钥登录，原理就是用户将自己的公钥存储在远程主机上，登录时，远程主机会向用户发送一段随机字符串，用户用自己的私钥加密后再发给远程主机，远程主机用事先存储用户的公钥解密，如果成功，则客户的是可信的，直接允许登录`shell`，不再要求密码。
