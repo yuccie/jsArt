@@ -83,6 +83,17 @@ vue init webpack my-project
 
 vue/cli 3.x 官方文档参考：[vue/cli 3.x 官方文档][vuecli3xurl]
 
+```js
+//  从以下代码可以看出，vue2和vue3是不兼容的
+//  vue create --help
+
+//   vue create is a Vue CLI 3 only command and you are using Vue CLI 2.9.6.
+//   You may want to run the following to upgrade to Vue CLI 3:
+
+//   npm uninstall -g vue-cli
+//   npm install -g @vue/cli
+```
+
 #### **加载异步组件**
 
 有三种方式加载异步组件
