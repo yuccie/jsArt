@@ -133,6 +133,77 @@ export default {
       return fmt;
     },
 
+    // 横轴时间撮及日期格式列表
+    formatXAxis(base = 2) {
+      let dateRange = {
+        minDate: "2019-04-06",
+        maxDate: "2019-06-06"
+      };
+      var start = new Date(dateRange.minDate);
+      var end = new Date(dateRange.maxDate);
+      let arr = [start.getTime()]; // 起始日期
+      let dateList = [];
+      while (start.getTime() < end.getTime()) {
+        let time = start.getTime() + base * 86400000;
+        arr.push(time);
+        start = new Date(time);
+        // arr.push(Number(this.formatDate(start, "yyyyMMdd")));
+      }
+      if (end.getTime() > arr[arr.length - 1]) {
+        arr.push(end.getTime());
+      }
+
+      dateList = arr.map(item => new Date(item));
+      console.log("dateList", dateList);
+      // this.finDateArr = dateList;
+      return arr;
+    },
+
+    // 得出每个项目距离开始日期的gap
+    setTime(base = 2) {
+      let projectDateList1 = [
+        "2019-04-06",
+        "2019-04-07",
+        "2019-04-08",
+        "2019-04-11"
+      ];
+      projectDateList1 = projectDateList1.map(item => new Date(item).getTime());
+      console.log("projectDateList1", projectDateList1.length);
+
+      // 去重之后的总数组
+      let allDateList = [...projectDateList1, ...this.xAlisTimeList].filter(
+        (ele, index, array) => {
+          return index === array.indexOf(ele);
+        }
+      );
+      // 需要排序
+      allDateList = allDateList.sort();
+
+      console.log("this.xAlisTimeList", this.xAlisTimeList.length);
+      console.log("allDateList", allDateList, allDateList.length);
+
+      let finnalArr = projectDateList1.map(item => {
+        // debugger;
+        let tempList = this.xAlisTimeList;
+        if (tempList.includes(item)) {
+          console.log("总数组包含的索引：", allDateList.indexOf(item));
+          console.log("包含的话直接乘以base就好");
+        } else {
+          console.log("总数组不包含的索引：", allDateList.indexOf(item));
+          console.log(
+            "如果不包含，则需要计算",
+            (item - tempList[0]) / (86400000 * base)
+          );
+        }
+      });
+
+      console.log(
+        "projectDateList1",
+        projectDateList1.map(item => new Date(item))
+      );
+      console.log("allDateList11", allDateList.map(item => new Date(item)));
+    },
+
     // 根据起止日期，base得出相应的时间列表
     formatXAxis(base = 2) {
       let arr = [],
