@@ -1988,6 +1988,18 @@ function getDate() {
 }
 ```
 
+##### .**关于网络请求中传输Date对象的问题**
+
+正常情况下，网络请求是不能传输Date对象的。。。平时发送请求，一般都是axios等第三方库，他们拿到参数之后，遇到Date对象就会把它转为字符串，而转为字符串的过程中，就会出现问题。。。因为时间对象是时区的问题，中国是东八区时间，相比utc时间多了8个小时，如果传输的时间对象是7号0点，则axios会转为utc时间，也就是减去8个小时。。。就变成了6号，而这个6号是可以在浏览器终端看到的。
+
+[参考：axios提交时间对象自动转换时区][axiosAndDateChangeUrl]
+
+解决办法：
+
+- 可以在给后台传输时间对象之前，将时间加上8个小时
+- 最靠谱的方式是用时间戳
+- 其实还可以格式为2019-09-12这种格式
+
 ##### .**继承的方法**
 
 与其他引用类型一样，`Date`类型也重写了`toLocaleString()、toString()、valueOf()`方法，因此返回值与其他类型的也不同。
@@ -3837,3 +3849,4 @@ console.log(person.name); // "Nicholas"
 [sysconverturl]: http://www.cnblogs.com/gaizai/p/4233780.html "任意进制转换"
 [date&timefunurlmdn]: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date "获取时间的一些方法"
 [jssecretgardenurl]: https://bonsaiden.github.io/JavaScript-Garden/zh/ "js秘密花园"
+[axiosAndDateChangeUrl]: https://blog.csdn.net/qq_35246620/article/details/95644327 'axios关于时间对象转换'

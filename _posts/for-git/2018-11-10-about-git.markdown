@@ -33,6 +33,46 @@ git add .
 git commit -m 'update .gitignore'
 ```
 
+匹配规则：
+
+- 所有空行或#开头的行都会被忽略；
+- 文件或目录前加 / 表示仓库根目录的对应文件；
+- 匹配模式最后跟反斜杠 / 说明要忽略的是目录；
+- 要特殊不忽略某个文件或目录，可以在模式前加上取反 ! 。
+
+```bash
+# 忽略目录 fd1 下的全部内容，不管是根目录的还是子目录的，但不屏蔽fd1目录本身
+fd1/*
+# 屏蔽fd1目录
+fd1/
+# 只忽略根目录fd1下的所有
+/fd1/*
+# 所有以 '.a' 为后缀的文件都屏蔽掉
+*.a
+# 仓库中所有名为 tags 的文件都屏蔽
+tags
+# 仓库中所有以 'core.' 开头的文件都屏蔽
+core.*
+
+# mac系统创造的隐藏文件
+.DS_Store
+
+# idea编辑器用来存放配置信息的文件
+.idea
+
+# 忽略根目录，子目录中所有node_modules及子其目录
+node_modules
+
+# 忽略根目录，子目录中所有dist及子其目录
+dist
+
+# 忽略根目录public及其子目录
+/public
+
+
+
+```
+
 #### git 常用操作
 
 ```bash
@@ -62,7 +102,7 @@ $ git branch -m oldName newName
 
 # 修改分支名（推到远程）
 $ git branch -m oldName newName                 # 1. 修改本地
-$ git push origin -delete oldName               # 2. 删除远程
+$ git push origin --delete oldName               # 2. 删除远程
 $ git push origin newName                       # 3. 推到远程
 $ git branch --set-upstream-to=origin/newName   # 4. 本地与远程相关联
 
