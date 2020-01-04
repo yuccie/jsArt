@@ -1,3 +1,53 @@
+// 求最长公共字符串前缀
+function longestCommonPrefix(strs) {
+  if (!strs.length) return '';
+  if (strs.length === 1) return strs[0];
+
+  // 找出数组中最端字符串的长度
+  let len = strs.reduce((pre, next) => {
+    return Math.min(pre, next.length);
+  }, Number.MAX_VALUE);
+
+  let prefix = '';
+  for (let i = 0; i < len; i++) {
+    let a = strs[0][i];
+    let flag = strs.every(item => item[i] === a)
+
+    if (!flag) break;
+    prefix += a;
+  }
+
+  return prefix;
+}
+
+// 给定一个字符串，判断是否合法
+// 利用堆栈，做到了最后进去的，最先出来。。。
+function isValid(str) {
+  let target = {
+    '(': ')',
+    '[': ']',
+    '{': '}'
+  };
+  let strArr = [];
+
+  // 遍历字符串
+  for (let i = 0, len = str.length; i < len; i++) {
+    if (!strArr.length) {
+      strArr.push(str[i])
+    } else {
+      // 如果当前的符号和数组的最后一项匹配，则直接弹出
+      if (str[i] === target[strArr[strArr.length - 1]]) {
+        strArr.pop();
+      } else {
+        strArr.push(str[i]);
+      }
+    }
+  }
+
+  // 如果最后的数组为空，说明是合法
+  return !strArr.length;
+}
+
 class myPromse {
   constructor(executor) {
     let state = "pending",
