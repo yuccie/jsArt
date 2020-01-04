@@ -252,6 +252,102 @@ bfs(root);
 // ["a", "b", "d", "c", "e", "f"]
 ```
 
+#### **常见算法题**
+
+##### **字符串**
+
+```js
+// 题1、求最长公共前缀
+// Write a function to find the longest common prefix string amongst an array of strings.
+
+// If there is no common prefix, return an empty string "".
+
+// Example 1:
+// Input: ["flower","flow","flight"]
+// Output: "fl"
+
+// Example 2:
+// Input: ["dog","racecar","car"]
+// Output: ""
+// Explanation: There is no common prefix among the input strings.
+
+// Note:
+// All given inputs are in lowercase letters a-z.
+
+// 方法一
+// 1、找到字符串数组中长度最短字符串
+// 2、longest common prefix 长度范围 0 ~ minLength
+// 3、运用binary search
+
+function isCommonPrefix(strs, middle) {
+  const prefix = strs[0].substring(0, middle);
+  for (let i = 1; i < strs.length; i++) {
+    if (!strs[i].startsWith(prefix)) return false;
+  }
+
+  return true;
+}
+/**
+ * @param {string[]} strs
+ * @return {string}
+ */
+var longestCommonPrefix = function(strs) {
+  // trie 解法
+  // 时间复杂度O(m) 空间复杂度O(m * n)
+
+  // tag: 二分法
+  // 时间复杂度 O(n*logm)  空间复杂度O(1)
+  if (strs.length === 0) return "";
+  if (strs.length === 1) return strs[0];
+
+  let minLen = Number.MAX_VALUE;
+
+  for (let i = 0; i < strs.length; i++) {
+    minLen = Math.min(minLen, strs[i].length);
+  }
+
+  let low = 0;
+  let high = minLen;
+
+  while (low <= high) {
+    const middle = (low + high) >> 1;
+    if (isCommonPrefix(strs, middle)) low = middle + 1;
+    else high = middle - 1;
+  }
+
+  return strs[0].substring(0, (low + high) >> 1);
+};
+
+
+// 方法二
+/**
+ * @param {string[]} strs
+ * @return {string}
+ */
+function longestCommonPrefix(strs) {
+  if (!strs.length) return '';
+  if (strs.length === 1) return strs[0];
+
+  // 字符串的长度
+  let len = strs.reduce((pre, next) => {
+    return Math.min(pre, next.length);
+  }, Number.MAX_VALUE);
+
+  let prefix = '';
+  for (let i = 0; i < len; i++) {
+    let a = strs[0][i];
+    let flag = strs.every(item => item[i] === a)
+
+    if (!flag) break;
+    prefix += a;
+  }
+
+  return prefix;
+}
+
+
+```
+
 ### **相关链接**
 
 [haotostudyalgorithmurl(juejin)]: https://juejin.im/post/5cf5d203e51d45590a445afd "小白说算法如何学"
