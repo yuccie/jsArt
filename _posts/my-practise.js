@@ -1,3 +1,59 @@
+// 求两个二进制字符串的和，返回依然是二进制
+function addBinary (a, b) {
+  debugger
+  a = a.split('').reverse();
+  b = b.split('').reverse();
+
+  let c = [];
+  let add = 0;
+  for(var i = 0, len = Math.max(a.length, b.length); i < len; i++) {
+    let sum = (a[i] === undefined ? 0 : Number(a[i])) + (b[i] === undefined ? 0 : Number(b[i])) + add;
+    c[i] = sum & 1;
+
+    if (sum >= 2) {
+      add = 1;
+    } else {
+      add = 0;
+    }
+  }
+
+  if (add) {
+    c[len] = 1;
+  }
+
+  return c.reverse().join('');
+}
+
+// 判断字符串是否为回文
+function isPalindrome(s) {
+  s = s.replace(/\W/g, '');
+  s = s.toLowerCase();
+  let s_copy = s.split('').reverse().join('')
+  return s_copy === s;
+}
+
+// 判断第一个不重复的字符出现的索引
+function firstUniqueChar(s) {
+  for (let char of s) {
+    // 正则表达式，无法直接构建正则表达式，需要用构造函数
+    let reg = new RegExp(`${char}`, 'g');
+    if ((s.match(reg)) && (s.match(reg)).length === 1) {
+      return s.indexOf(char);
+    }
+  }
+}
+
+// 统计字符串中的单词个数
+function countSegments(s) {
+  s = s.replace(',', ' ');
+  let arr = s.split(' ');
+  let count = 0;
+
+  arr.forEach(item => {
+    item && count++;
+  })
+
+  return count
 // 求最长公共字符串前缀
 function longestCommonPrefix(strs) {
   if (!strs.length) return '';
