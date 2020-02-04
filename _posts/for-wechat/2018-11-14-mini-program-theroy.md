@@ -4,7 +4,7 @@ title: 微信小程序原理
 date: Fri May 10 2019 17:25:32 GMT+0800 (中国标准时间)
 ---
 
-![mini-program-logo](../assets/images/miniProgram/mini-logo.png)
+![mini-program-logo](http://wx4.sinaimg.cn/mw690/006XbPrRly1gbk9e03me9j30ue0fgwhy.jpg)
 
 #### 主题线路
 1. 小程序产生的原因。
@@ -80,7 +80,7 @@ webview是一个基于webkit内核，显示web页面的控件，WebView是手机
 4. 运行环境主要是ios和Android的微信客户端
 
 可以先看看下图（先大概了解）：
-![mini-program-logo](../assets/images/miniProgram/mini-logo.png)
+![mini-program-logo](http://wx4.sinaimg.cn/mw690/006XbPrRly1gbk9e03me9j30ue0fgwhy.jpg)
 
 *首先说说为什么要改渲染方式，之前是纯浏览器，现在是浏览器配合原生？*
 
@@ -153,7 +153,7 @@ Page({
 
 小程序的渲染层和逻辑层分别由两个线程控制，渲染层使用webview来渲染，而逻辑层采用JsCore线程运行js脚本。一个小程序存在多个webview，所以会存在多个webview线程，逻辑层与渲染层通信需要通过微信客户端（也就是Native端）中转，逻辑层发送网络请求也经由Natvie转发，通信模型如下图：
 
-![mini-program-logo](../assets/images/miniProgram/mini-logo.png)
+![mini-program-logo](http://wx4.sinaimg.cn/mw690/006XbPrRly1gbk9e03me9j30ue0fgwhy.jpg)
 
 在每个小程序页面的生命周期中，存在若干次页面数据通信，逻辑层向视图层发送页面数据（data和setData中的内容），视图层向逻辑层反馈用户事件。
 
@@ -161,7 +161,7 @@ Page({
 
 在小程序启动或一个新的页面被打开时，页面的初始数据(data)和路径相关信息会从逻辑层发送给视图层，用于视图层的初始渲染，Native层会将这些数据直接传递给视图层，同时向用户展示一个新的页面层级，视图层在这个页面层级上进行界面绘制。另外视图层接收到相关数据后，根据页面路径来选择合适的wxml结构，wxml结构与初始数据结合，便得到页面的第一次渲染结果。如下图：
 
-![mini-program-logo](../assets/images/miniProgram/mini-logo.png)
+![mini-program-logo](http://wx4.sinaimg.cn/mw690/006XbPrRly1gbk9e03me9j30ue0fgwhy.jpg)
 
 从图中可以看到，页面初始化的时间大致由：页面初始数据通信时间和初始渲染时间两部分构成，其中前者是逻辑层开始组织数据到视图层完全接受数据完毕的时间，数据量小于64kb时总时长可以控制在30ms内，因此减少传输数据量是降低数据传输时间的有效方式。(这里数据传输与时间并不是正相关关系)
 
@@ -181,11 +181,11 @@ Page({
 
 通常html或wxml可以等价于dom树，然后js也可以表达dom树的结构，因此就有了下图：
 
-![mini-program-logo](../assets/images/miniProgram/mini-logo.png)
+![mini-program-logo](http://wx4.sinaimg.cn/mw690/006XbPrRly1gbk9e03me9j30ue0fgwhy.jpg)
 
 其实就是说可以先将wxml和data合并转换为js对象，然后再渲染出真正的dom树（其实这里就可以理解为虚拟dom），如下：
 
-![mini-program-logo](../assets/images/miniProgram/mini-logo.png)
+![mini-program-logo](http://wx4.sinaimg.cn/mw690/006XbPrRly1gbk9e03me9j30ue0fgwhy.jpg)
 
 *那当数据发生变化之后，会发生什么呢？*
 
