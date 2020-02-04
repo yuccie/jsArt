@@ -112,7 +112,10 @@ IdentityFile ~/.ssh/missfresh-gitlab-rsa
 # @前面的协议一般都为git，后面的地址就是上面HostName
 ssh -T git@gitlab.missfresh.net
 # 若输出类似一下信息，则代表成功：
-Hi xxx! You've successfully authenticated, but GitHub does not provide shell access.
+Hi xxx! You have successfully authenticated, but GitHub does not provide shell access.
+
+# 可以打印详细信息，尤其连接有问题时
+ssh -T -v git@gitlab.missfresh.net
 ```
 
 使用密码登录，每次都需要输入密码，非常麻烦，好在`ssh`提供公钥登录，可以省去输入密码的步骤。所谓公钥登录，原理就是用户将自己的公钥存储在远程主机上，登录时，远程主机会向用户发送一段随机字符串，用户用自己的私钥加密后再发给远程主机，远程主机用事先存储用户的公钥解密，如果成功，则客户的是可信的，直接允许登录`shell`，不再要求密码。
