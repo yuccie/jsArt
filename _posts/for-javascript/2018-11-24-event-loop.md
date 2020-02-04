@@ -125,7 +125,7 @@ console.log("代码执行结束");
 - node.js 实现了单线程高效的异步 IO,这里的单线程指的是执行 js 代码部分的线程
 - 异步 IO 部分 node.js 是利用线程池去执行的
 
-![nodejs架构](/jsArt/assets/images/js-theory/nodejs.png)
+![nodejs架构](http://wx3.sinaimg.cn/mw690/006XbPrRly1gbk9d0y2crj313i0f0q6w.jpg)
 上图是 nodejs 的架构，从上到下：
 
 1. 用户代码 js(也就是我们编写的应用程序，npm 包，nodejs 内置的模块等)
@@ -133,7 +133,7 @@ console.log("代码执行结束");
 3. 底层库(nodejs 的依赖库，包括 v8，libuv(c 语言实现的一套异步功能库，nodejs 的异步编程模型很大程度归功于 libuv 的实现)，还包括其他依赖库 http-parser,openssl 加解密，c-ares 解析 dns，npm 包管理器)
 
 而 nodejs 实现异步机制的核心便是 libuv，libuv 承担着 nodejs 与文件、网络等异步任务的沟通桥梁
-![libuv架构](/jsArt/assets/images/js-theory/libuv.png)
+![libuv架构](http://wx2.sinaimg.cn/mw690/006XbPrRly1gbk9d0y2w5j311g0imgoh.jpg)
 上图中可以看到:nodejs 的网络 I/O、文件 I/O、DNS 操作、还有一些用户代码都是在 libuv 工作的。
 
 非 I/O:
