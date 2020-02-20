@@ -59,6 +59,17 @@ mounted () {
 
 **方式二：**之所以想让第一次触发，是因为我们想要的数据确实到达了子组件，而我们实现出发后具体的更新逻辑一般在watch里，因此可以将这部分逻辑单独抽离出来，然后在mounted里判断一下，如果有更新数据达到，就执行一下抽离出来的逻辑。。。
 
+#### vue的模板里组件使用方式
+
+注册组件时，既可以使用驼峰，也可以使用 - 连接符，原因在此：
+
+```js
+// 注册时，名字同时注册了驼峰和 - 连接符的。
+Vue.component(`${prefix}recycle-scroller`, RecycleScroller)
+Vue.component(`${prefix}RecycleScroller`, RecycleScroller)
+```
+
+
 #### 过滤器
 
 ```js
@@ -139,7 +150,78 @@ this.$emit('update:title', newTitle)
 <text-document v-bind.sync="doc"></text-document>
 ```
 
+***vue的$attrs属性***<br/>
 
+我们经常情况下，使用props进行父子组件传递数据，如果想进行爷孙或者更多层级组件传递的话，props也可以实现，就是嵌套的有点多。
+
+vue从2.4开始，提供了一个$attrs的属性，用于方便的进行多级嵌套组件的传递数据，相比props而言，不需要在子或孙组件里声明props了，直接增加一个inheritAttrs: false,就可以获取从祖先组件里传递过来的属性(不包含class，style，以及props已经定义的属性)。如下是孙子组件：
+
+```html
+<template>
+  <div></div>
+</template>
+
+<script>
+export default {
+  inheritAttrs: false,
+  props: {
+    top1Left: ''
+  },
+  created() {
+    console.log('top2, this.$attrs', this.$attrs);
+    // 输出：{}
+    console.log('this.$top1Left', this.top1Left);
+    // 输出：top1Left
+  }
+};
+</script>
+```
+
+父组件如下：
+
+```html
+<template>
+  <div class="top1">
+    <!-- 如果想继续向下传递，需要用到这里v-bind="$attrs" -->
+    <top2Comp v-bind="$attrs"/>
+  </div>
+</template>
+
+<script>
+import top2Comp from './top2Comp';
+export default {
+  components: { top2Comp },
+  // 这个属性可不加，默认为true，也就是审查元素时，会看到组件上有从上级传过来的属性，类似如下：
+  // <div top1left="top1Left"></div>
+  // 如果为false，则上面的top1left="top1Left"不会显示。
+  inheritAttrs: false,
+  props: {
+    top1: {
+      type: String,
+      defalut: 'top1Default'
+    }
+  },
+  created() {
+    // 爷爷组件传过来top1，top1Left两个属性，因为top1是props里的属性，因此$attrs只展示top1Left
+    // 也就是非props里的属性，也没有class，style
+    console.log('top1', this.$attrs);
+    // {top1Left: "top1Left"}
+  }
+};
+</script>
+```
+
+爷爷组件如下：
+
+```html
+<top1Comp :top1="'top1'" :top1Left="'top1Left'" class="top1Class" style="color:red"/>
+```
+
+那爷爷组件是如何监听孙子组件的事件的呢？只需三步：
+
+1. 孙子组件$emit('formTop2', data)
+2. 父组件添加 v-on="$listeners"
+3. 爷爷组件添加：v-on:formTop2="handle"
 
 
 [vueSyncModifierUrl]: https://cn.vuejs.org/v2/guide/components-custom-events.html#sync-%E4%BF%AE%E9%A5%B0%E7%AC%A6

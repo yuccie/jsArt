@@ -289,7 +289,33 @@ store.dispatch( {
 
 ```js
 this.$store.commit('key',value) //提交的mutation，其实就是让mutation里对应逻辑执行
+// 如果namespaced为false，注册的action等都是全局的，可以直接如下调用
 this.$store.dispatch('action') //提交的action，其实就是让action里对应逻辑执行
+
+// 如果在每个模块里开启了命名空间namespaced，需要如下调用
+this.$store.dispatch('xxxModule/xxxAction');
+// 如果想模块里的具体action暴露到全局，可以如下：
+{
+  actions: {
+    someOtherAction ({dispatch}) {
+      dispatch('someAction')
+    }
+  },
+  modules: {
+    foo: {
+      namespaced: true,
+
+      actions: {
+        someAction: {
+          // 这里的someAction就暴露给全局了
+          root: true,
+          handler (namespacedContext, payload) { ... } // -> 'someAction'
+        }
+      }
+    }
+  }
+}
+
 ```
 
 但还可以更方便的利用组件的辅助方法`mapState,mapGetters,mapMutations,mapActions`引入组件内使用，当然首先需要

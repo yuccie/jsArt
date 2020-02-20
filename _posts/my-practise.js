@@ -1,3 +1,5 @@
+import { false } from "./good-codes/is";
+
 // 求两个二进制字符串的和，返回依然是二进制
 function addBinary (a, b) {
   debugger
@@ -201,13 +203,15 @@ var getInstance = function (fn) {
 // 防抖和节流都用闭包
 function debounce(fn, interval = 300) {
   let timeout = null;
-  return function (...args) {
+  return (...args) => {
     clearTimeout(timeout);
-    setTimeout(() => {
+    timeout = setTimeout(() => {
       fn.apply(this, args);
     }, interval);
   };
 }
+
+window.addEventListener('resize', debounce(() => console.log('防抖'), 500))
 
 function throttle(fn, interval) {
   let canRun = true;
@@ -220,6 +224,8 @@ function throttle(fn, interval) {
     }, interval);
   };
 }
+
+window.addEventListener('resize', throttle(() => console.log('节流'), 500))
 
 var count = 0;
 var fibonacci = function (n) {

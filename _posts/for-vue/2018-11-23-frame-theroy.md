@@ -920,6 +920,89 @@ function sameInputType(a, b) {
 
 上面只是判断节点是否相同，还有很多 api 进行更进一步的 patch，比如`patchVnode(),updateChildren()`等。其实核心就是从字符串两端开始向中间一一匹配。。。
 
+就地复用什么意思呢？
+
+```html
+<div id="app">
+    <div v-for="i in dataList">{{ i }}</div>
+</div>
+
+<script>
+var vm = new Vue({
+  el: '#app',
+  data: {
+    dataList: [1, 2, 3, 4, 5]
+  }
+})
+</script>
+```
+
+以上的例子，v-for的内容会生成以下的dom节点数组，我们给每一个节点标记一个身份id：
+
+```js
+[
+  '<div>1</div>', // id： A
+  '<div>2</div>', // id:  B
+  '<div>3</div>', // id:  C
+  '<div>4</div>', // id:  D
+  '<div>5</div>'  // id:  E
+]
+
+// 改变dataList数据，进行数据位置替换，对比改变后的数据
+ vm.dataList = [4, 1, 3, 5, 2] // 数据位置替换
+
+// 没有key的情况， 节点位置不变，但是节点innerText内容更新了
+[
+  '<div>4</div>', // id： A
+  '<div>1</div>', // id:  B
+  '<div>3</div>', // id:  C
+  '<div>5</div>', // id:  D
+  '<div>2</div>'  // id:  E
+]
+
+// 有key的情况，dom节点位置进行了交换，但是内容没有更新
+// <div v-for="i in dataList" :key='i'>{{ i }}</div>
+[
+  '<div>4</div>', // id： D
+  '<div>1</div>', // id:  A
+  '<div>3</div>', // id:  C
+  '<div>5</div>', // id:  E
+  '<div>2</div>'  // id:  B
+]
+```
+
+```js
+ vm.dataList = [3, 4, 5, 6, 7] // 数据进行增删
+
+// 1. 没有key的情况， 节点位置不变，内容也更新了
+[
+  '<div>3</div>', // id： A
+  '<div>4</div>', // id:  B
+  '<div>5</div>', // id:  C
+  '<div>6</div>', // id:  D
+  '<div>7</div>'  // id:  E
+]
+
+// 2. 有key的情况， 节点删除了 A, B 节点，新增了 F, G 节点
+// <div v-for="i in dataList" :key='i'>{{ i }}</div>
+[
+  '<div>3</div>', // id： C
+  '<div>4</div>', // id:  D
+  '<div>5</div>', // id:  E
+  '<div>6</div>', // id:  F
+  '<div>7</div>'  // id:  G
+]
+```
+
+从以上来看，不带有key，并且使用简单的模板，基于这个前提下，可以更有效的复用节点，diff速度来看也是不带key更加快速的，因为带key在增删节点上有耗时。这就是vue文档所说的默认模式。但是这个并不是key作用，而是没有key的情况下可以对节点就地复用，提高性能。
+
+这种模式会带来一些隐藏的副作用，比如可能不会产生过渡效果，或者在某些节点有绑定数据（表单）状态，会出现状态错位。VUE文档也说明了 这个默认的模式是高效的，但是只适用于不依赖子组件状态或临时 DOM 状态 (例如：表单输入值) 的列表渲染输出
+
+综上，就地复用其实就是，一个标签完完整整的保存并再次使用，但可能需要改变顺序或者增删操作等。因此，key的作用可以归纳为两点：
+
+- 因为带key就不是就地复用了，在sameNode函数 a.key === b.key对比中可以避免就地复用的情况。所以会更加准确。
+- 利用key的唯一性生成map对象来获取对应节点，比遍历方式更快。
+
 ### **异步更新策略及 nextTick 原理**
 
 #### **为什么要异步更新**
@@ -1399,6 +1482,31 @@ const Foo = {
 // 触发 DOM 更新。
 // 用创建好的实例调用 beforeRouteEnter 守卫中传给 next 的回调函数。
 ```
+
+#### **滚动行为**
+
+使用前端路由，当切换到新路由时，想要页面滚到顶部，或者是保持原先的滚动位置，结合vue-router可以自定义路由切换时页面如何滚动。
+
+**注意**: 这个功能只在支持 history.pushState 的浏览器中可用。
+
+```js
+const router = new VueRouter({
+  routes: [...],
+  scrollBehavior (to, from, savedPosition) {
+    // return 期望滚动到哪个的位置
+  }
+})
+// scrollBehavior 方法接收 to 和 from 路由对象。
+// 第三个参数 savedPosition 当且仅当 popstate 导航 (通过浏览器的 前进/后退 按钮触发) 时才可用。
+```
+
+有时候，靠系统自动获取的位置并不是我们想要的，这时可以在页面内控制：
+
+- 一般使用scrollBehavior时，我们都是配合使用keep-alive，因为他让页面进行了缓存
+- 在列表页，找到滚动元素绑定滚动时间，beforeRouteLeave时记录滚动元素的位置至meta里
+- 从详情页返回后，根据情况，利用scrollTo滚动到指定位置也是可以的。
+
+参考资料：https://www.cnblogs.com/kdcg/p/9376737.html
 
 ### **axios**
 
