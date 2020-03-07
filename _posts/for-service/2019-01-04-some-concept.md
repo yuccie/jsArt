@@ -91,6 +91,7 @@ find /usr/local -name html
 
 跨域是浏览器的安全行为，从浏览器端发出的请求，确实到了服务器，服务器也响应的，只是浏览器检测如果存在跨域行为，浏览器拦截了响应，并在控制台报错。
 
+
 而如果在nginx上配置代理，则相当于将所有前端的请求的前缀都换成服务器的了，这样的话，浏览器就会以为所有url都是相同的域名、协议和端口，也就是不是跨域了，具体配置可类似如下：
 
 ```bash
@@ -101,12 +102,71 @@ server {
     location /api/ {
         # 所有对后端的请求加一个api（这是前端需要做的，这里只是匹配后处理）前缀方便区分，真正访问的时候移除这个前缀
         # 这也说明，请求的地址不但在前端可以修改，在nginx这一层也是可以操作的
-        rewrite ^/api/(.*)$ /$1 break; 
+        rewrite ^/api/(.*)$ /$1 break;
       
         # 将真正的请求代理到serverA,即真实的服务器地址，ajax的url为/api/user/1的请求将会访问http://www.serverA.com/user/1
-        proxy_pass http://www.serverA.com; 
+        proxy_pass http://www.serverA.com;
     }
 }
+
+server {
+  listen       8080; # 8080端口 - 不要修改
+  server_name  localhost;
+
+  # 添加前端静态文件 - 不要修改
+  location / {
+      root   /data/app; # 此处为容器内的文件路径，不需要修改
+      index index.html index.htm;
+      try_files $uri $uri/ /index.html?$query_string;
+  }
+
+  # 修改这里
+  # 添加对后端的依赖，根据业务需要进行修改
+  # https://www.cnblogs.com/jpfss/p/10418150.html
+  location ~ ^/(api|auth|admin|tms|zuul) {
+      set $b "xxx";
+      proxy_pass http://$b;
+      proxy_set_header Host $http_host;
+      proxy_redirect off;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+  }
+}
+```
+
+```js
+// proxy_pass
+// 在nginx中配置proxy_pass代理转发时，如果在proxy_pass后面的url加/，表示绝对根路径；
+// 如果没有/，表示相对路径，把匹配的路径部分也给代理走。
+
+// 假设下面四种情况分别用 http://192.168.1.1/proxy/test.html 进行访问。
+
+// 第一种：
+location /proxy/ {
+  proxy_pass http://127.0.0.1/;
+}
+// 代理到URL：http://127.0.0.1/test.html
+
+
+// 第二种（相对于第一种，最后少一个 / ）
+location /proxy/ {
+  proxy_pass http://127.0.0.1;
+}
+// 代理到URL：http://127.0.0.1/proxy/test.html
+
+
+第三种：
+location /proxy/ {
+  proxy_pass http://127.0.0.1/aaa/;
+}
+// 代理到URL：http://127.0.0.1/aaa/test.html
+
+
+// 第四种（相对于第三种，最后少一个 / ）
+location /proxy/ {
+  proxy_pass http://127.0.0.1/aaa;
+}
+// 代理到URL：http://127.0.0.1/aaatest.html
 ```
 
 **注意：**nginx配置跨域，是配置location里的proxy_pass，而不是配置如下相关，下面的是java端需要考虑的项，和nginx实现跨域比较的话，**二者压根原理就不同，前者是代理转发，后者是配置**，最后务必注意：**响应头的配置和请求头的配置是一一对应的，响应头允许的methods是get，请求就不能用post**，
@@ -123,6 +183,8 @@ server {
 - Origin: 普通的HTTP请求也会带有，在CORS中专门作为Origin信息供后端比对,表明来源域，要与响应头中的Access-Control-Allow-Origin相匹配才能进行跨域访问；
 - Access-Control-Request-Method: 将要进行跨域访问的请求方法，要与响应头中的Access-Control-Allow-Methods相匹配才能进行跨域访问；
 - Access-Control-Request-Headers: 自定义的头部，所有用setRequestHeader方法设置的头部都将会以逗号隔开的形式包含在这个头中，要与响应头中的Access-Control-Allow-Headers相匹配才能进行跨域访问
+
+~~有时候，用postman就可以调通接口，但用浏览器就调不同？原因在于：postman都是绝对地址，另外就是一些header信息，也很少，所以不会触发后台的拦截机制。~~ postman之所以请求接口没有跨域，是因为跨域只存在于浏览器。。。
 
 ***nginx修改配置***<br/>
 nginx配置文件修改后，需要重启，一般重启前会执行以下相关命令
