@@ -138,7 +138,13 @@ filters: {
 在之前的父子组件传递数据时，一般使用props，但是子组件不能直接修改props。。。但是有时候，props的值确实需要变更，只能emit出去，然后父组件再更改。。。但这样有点麻烦，因此.sync的修饰符，就不需要父组件再监听什么了，子组件直接emit出一个特殊事件名即可
 
 ```js
-// 子组件emit出一个'update:xxx'即可
+// 子组件定义个props
+props: {
+  title: {
+    type: String,
+  }
+}
+// 子组件再emit出一个'update:xxx'即可
 this.$emit('update:title', newTitle)
 ```
 
