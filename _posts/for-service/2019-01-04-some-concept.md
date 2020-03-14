@@ -84,6 +84,23 @@ where nginx
 # 其实大多数包安装的地址都在/usr/local里
 find /usr/local -name html
 # /usr/local/Cellar/nginx/1.17.1/html
+
+
+# 有时候想指定nginx配置文件，可以拷贝一份默认配置文件
+# 默认配置文件，可以通过find查找 nginx.conf
+# 如下便可以指定并检测自定义的nginx配置是否正确
+nginx -tc cusNginx.conf
+
+# nginx日志功能，access_log和error_log，可以清晰的记录异常的原因，要善于利用
+# 如果~/Desktop/js/index.html文件存在的话，nginx会报404 Not Found
+# 查看错误日志可以发现：即nginx不支持~目录，所以需要用绝对路径/，如果不知道路径可以用：pwd，查看
+# "/usr/local/Cellar/nginx/1.17.1/~/Desktop/js/index.html" is not found
+access_log  /Users/yuccie/Desktop/js/nginx.log;
+error_log   /Users/yuccie/Desktop/js/err.log;
+location / {
+  root   ~/Desktop/js/;
+  index  index.html index.htm;
+}
 ```
 
 ***nginx实现跨域***<br/>
