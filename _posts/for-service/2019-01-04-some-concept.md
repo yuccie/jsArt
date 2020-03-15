@@ -84,6 +84,23 @@ where nginx
 # 其实大多数包安装的地址都在/usr/local里
 find /usr/local -name html
 # /usr/local/Cellar/nginx/1.17.1/html
+
+
+# 有时候想指定nginx配置文件，可以拷贝一份默认配置文件
+# 默认配置文件，可以通过find查找 nginx.conf
+# 如下便可以指定并检测自定义的nginx配置是否正确
+nginx -tc cusNginx.conf
+
+# nginx日志功能，access_log和error_log，可以清晰的记录异常的原因，要善于利用
+# 如果~/Desktop/js/index.html文件存在的话，nginx会报404 Not Found
+# 查看错误日志可以发现：即nginx不支持~目录，所以需要用绝对路径/，如果不知道路径可以用：pwd，查看
+# "/usr/local/Cellar/nginx/1.17.1/~/Desktop/js/index.html" is not found
+access_log  /Users/yuccie/Desktop/js/nginx.log;
+error_log   /Users/yuccie/Desktop/js/err.log;
+location / {
+  root   ~/Desktop/js/;
+  index  index.html index.htm;
+}
 ```
 
 ***nginx实现跨域***<br/>
@@ -310,7 +327,7 @@ Express 和 Koa 是 Node.js 社区广泛使用的框架，简单且扩展性强�
 
 egg的目的就是约束大家的规范，不然mvc的写法千奇百怪，所以使用egg就得遵循其规范。使用时，如果想使用提示功能，可以安装对应的插件。
 
-egg基于koa，在koa中是：ctx.body = 'msg'，而在egg中是：this.ctx.body = 'msg'，打印下this，其实可以看出，ctx，app，config等都挂在上面。从 **Koa 继承而来的 4 个对象**（Application, Context, Request, Response) 以及框架扩展的一些对象（Controller, Service, Helper, Config, Logger
+egg基于koa，在koa中是：ctx.body = 'msg'，而在egg中是：this.ctx.body = 'msg'，打印下this，其实可以看出，ctx，app，config等都挂在上面。从 **Koa 继承而来的 4 个对象**（Application, Context, Request, Response) 以及框架扩展的一些对象（Controller, Service, Helper, Config, Logger)
 
 ### egg之路由、模板引擎
 
@@ -430,7 +447,7 @@ const data = await ctx.curl(api);
 - Response
 - Helper
 
-比如如果扩展Application，则需要在extend目录里增加 application.js文件，比如增加foo方法，然后使用的时候就可以直接：this.app.foo()即可。其实原理就是：框架会把 app/extend/application.js 中定义的对象与 Koa Application 的 prototype 对象进行合并，在应用启动时会基于扩展后的 prototype 生成 app 对象。而app对象又挂在this上。
+比如想扩展Application，则需要在extend目录里增加 application.js文件，比如增加foo方法，然后使用的时候就可以直接：this.app.foo()即可。其实原理就是：框架会把 app/extend/application.js 中定义的对象与 Koa Application 的 prototype 对象进行合并，在应用启动时会基于扩展后的 prototype 生成 app 对象。而app对象又挂在this上。
 
 同理如果想扩展Context，则需要增加 context.js 文件，并增加foo方法，调用时 this.ctx.foo();
 
@@ -454,7 +471,7 @@ module.exports = {
 
 **注意一点：**，在对应的扩展文件里，比如 application.js 里的this，其实就是app，在context.js 的this就是 ctx ，因此不要与最外层的this混淆了，如果想在 context.js 获取query参数，则可以直接：this.query 即可。
 
-因此如果想增加一个工具函数，一般都在helper对象上扩展。扩展方法如上：
+但如果想增加一个工具函数，一般都在 helper 对象上扩展。扩展方法如上：
 1. 在extend目录里增加 helper.js 文件
 2. 定义格式化方法，比如formatDate，当然也可以安装第三方时间库进行格式化
 3. 使用时，在模板里直接以js语法使用即可，helper.formatDate(date)
@@ -500,18 +517,18 @@ config.printDate = {
 // 因此opts对象的值其实就是：this.config[${middlewareName}]，
 // 比如这里中间件名字为printDate，其实也就是 config.printDate
 
-// 当然app的话，其实就是Application的实例
+// 当然参数app的话，其实就是Application的实例
 ```
 
 综上可以得出：
-1. 中间件是全局的，适合做一些全局拦截操作，比如权限，比如访问ip白名单
+1. 中间件可以是全局的（后面还可以设置局部的），可以做一些全局拦截操作，比如权限，比如访问ip白名单
 2. 中间件的功能比较单一，因此一个中间件应该也只有一个方法
 
 ```js
 // 例子：实现一个访问ip白名单的中间件。
 
 // 思路:
-// 1. 如何获取访问的ip？
+// 1. 如何获取访问者的ip？
 // 2. ip白名单哪里来？
 // 3. 校验规则
 
@@ -521,7 +538,7 @@ module.exports = (opts, app) => {
     // 要屏蔽的ip
     const ips = '127.0.0.1'
 
-    // 访问服务的ip
+    // 访问者的ip
     const curIp = ctx.request.ip;
 
     // 校验规则
@@ -542,7 +559,7 @@ module.exports = (opts, app) => {
 
 我们要知道，直接在地址栏里的url其实就是get请求，而一般我们提交的表单都是post请求，不管是get还是post，对于egg服务来说，都需要一个对应的路由去匹配，然后交由具体的控制器去处理逻辑，而每个控制器的写法都是相同的。。。
 
-而路由匹配，一般是指定请求方式，比如
+而路由匹配，一般可以指定请求方式，比如
 ```js
 router.get('/', controller.home.index);
 router.post('/add', controller.home.add);
@@ -561,7 +578,7 @@ router.post('/add', controller.home.add);
 async index() {
   const { ctx } = this;
   await ctx.render('home', {
-    // 其实就是将后台生成的随机字符串返给前端
+    // 其实就是将后台生成的随机字符串渲染到页面
     csrf: this.ctx.csrf,
   });
 }
@@ -575,7 +592,7 @@ async index() {
   <button type="submit">提交</button>
 </form>
 
-// 当然还可以直接通过url来实现，
+// 当然还可以直接通过action来实现，其实就是通过指定方式，把csrf token传给后台
 // 比如：action="/add?_csrf=<%=csrf%>"
 ```
 
@@ -595,7 +612,7 @@ module.exports = (opts, app) => {
 
 然后正常提交后，就可以在add控制器里获取到提交的内容了，
 ```js
-// 处理表单提交的post请求
+// 处理表单post请求提交的控制器
 async add() {
   const { ctx } = this;
   // 将获取到的表单数据，再返给浏览器
@@ -625,7 +642,7 @@ ctx.cookies.get('userName');
 
 上面简单可总结为：
 - 同一个浏览器访问同一个域下的页面，所有页面都共享cookie
-- 默认情况下，浏览器退出后（**注意是退出后**）cookie就会自动销毁
+- 默认情况下，浏览器退出后（**注意是浏览器退出进程后**）cookie就会自动销毁
 
 现实中，我们都会给cookie设置一个过期时间，当然还有其他的一些配置，这里就通过 cookies.set 的第三个参数来实现。
 
@@ -662,7 +679,6 @@ ctx.cookies.get('userName', {
 这里需要几个问题：
 - 由于浏览器和其他客户端实现的不确定性，为了保证 Cookie 可以写入成功，建议 value 通过 base64 编码或者其他形式 encode 之后再写入。(其实默认情况下设置中文就会报错，此时可以添加加密配置便可解决)
 - 由于浏览器对 Cookie 有长度限制限制，所以尽量不要设置太长的 Cookie。一般来说不要超过 4093 bytes（单个不超过4k）。当设置的 Cookie value 大于这个值时，框架会打印一条警告日志。
-- 
 - 如果设置的时候指定为 signed，获取时未指定，则不会在获取时对取到的值做验签，导致可能被客户端篡改。
 - 如果设置的时候指定为 encrypt，获取时未指定，则无法获取到真实的值，而是加密过后的密文。
 
@@ -874,9 +890,9 @@ module.exports = {
 module.exports = {
   middleware: [ 'compress' ],
   compress: {
-    enable: true, // 开启，就不需要在middleware里删除了
-    match: '/static', // 只有符合哪些规则的请求会经过中间件
-    ignore: '/static', // 符合哪些规则的请求不经过中间件
+    enable: true,       // 开启，就不需要在middleware配置了
+    match: '/static',   // 只有符合哪些规则的请求会经过中间件
+    ignore: '/static',  // 符合哪些规则的请求不经过中间件
   },
 };
 
@@ -907,14 +923,14 @@ router.verb('router-name', 'path-match', middleware1, ..., middlewareN, app.cont
 ```js
 // 控制器两种写法
 app.controller.user.fetch // 直接指定一个具体的 controller
-'user.fetch'              //可以简写为字符串形式
+'user.fetch'              // 可以简写为字符串形式
 ```
 
-上面的方式，需要明确的指定哪些路由匹配哪些控制器，还有一种方式，就是 restfull 风格的定义方式，可以快速的生成一组 CRUD 风格的路由及对应的控制器。
+上面匹配路由的方式，需要明确的指定哪些路由匹配哪些控制器，还有一种方式，就是 restfull 风格的定义方式，可以快速的生成一组 CRUD 风格的路由及对应的控制器。
 
 ```js
 // 语法
-// app.resources('routerName', 'pathMatch', controller)
+app.resources('routerName', 'pathMatch', controller)
 
 // app/router.js
 module.exports = app => {
@@ -950,7 +966,7 @@ async new() {
     },
   };
 
-  // 如果校验报错，会抛出异常
+  // 如果校验报错，会抛出异常???
   ctx.validate(createRule);
   ctx.body = ctx.request.body;
 }
@@ -1029,7 +1045,7 @@ class PostController extends Controller {
 
 #### egg之定时任务
 
-无非也是遵循一定的编写规范，然后通过一些配置项，定时的去执行一些逻辑。
+无非就是遵循一定的编写规范，然后通过一些配置项，定时的去执行一些逻辑。
 
 定时任务经常做的事情：
 - 检查网站是否挂掉
@@ -1106,8 +1122,7 @@ $.html()
 - ctx.curl传入的参数二，可以设置返回的数据格式，默认情况下res.data是16进制Buffer类型，需要toString()或JSON.parse()转化。
 - cheerio.load解析字符换后，就可以利用类似jquery的语法获取指定的元素
 - {decodeEntities: false} 配置是处理中文用的，不然拿到的中文是编码格式。
-- 这里比价麻烦的点是解析返回的数据
-
+- 这里比较麻烦的点是解析返回的数据
 
 ### Mongodb4.x
 
@@ -1130,7 +1145,7 @@ $.html()
 # Attempted to create a lock file on a read-only directory: /data/db
 ```
 
-另外要清楚，**数据库服务分两部分：服务部分、客户端部分**。其实可以理解为前端和后端，要想看到整个服务的效果，需要后端服务起来，同时前端访问。。。数据库也是同理。
+另外要清楚，**数据库服务分两部分：服务部分、客户端部分**。其实可以理解平时项目的前端和后端，要想看到整个服务的效果，需要后端服务起来，同时前端访问。。。数据库也是同理。
 
 一般homebrew安装的软件，都会自动配置好环境变量，这样便可全局执行：mongod，但如果环境变量未能正确配置，则还可以直接找到安装包的位置进行启动。
 
@@ -1142,6 +1157,7 @@ ps aux | grep nginx
 ps aux | grep mongod
 
 # which指令会在环境变量$PATH设置的目录里查找符合条件的文件。
+# 当然如果没有配置环境变量，则也是获取不到的
 which nginx
 => /usr/local/bin/nginx
 ```
@@ -1171,7 +1187,6 @@ WARNING: This server is bound to localhost
    addresses it should serve responses from, or with --bind_ip_all to
    bind to all interfaces. If this behavior is desired, start the
    server with --bind_ip 127.0.0.1 to disable this warning.
-
 ```
 
 #### Mongodb数据库的启动与连接
@@ -1190,7 +1205,7 @@ mongo
 # 1.1、查看数据库
 show dbs
 
-# 2、创建超级管理员，先切换，在创建
+# 2、创建超级管理员，先切换，再创建
 # 2.1 切换数据库（超级管理员必须在admin里建）
 use admin
 # 2.2 创建管理员, 删除是dropUser
@@ -1292,6 +1307,7 @@ mongo egg -u eggOwner -p 123456
 
 # 查看数据库
 show dbs # 只会看到egg数据库
+# 但为何我 我先直接 mongo 后，可以看到所有的数据库？
 ```
 
 数据库的一些角色
@@ -1340,6 +1356,9 @@ let myDb = await app.mongo.find('egg'); // egg是集合
 console.log(myDb, 'myDb'); // 这里会打印集合里的所有文档
 ```
 
+
+#### 数据库的基本操作
+
 在开始使用之前，需要补充有关数据库的基本操作：
 
 新建、查看、删除数据库，插入、查看、删除文档、
@@ -1351,7 +1370,7 @@ use 数据库名 # 不存在则新建，存在则切换
 db
 
 # 查看数据库下的数据(其实应该说查看集合下的文档)
-db.数据库名.find() # 若空集合则什么都不会输出
+db.数据库名.find() # 若集合为空则什么都不会输出
 
 # 在当前的数据库中插入文档
 db.数据库名.insert({ text: 'testMsg' })
@@ -1368,17 +1387,55 @@ db.数据库名.drop()
 => true
 ```
 
+mongoDB其实是基于js的，也就是说，在mongo语句里，不但支持正常的语句，还支持js表达式
+```bash
+# 插入日期
+db.egg.insert({ curDate: 2020-03-08 }) 
+# 数据库里插入的是：curDate: 2009，因为2020-03-08没有引号，按表达式执行了
+
+# 如下还可以插入一些js
+db.egg.insert({ curDate: new Date() }) 
+=> { "_id" : ObjectId("xxx"), "curDate" : ISODate("2020-03-08T15:15:13.647Z") }
+
+db.egg.insert({ randomNum: Math.random() }) 
+=> { "_id" : ObjectId("xxx"), "randomNum" : 0.8126414322847024 }
+```
+
+另外，我们熟悉json，其实还有bson，BSON是一种类json的一种二进制形式的存储格式，简称Binary JSON，它和JSON一样，支持内嵌的文档对象和数组对象，但是BSON有JSON没有的一些数据类型，如Date和BinData类型。BSON可以做为网络数据交换的一种存储形式，优点是灵活性高，但它的缺点是空间利用率不是很理想，
+
+{"hello":"world"} 这是一个BSON的例子，其中"hello"是key name，它一般是cstring类型，字节表示是cstring::= (byte*) "/x00" ,其中*表示零个或多个byte字节，/x00表示结束符;后面的"world"是value值，它的类型一般是string,double,array,binarydata等类型。
+
+MongoDB使用了BSON这种结构来存储数据和网络数据交换，当然也还是支持json的。
+
+
+#### 关系型数据库表（集合）与表（集合）的关系
+
+在关系型数据库中，表与表之间一般有三种关系：
+- 一对一关系
+- 一对多关系
+- 多对多关系
+
+一对一情形：一个人对应一个身份证号
+
+一对多情形：一个商品可以对应商品价格，商品名称，商品产地等多个信息，还有一个订单信息对应多个具体订单详情，一个班级对应多个学生，但一个学生只属于一个班级。
+
+多对多情形：一个商品可以被多个人收藏，而一个人同时又可以收藏多个商品，还比如一个学生可以学多门课程，每门课程又可以被多个学生学习。
+
+对于多对多学生学习的情况，如何在数据库中存储呢？首先肯定需要两个表，一个表存储学生名单、一个表存储课程。然后还需要一个中间表或临时表，存储学生和所学课程的对应关系。。。比如从学生名单选一个学生，然后从中间表里查找该学生选了哪些课程，然后根据这些课程名再去课程表里获取具体课程的信息。
+
+
 
 ### 项目
 
 在做具体的项目时，我们可以采用前后端分离的模式，但如果采用前后端都用egg去实现的话，就需要对项目进行一下结构上的改造，以提高代码的可维护性和可拓展性。
 
-其实说白了，就是讲后台相关的、前端相关的、api相关的等，分别建不同的目录进行管理，比如
+其实说白了，就是将后台相关的、前端相关的、api相关的等，分别建不同的目录进行管理，比如
 - controller/admin 后台相关的控制器
 - controller/api api控制器
 - controller/fe 前端相关的控制器
 
 其他的文件夹的配置原理一样。
+
 
 
 [whatForwardProxyOrReverseUrl]: https://zhuanlan.zhihu.com/p/25707362
