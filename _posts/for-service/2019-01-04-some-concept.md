@@ -1202,7 +1202,7 @@ mongo
 ```bash
 # 1、连接数据库，
 mongo
-# 1.1、查看数据库
+# 1.1、查看数据库，一个数据库里可以有多个表
 show dbs
 
 # 2、创建超级管理员，先切换，再创建
@@ -1369,22 +1369,26 @@ use 数据库名 # 不存在则新建，存在则切换
 # 查看当前的数据库,
 db
 
-# 查看数据库下的数据(其实应该说查看集合下的文档)
-db.数据库名.find() # 若集合为空则什么都不会输出
+# 查看集合下的文档，而不是数据库
+db.表.find() # 若集合为空则什么都不会输出
 
-# 在当前的数据库中插入文档
-db.数据库名.insert({ text: 'testMsg' })
+# 在当前的表/文档中插入文档
+db.表名.insert({ text: 'testMsg' })
 
 # 再次查看集合，应该看到：'testMsg'，和其他的一些信息
-db.数据库名.find()
+db.表名.find()
 => { "_id" : ObjectId("5e528fdd3975d37cc58fba4c"), "text" : "testMsg" }
 
-# 删除数据库
+# 这是删除当前所在的数据库
 db.dropDatabase()
 => { "dropped" : "数据库名", "ok" : 1 }
-# 还可以
-db.数据库名.drop()
+
+# 删除数据库中具体的集合
+db.表名.drop()
 => true
+
+# 查看一个数据库里有多少表/文档，如果用上面方式删除，再查看就会少一个表
+show collections
 ```
 
 mongoDB其实是基于js的，也就是说，在mongo语句里，不但支持正常的语句，还支持js表达式
@@ -1423,6 +1427,144 @@ MongoDB使用了BSON这种结构来存储数据和网络数据交换，当然也
 
 对于多对多学生学习的情况，如何在数据库中存储呢？首先肯定需要两个表，一个表存储学生名单、一个表存储课程。然后还需要一个中间表或临时表，存储学生和所学课程的对应关系。。。比如从学生名单选一个学生，然后从中间表里查找该学生选了哪些课程，然后根据这些课程名再去课程表里获取具体课程的信息。
 
+
+#### Mongodb中的聚合管道
+
+我们经常利用map来操作数组，操作完之后返回一个新的数组，其实在数据库中，使用聚合管道可以对集合中的文档进行变换和组合，进而起到：表关联查询、数据的统计的作用。
+
+其实说白了，就是Mongodb的语句，用来操作数据库。 对比如下：
+
+SQL | Nosql 
+-|-|
+WHERE | $match
+GROUP BY | $group
+HAVING | $match
+SELECT | $project 
+ORDER BY | $sort
+LIMIT | $limit
+SUM() | $sum
+COUNT() | $sum
+join | $lookup
+
+- $project ，用来筛选哪些字段才展示。
+- $match ，过滤文档，用法类似于 find() 方法中的参数。
+- $group，主要用来对文档进行分组，
+- $sort，用来排序
+- $limit，用来分页
+- $skip，跳过几条数据
+- $lookup 表关联查询，
+
+但这个语句又分为：管道操作符 + 管道表达式
+
+- 管道操作符，对应的就是上面表格的命令
+- 管道表达式，对应就是命令后面的语句
+
+例如{$match:{status:"A"}}，$match称为管道操作符，而status:"A"称为管道表达式，是管道操作符的操作数(Operand)。
+
+**注意：**：
+- 每个管道表达式是一个文档结构，它是由字段名、字段值、和一些表达式操作符组成的。
+- 数据库下划线命名方式，只是一种规范，一种多数人和很久就沿袭下来的规范。
+
+
+例子：
+```bash
+# 1、连接数据库，并切换至 egg 数据库，创建两个表
+# 2、首先在order表里创建如下数据：
+db.order.insert({"order_id":"1","uid":10,"trade_no":"111","all_price":100,"all_num":2})
+db.order.insert({"order_id":"2","uid":7,"trade_no":"222","all_price":90,"all_num":2})
+db.order.insert({"order_id":"3","uid":9,"trade_no":"333","all_price":20,"all_num":6})
+
+# 3、再创建 order_item 表，并插入如下数据：
+# 这些语句可以一下子输入，还可以单个输入。只是单个输入成功后，会提示：WriteResult({ "nInserted" : 1 })
+db.order_item.insert({"order_id": "1", "title": "商品鼠标1", "price": 50, num: 1})
+db.order_item.insert({"order_id": "2", "title": "牛奶", "price": 150, num: 2})
+db.order_item.insert({"order_id": "2", "title": "面包", "price": 150, num: 2})
+db.order_item.insert({"order_id": "3", "title": "薯条", "price": 200, num: 3})
+
+# 上面的order和order_item其实就是一对多的关系，比如订单为2的表，对应order_item表中的两条数据：牛奶、面包
+# 在order_item中查找(find()里传入参数，即可实现条件查找) 订单为2的数据：
+db.order_item.find({"order_id": "2"})
+
+# 4、如果一条数据有很多字段，想只查看部分字段的话，如何操作？如下即可
+db.order_item.find({},{"order_id": "2"})
+# 该操作会打印所有包含 order_id 字段的数据，而且只打印 order_id 字段，如下
+{ "_id" : ObjectId("5e6f1f57bf059a0f0f027c2b"), "order_id" : "1" }
+{ "_id" : ObjectId("5e6f1f58bf059a0f0f027c2c"), "order_id" : "2" }
+{ "_id" : ObjectId("5e6f1f75bf059a0f0f027c2d"), "order_id" : "2" }
+{ "_id" : ObjectId("5e6f2220bf059a0f0f027c2e"), "order_id" : "3" }
+# 上面的操作，只能每次操作一次，无法形成链条，也无法关联多个表，因此管道符就很有必要了，比如实现同样效果的如下：
+db.order_item.aggregate([ { $project: {order_id : "1"} } ])
+
+# 5、在4的基础上，再添加 $match 过滤具体的规则，
+# 如下过滤出order_id大于等于2的项目
+db.order_item.aggregate([
+  { $project: {order_id : "1"} },
+  { $match: { order_id: { $gte: 2 } } },
+])
+
+{ "_id" : ObjectId("5e6f1f58bf059a0f0f027c2c"), "order_id" : 2 }
+{ "_id" : ObjectId("5e6f1f75bf059a0f0f027c2d"), "order_id" : 2 }
+{ "_id" : ObjectId("5e6f2220bf059a0f0f027c2e"), "order_id" : 3 }
+
+# 6、如果想统计各个order_id系列里，price的总和，可以使用 $group 分组
+# 下面写法意思：以order_id作为分组的关键词，然后每组内price加和，最后赋值给total
+db.order_item.aggregate([
+  { $group: { _id : "$order_id", total: { $sum : "$price" }} }
+])
+{ "_id" : "3", "total" : 200 }
+{ "_id" : "2", "total" : 350 }
+{ "_id" : "1", "total" : 50 }
+
+# 7、如果想根据某些字段排序，只需如下
+# -1标识降序，1表示升序
+db.order_item.aggregate([
+  { $sort: { price : -1 } }
+])
+
+# 8、如果想分页，则可以如下
+# 其实就是$limit就是输出多少条数据，一般正好用来分页
+db.order_item.aggregate([
+  { $project: {order_id : "1"} },
+  { $limit: 2 }
+])
+{ "_id" : ObjectId("5e6f1f57bf059a0f0f027c2b"), "order_id" : 1 }
+{ "_id" : ObjectId("5e6f1f58bf059a0f0f027c2c"), "order_id" : 2 }
+
+# 9、如果想跳过几条数据，可以如下
+# 但有什么场景需要用呢？
+db.order_item.aggregate([
+  { $project: {order_id : "1"} },
+  { $limit: 2 },
+  { $skip: 1 }
+])
+{ "_id" : ObjectId("5e6f1f58bf059a0f0f027c2c"), "order_id" : "2" }
+
+# 10、如果数据分别存放在不同的表里，如何关联查询呢？
+db.order.aggregate([
+  {
+    # 注意，这里的value都需要用引号
+    $lookup: {
+      from: "order_item",         # 与order_item表关联
+      localField: "order_id",     # localField，主表order里的字段为：order_id
+      foreignField: "order_id",   # foreignField，附表order_item里的字段：order_id，也可以其他字段
+      as: "items"                 # 匹配到的数据，放在items下面
+    }
+  }
+])
+# 另外需要注意的是，数据库里的字段和value必须严格一致（类型及值）才能匹配上。匹配完会出来类似如下结果：
+{
+	"_id": ObjectId("5b743d8c2c327f8d1b360540"),
+	"order_id": "1",
+	"items": [
+    {
+		"_id": ObjectId("5b743d9c2c327f8d1b360543"),
+		"order_id": "1",
+		"title": "商品鼠标1",
+		"price": 50,
+		"num": 1
+	}]
+}
+```
 
 
 ### 项目
