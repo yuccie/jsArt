@@ -1566,6 +1566,74 @@ db.order.aggregate([
 }
 ```
 
+#### Egg中借助 egg-mongo-native 实现聚合管道
+
+`egg-mongo-native` 作为插件需要先安装、注册、配置、使用。。。当然聚合管道相关用法可以参考文档，
+
+```js
+let { ctx } = this;
+ctx.body = '这是操作MongoDb数据库的页面';
+
+// 打印egg数据库
+// let myOrderDb = await app.mongo.find('order');
+// ctx.body = myOrderDb
+
+// 查找order数据库中，order_id为 "3" 的数据
+// let orderIdDetail = await app.mongo.find('order', { query: { 'order_id': "3" } });
+// ctx.body = orderIdDetail
+
+
+// 插入一个新的文档，
+// await app.mongo.insertOne("testInsert", { doc: { "title": '这是通过egg-mongo-native插入的' } })
+
+// 修改文档
+// await app.mongo.findOneAndUpdate( 'testInsert' ,{
+//     filter: {"title": '这是通过egg-mongo-native插入的'},
+//     update: { $set: { "title": "这是通过findOneAndUpdate更新的" } }
+// })
+
+// 删除
+// await app.mongo.findOneAndDelete( 'testInsert', { filter: { "title": '这是通过egg-mongo-native插入的' } } );
+
+// 通过id来查找
+// 在控制器里直接定义的方法node里的方法，在当前文件内不能使用？需在控制器外定义
+// var ObjectID = require('mongodb').ObjectID;
+// function getObjectId(param) {
+//     return ObjectID(param);
+// }
+
+// let objectIdData = app.mongo.find( 'testInsert', {
+//     query: { "_id": getObjectId('5e71d0bbb87f0a22c877f053') }
+// } );
+// ctx.body = objectIdData
+
+// 管道查询
+let aggregateData = await app.mongo.aggregate('order' , {
+  pipeline: [
+    {
+      $lookup: {
+            from: 'order_item',
+            localField: 'order_id',
+            foreignField: 'order_id',
+            as: 'list'
+        }
+      },
+    {
+      $match: { 'all_price': { $gte: 50 } }
+    },
+    { $limit: 1 }
+  ],
+  options: {}
+});
+
+ctx.body = aggregateData;
+```
+
+注意：
+- 务必要加await
+- 在控制器内定义的方法，不是太合适，应该在控制器外或者extends里增加方法
+- [Api文档](http://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#aggregate)
+
 
 ### 项目
 
