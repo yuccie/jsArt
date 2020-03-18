@@ -1387,6 +1387,10 @@ db.dropDatabase()
 db.表名.drop()
 => true
 
+# 全部删除集合中数据
+db.表名.remove({})
+=> WriteResult({ "nRemoved" : 1 })
+
 # 查看一个数据库里有多少表/文档，如果用上面方式删除，再查看就会少一个表
 show collections
 ```
@@ -1633,7 +1637,96 @@ ctx.body = aggregateData;
 - 务必要加await
 - 在控制器内定义的方法，不是太合适，应该在控制器外或者extends里增加方法
 - [Api文档](http://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#aggregate)
+- 其实aggregate操作理解为表关联查询，还可[参考](https://docs.mongodb.com/manual/reference/command/aggregate/)
 
+
+
+#### Mongoose之增删改查数据库
+
+操作数据库，如果只是用原生的方法操作，会比较繁琐，因此可以借助一些上层工具(基于原生api封装的工具)来操作，进而极大的利于开发。而Mongoose就是一种。
+
+Mongoose 是在 node.js 异步环境下对 mongodb 进行便捷操作的对象模型工具。Mongoose 是 NodeJS 的驱动，不能作为其他语言的驱动。
+
+主要有两个特点：
+- 通过关系型数据库的思想来设计非关系型数据库 
+- 基于 mongodb 驱动，简化操作
+
+使用Monogoose的步骤：
+```js
+// 1、安装
+npm i mongoose --save
+
+// 2、引入并连接数据库
+const mongoose = require('mongoose');
+
+// mongo连接数据库时，会提示：mongodb://127.0.0.1:27017，而这就是连接的语句
+// 后面便是要连接的具体数据库，比如此处的egg
+mongoose.connect('mongodb://127.0.0.1:27017/egg');
+// 如果有账户密码需要采用下面的连接方式: 
+// mongoose.connect('mongodb://eggOwner:123456@127.0.0.1:27017/egg');
+
+// 3、定义 Schema，其实就是定义数据库的数据格式
+var UserSchema = mongoose.Schema({
+    name: String,
+    age: Number,
+    status: 'number' // 也是字符串类型
+})
+
+// 4、生成 Model，model 是由 schema 生成的模型，可以操作数据库
+// mongoose.model(参数 1:模型名称(首字母大写)，参数 2:Schema，参数 3:要操作数据库集合的名称)
+// 如果不传参数3，则默认操作模型名称对应的复数名称的数据库，
+// 比如User，默认对应users，当然也可以通过参数3指定要操作的数据库
+let User = mongoose.model('User', UserSchema);
+
+// 5、查找数据，此时还没新建，数据库为空
+// 模型都会接受回调函数。
+User.find({}, function (err, docs) {
+  if (err) {
+    console.log(err);
+    return;
+  }
+  console.log('应该为空', docs);
+})
+
+// 6、增加数据
+//实例化模型 传入增加的数据
+var u = new User({
+    name: 'lisi2222333',
+    age: 20,
+    status: true
+})
+u.save((err) => {
+    if (err) return console.log(err);
+    console.log('成功');
+});
+
+// 7、修改数据
+// User.updateOne({ name: 'lisi2222333' }, { name: '哈哈哈' }, function (err, res) {
+//     if (err) {
+//         console.log(err);
+//         return;
+//     }
+//     console.log('成功')
+// });
+
+// 8、删除数据
+// 之前操作_id还需要借助，ObjectID，现在可以直接使用_id
+// User.deleteOne({ _id: '5e724525966a001fc002f623' }, function (err) {
+//     if (err) {
+//         console.log(err);
+//         return;
+//     }
+//     // deleted at most one tank document
+//     console.log('成功');
+// });
+
+```
+
+#### Egg中借助 egg-mongo-native 实现聚合管道
+#### Egg中借助 egg-mongo-native 实现聚合管道
+#### Egg中借助 egg-mongo-native 实现聚合管道
+#### Egg中借助 egg-mongo-native 实现聚合管道
+#### Egg中借助 egg-mongo-native 实现聚合管道
 
 ### 项目
 
