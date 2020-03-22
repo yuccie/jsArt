@@ -399,7 +399,7 @@ ctx.render('home', {msg, list})
 
 ##### egg之service
 
-在egg里，处理数据相关的逻辑一般都放在service里，使用的时候依然是this.service.home.getList()，这样egg便会自动去app/service/home.js文件里找getList方法了，但**务必注意这些方法是异步，因此获取值时需要await**.
+在egg里，处理数据相关的逻辑、或者逻辑比较复杂、共用的一些逻辑一般都放在service里，使用的时候依然是this.service.home.getList()，这样egg便会自动去app/service/home.js文件里找getList方法了，但**务必注意这些方法是异步，因此获取值时需要await**.
 
 ```js
 // 控制器里可以调用服务，服务里也可以调用服务
@@ -482,6 +482,8 @@ module.exports = {
 ### egg之中间件
 
 在vue项目中，一般在全局拦截器里做一些关于权限的逻辑，这些逻辑可以抽象成一个中间件，比如就是校验权限的中间件。
+
+中间件，一般是在匹配路由之前和之后做的逻辑。
 
 1、中间件的写法，就是在middleware目录里增加对应的中间件即可，比如printDate中间件：
 ```js
@@ -601,7 +603,7 @@ async index() {
 // app/middleware/forCsrf.js
 module.exports = (opts, app) => {
   return async function main(ctx, next) {
-    // 这样就把随机字符串挂到全局了？
+    // 这样就把随机字符串挂到全局了？其实就是都执行中间件的缘故
     // 然后页面就可以直接拿到csrf了，不需要控制器再传csrf了
     ctx.state.csrf = ctx.csrf;
     await next();
@@ -903,6 +905,8 @@ match(ctx) {
   return reg.test(ctx.get('user-agent'));
 },
 ```
+
+当然上面这种方式，更加普实一些，既没有全局的那样大范围，也没有单个引入的繁琐，只需配置规则即可。
 
 #### egg之路由重定向，restfull,
 
@@ -1722,13 +1726,79 @@ u.save((err) => {
 
 ```
 
-#### Egg中借助 egg-mongo-native 实现聚合管道
+#### Mongoose之默认参数，及模块化
+
+其实定义Schema，类似定义类，当类定义好以后，就可以用这个类来实例化实例了。[更多参考](http://www.mongoosejs.net/docs/connections.html)
+
+```js
+// connect方法，参数有以下三个。
+mongoose.connect(uri, options, function(error) {
+  // Check error in initial connection. There is no 2nd param to the callback.
+});
+
+var UserSchema = mongoose.Schema({
+  name: String,
+  age: Number,
+  status: {
+    type: String,
+    defalut: 'success'
+  }
+})
+
+let User = mongoose.model('User', UserSchema);
+
+// 1、status使用默认值
+// 2、实例化时，如果传入自定义参数，该自定义字段并不会创建成功，比如下面的sex
+var u = new User({
+    name: 'lisi2222333',
+    age: 20,
+    // status: true,
+    sex: 'girl'
+})
+u.save((err) => {
+  if (err) return console.log(err);
+  console.log('成功');
+});
+```
+
+#### 一些技巧点
+
+**技巧一：**测试一些逻辑时，我们经常先创建一个js文件，然后再运行这个文件，其实还可以直接开启node环境，并输入相关代码，比如：
+
+```js
+// 先开启node环境
+node
+
+// 引入并执行url模块
+const url = require('url');
+url.parse('a/b?c=query#id');
+
+// 终端会输出如下内容：
+Url {
+  protocol: null,
+  slashes: null,
+  auth: null,
+  host: null,
+  port: null,
+  hostname: null,
+  hash: '#id',
+  search: '?c=query',
+  query: 'c=query',
+  pathname: 'a/b',
+  path: 'a/b?c=query',
+  href: 'a/b?c=query#id'
+}
+
+```
+
 #### Egg中借助 egg-mongo-native 实现聚合管道
 #### Egg中借助 egg-mongo-native 实现聚合管道
 #### Egg中借助 egg-mongo-native 实现聚合管道
 #### Egg中借助 egg-mongo-native 实现聚合管道
 
-### 项目
+### egg仿小米商城项目
+
+#### 目录结构
 
 在做具体的项目时，我们可以采用前后端分离的模式，但如果采用前后端都用egg去实现的话，就需要对项目进行一下结构上的改造，以提高代码的可维护性和可拓展性。
 
@@ -1739,6 +1809,268 @@ u.save((err) => {
 
 其他的文件夹的配置原理一样。
 
+- 后台管理系统，无非就是后台的页面，展示给运营人员的界面
+- 前端，则是展示给用户的界面。
+- api，则是提供给前端和后端的接口，当然前端还可以是小程序，公众号啥的
+- 其他的就是，域名解析，服务部署，nginx配置，以及redis缓存数据等等
+
+#### 商城项目之基类，session，tools服务（验证码）
+
+在项目中，我们一般会采用模块化的思想，比如后台页面的布局，侧边栏和顶部栏都是公共的，可以抽离。
+
+还有登录，登录模块一般是前端界面，然后后端提供接口即可，因此只需要写在控制器里即可。
+
+但比如验证码的话，可能前端页面需要用，后端页面也需要用，如果写在后台的控制器里，前端需要用，如果写在前端的控制器，后台也需要用，因此此时可以将验证码的功能封装在一个服务里，然后不管是后台和前台的控制器都可以直接调用，更加合理。其实到这里，就可以更加体会：**服务可以理解为一些公共的工具函数，而控制器只是匹配一些路由，然后处理一些简单的逻辑**
+
+```js
+// app/service/tools.js
+'use strict';
+
+var svgCaptcha = require('svg-captcha'); //引入验证
+const Service = require('egg').Service;
+
+class ToolsService extends Service {
+  //生成验证码
+  async captcha (){
+    var captcha = svgCaptcha.create({ 
+        size:6,
+        fontSize: 50, 
+        width: 100, 
+        height:40,
+        background:"#cc9966" 
+      });
+    this.ctx.session.code = captcha.text;   /*验证码上面的信息*/
+    return captcha;
+  }
+}
+
+module.exports = ToolsService;
+
+// 在admin/verify控制器里使用
+async verify() {
+  var captcha = await this.service.tools.captcha();  //服务里面的方法
+  this.ctx.response.type = 'image/svg+xml';   /*指定返回的类型*/
+  this.ctx.body=captcha.data;      /*给页面返回一张图片*/
+}
+
+// 页面上使用
+// 这里src对应的地址就是后台的接口地址，每次点击都会获取新的
+<dd>验　证　码：
+  <input id="verify" type="text" name="verify">
+  <img id="verify_img" src="/admin/verify" title="看不清？点击刷新" onclick="javascript:this.src='/admin/verify?mt='+Math.random()">
+</dd>	
+```
+
+以上代码，可以明白，前端获取的验证码其实就是后台，通过一种库生成的图片，然后这个库会把明文保存起来(这里保存在session里)，前端提交验证码时，后台进行校验。
+
+
+#### 商城项目之登录流程
+
+1. 获取表单提交的数据
+2. 校验验证码是否正确
+  - 若验证码正确
+  1. 对密码进行加密，比如md5
+  2. 在用户表(或集合)中，查询当前用户是否存在
+  3. 如果存在，则保存用户信息，并调到指定页面
+  4. 否则跳转至登录页面，提示用户不存在或者错误
+  - 若验证码不正确，跳转至登录页面
+
+```js
+// 控制登录的控制器
+//执行登录的方法  post
+async doLogin() {
+
+  var username=this.ctx.request.body.username;
+  // 将md5等工具函数放在服务里
+  var password=await this.service.tools.md5(this.ctx.request.body.password);
+  var code=this.ctx.request.body.code;
+
+  // 不区分大小写
+  if(code.toUpperCase()==this.ctx.session.code.toUpperCase()){
+
+    // model文件夹下面是对应的数据库model
+    var result=await this.ctx.model.Admin.find({"username":username,"password":password});
+  
+    if(result.length>0){
+      //登录成功
+      // 1、保存用户信息，因为查出来的数据库的数据格式是[{}]
+      this.ctx.session.userinfo=result[0];
+
+      //2、跳转到用户中心
+      this.ctx.redirect('/admin/manager');
+    }else{
+      // 如果没有找到，则用户名或密码不正确
+      await this.error('/admin/login','用户名或者密码不对');
+    }
+  }else{
+    //注意：异步和  await
+    await this.error('/admin/login','验证码错误');
+  }
+}
+
+
+async loginOut() {
+  // 退出登录，其实就是清空session
+  this.ctx.session.userinfo=null;
+  this.ctx.redirect('/admin/login');
+}
+```
+
+上面有提到 `this.ctx.model.Admin.find({})`，其实是数据库的查找，只是连接并定义数据库model的部分已经被抽离出去，这里只是调用。
+
+```js
+// /app/model/admin.js
+module.exports = app => {
+  const mongoose = app.mongoose;
+  const Schema = mongoose.Schema;
+
+  var d = new Date();
+
+  // 定义schema
+  const AdminSchema = new Schema({
+    username: { type: String },
+    password: { type: String },
+    mobile: { type: String },
+    email: { type: String },
+    status: { type: Number, default: 1 },
+    role_id: { type: Schema.Types.ObjectId },
+    add_time: {
+      type: Number,
+      default: d.getTime()
+    },
+    is_super: { type: Number }
+  });
+
+  // 连接admin集合
+  return mongoose.model('Admin', AdminSchema, 'admin');
+}
+
+// 当然还需要注册并配置数据库
+// /app/config/plugin.js
+exports.mongoose = {
+  enable: true,
+  package: 'egg-mongoose'
+};
+
+// /app/config/config.default.js
+//配置mongoose连接mongodb数据库
+exports.mongoose = {
+  client: {
+    url: 'mongodb://127.0.0.1/eggxiaomi',
+    options: {},
+  }
+};
+```
+[更多mongoose使用参考](https://www.npmjs.com/package/egg-mongoose)
+
+👆的逻辑只是登录校验，在vue项目中，我们还会通过路由守卫进行判断，哪些页面需要登录，哪些页面不需要登录就可以访问，在node项目里，也是同样道理。
+
+只是node项目里，充当路由守卫的模块变为了中间件，而中间件可以通过配置，只匹配指定规则的路由。比如这里的adminauth中间件：
+
+```js
+// 配置 adminauth 中间件
+// /app/config/config.default.js
+config.middleware = ['adminauth'];
+config.adminauth={
+  // 只匹配/admin的路由
+  match: '/admin',
+}
+
+// 中间件具体逻辑
+// /app/middleware/adminauth.js
+var url = require('url');
+
+module.exports = (options, app) => {
+  return async function adminauth(ctx, next) {
+    /*
+      1、用户没有登录跳转到登录页面
+      2、只有登录以后才可以访问后台管理系统
+    */
+    ctx.state.csrf = ctx.csrf;   //全局变量
+
+    // /admin/verify?mt=0.7466881301614958  转换成  /admin/verify
+    var pathname = url.parse(ctx.request.url).pathname;
+
+    // 这里就利用了上面保存的用户信息
+    if (ctx.session.userinfo) {
+        //全局变量 ，页面有可能需要使用
+      ctx.state.userinfo = ctx.session.userinfo;           
+      await next();
+    } else {
+      //排除不需要做权限判断的页面  /admin/verify?mt=0.7466881301614958
+      if (pathname == '/admin/login' || pathname == '/admin/doLogin' || pathname == '/admin/verify') {
+        await next();
+      } else {
+        ctx.redirect('/admin/login');
+      }
+    }       
+  };
+};
+```
+
+
+#### 商城项目之权限管理
+
+在后台项目中，我们经会遇到权限相关的东西，比如这个人是管理员角色，可以看到哪些菜单，这个人是运营角色，可以看到哪些菜单等等。。。
+
+这里的管理员，运营等就是角色，而所有的菜单就是权限列表，而具体的人的话就是用户，用户属于哪个角色是需要配置的。
+
+- 用户，一般情况下，一个用户对应一个角色，但也可能多个角色，这里先讨论前者
+- 角色，一个角色往往对应多个用户，同样一个角色往往也拥有多个菜单权限
+- 菜单，一个菜单也往往属于多个角色。
+
+而业内就有种基于角色的权限访问控制(Role-Based Access Control)系统。在 RBAC 中，权限与角色相关联，用户通过成为适当角色的成员而得到这些角色的权限。这就极大地简化了权限的管理。
+
+#### 商城项目之增加、编辑角色
+
+增加角色，其实就是建立一个存放角色的集合，然后获取到前台传过来的参数后，存放在数据库里即可。而编辑的话，无非就是拿到要编辑用户的id，查询数据库，然后更新而已。
+
+操作数据库中的集合，首先需要配置集合的Schema（连接数据库的部分，前面有）
+```js
+// /app/model/role.js
+module.exports = app => {
+  const mongoose = app.mongoose;
+  const Schema = mongoose.Schema;
+
+  var d = new Date();
+
+  const RoleSchema = new Schema({
+    title: { type: String },
+    description: { type: String },
+    status: { type: Number, default: 1 },
+    add_time: {
+      type: Number,
+      default: d.getTime()
+    }
+  });
+
+  return mongoose.model('Role', RoleSchema, 'role');
+}
+
+// 在控制器里使用
+// 增加角色
+async doAdd() {
+  // 这里是实例化模型，并传入参数。
+  var role=new this.ctx.model.Role({
+    title:this.ctx.request.body.title,
+    description:this.ctx.request.body.description,
+  })
+  await role.save();   //注意
+  await this.success('/admin/role','增加角色成功');
+} 
+
+// 编辑角色，接受编辑的内容，然后更新即可
+async doEdit() {
+  var _id = this.ctx.request.body._id;
+  var title = this.ctx.request.body.title;
+  var description = this.ctx.request.body.description;
+
+  await this.ctx.model.Role.updateOne({ "_id": _id }, {
+    title, description
+  })
+  await this.success('/admin/role', '编辑角色成功');
+}
+```
 
 
 [whatForwardProxyOrReverseUrl]: https://zhuanlan.zhihu.com/p/25707362
