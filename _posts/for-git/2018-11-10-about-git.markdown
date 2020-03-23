@@ -247,6 +247,13 @@ echo 'package-lock.json' >> .gitignore
 npm config set package-lock false
 ```
 
+#### fatal: refusing to merge unrelated histories
+
+```bash
+# 有时候操作git，会导致本地和远程分支不相关，比如删除.git，此时可以强制绑定
+git pull origin master --allow-unrelated-histories
+```
+
 #### 命令行初始化一个仓库
 
 ```bash
