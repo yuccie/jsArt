@@ -128,6 +128,23 @@ ssh-add -K ~/.ssh/对应私钥文件名
 
 使用密码登录，每次都需要输入密码，非常麻烦，好在`ssh`提供公钥登录，可以省去输入密码的步骤。所谓公钥登录，原理就是用户将自己的公钥存储在远程主机上，登录时，远程主机会向用户发送一段随机字符串，用户用自己的私钥加密后再发给远程主机，远程主机用事先存储用户的公钥解密，如果成功，则客户的是可信的，直接允许登录`shell`，不再要求密码。
 
+#### Shelljs - Unix shell commands for Node.js
+
+Shelljs是Node.js下的脚本语言解析器，具有丰富且强大的底层操作(Windows/Linux/OS X)权限。Shelljs本质就是基于node的一层命令封装插件，让前端开发者可以不依赖linux也不依赖类似于cmder的转换工具，而是直接在我们最熟悉不过的javascript代码中编写shell命令实现功能。
+
+这个库能够让我们在js文件中执行shell命令，具体可以看文档。
+
+**全局与局部（Global vs. Local）**
+
+我们不再推荐使用 ShellJS 的全局导入（即require('shelljs/global')）。虽然仍然支持这种便利，但这会污染全局命名空间，因此只应谨慎使用。
+
+相反，我们推荐本地导入（npm 包的标准）：
+
+```bash
+var shell = require('shelljs');
+shell.echo('hello world');
+```
+
 #### git 查看终端帮助文档
 
 ```bash
