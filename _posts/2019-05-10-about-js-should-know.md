@@ -226,7 +226,7 @@ for (var i = 1; i <= 5; i++) {
 
 在迭代内使用 IIFE 会为**每个迭代都生成一个新的作用域**，使得延迟函数的回调可以将新的作用域封闭在每个迭代内部，每个迭代中都会含有一个具有正确值的变量供我们访问。
 
-使用`IIFE`在每次迭代时。都创建一个新的作用域，换句话说，每次迭代我们都需要一个块作用域。。。而`let`就是用来劫持块作用域，并且在这个块作用域中声明一个变量。
+使用`IIFE`在每次迭代时。都创建一个新的作用域，换句话说，每次迭代我们都需要一个块作用域（**其实每次函数执行都会生成一个新的作用域**）。。。而`let`就是用来劫持块作用域，并且在这个块作用域中声明一个变量。
 
 ```js
 // 如下便是利用let来劫持块作用域
@@ -266,7 +266,7 @@ msg = 100; // 有效但不推荐
 
 像上面那样先初始化一个字符串数据类型，后又改为数字类型，这种即改变变量值又改变值类型的行为不推荐。
 
-。所有变量(包括基本类型和引用类型)都存在与一个执行环境(也叫作用域)中，这个执行环境决定了变量的生命周期，以及哪一部分代码可以访问其中的变量。
+所有变量(包括基本类型和引用类型)都存在与一个执行环境(也叫作用域)中，这个执行环境决定了变量的生命周期，以及哪一部分代码可以访问其中的变量。其实就是执行上下文
 
 #### **this，bind，call，apply**
 
@@ -296,6 +296,7 @@ speak.call(you); // Hello, 我是 READER
 // 其实根据最佳实践来说，共享函数都是定义在原型上，所以并不是针对谁的函数，而是大家都可以调用
 
 // 如果不使用this，那就需要给identify() 和speak() 显式传入一个上下文对象。
+// this 提供了一种更优雅的方式来隐式“传递”一个对象引用，代表的就是当前执行上下文
 function identify(context) {
   return context.name.toUpperCase();
 }
@@ -429,6 +430,8 @@ console.log(1, 2, 3);
 var bar = foo.bind(ø, 2);
 bar(3); // a:2, b:3
 
+// **注意：**看了李冰老师的浏览器原理，其实this是和执行上下文进行绑定的，一个执行上下文对应着一个this，而执行上下文是在js被编译过程中产生的。
+
 // ---------改变this的指向-------------
 // 1. 使用 ES6 的箭头函数
 // 2. 在函数内部使用 _this = this
@@ -442,7 +445,7 @@ var name = "windowsName";
 
 var a = {
   name: "Cherry",
-
+  // 下面func1和func1(){} 效果一样，
   func1: function() {
     console.log(this.name);
   },
@@ -456,7 +459,10 @@ var a = {
       this.func1();
     })
   },
-  func4: () => {console.log(this)}
+  func4: () => {console.log(this)},
+  // func5() {
+  //   () => {console.log('func5',this)},
+  // }
 };
 
 a.func2(); // this.func1 is not a function
@@ -533,6 +539,7 @@ function add2(x) {
 console.log(add2(1)(2)); // 3
 
 // 手写bind函数:
+// bind做了哪些事？改变this，并且可以接受参数
 // 此时定义的myBind是多个参数
 Function.prototype.myBind = function(context, ...args) {
   return () => this.apply(context, args);
@@ -579,6 +586,7 @@ var bar = foo();
 // 注意：对于正常的函数调用来说，理解了这些知识你就可以明白this 的绑定原理了。不过……凡事总有例外。
 // 也就是如果把null 或者undefined 作为this 的绑定对象传入call、apply 或者bind，
 // 这些值在调用时会被忽略，实际应用的是默认绑定规则
+// 因此如果想绑定到一个空对象上，可以传入：Object.create(null);
 ```
 
 #### **柯力化**
@@ -716,6 +724,7 @@ function sum() {
 }
 curry(sum, 1, 2)(); // 3
 curry(sum, 1, 2, 3)(); // 6
+// 这里的柯力化其实就是将多个参都传入函数fn中执行。
 
 // ---------反柯力化-------------
 // 反柯里化的作用是，当我们调用某个方法，不用考虑这个对象在被设计时，
@@ -724,6 +733,9 @@ curry(sum, 1, 2, 3)(); // 6
 ```
 
 #### **手写promise**
+
+**注意：**类写法中，函数不需要加function，另外函数之间不需要加逗号。和普通的对象还不太一样。
+<!-- 参考：http://www.fly63.com/article/detial/417 -->
 
 ```js
 // 手写promise
@@ -1146,7 +1158,7 @@ Promise.reject = function(val) {
     reject(val);
   });
 };
-// Promise.race方法
+// Promise.race方法，那个先执行完就返回哪个，不管是成功还是失败。
 Promise.race = function(promises) {
   return new Promise((resolve, reject) => {
     for (let i = 0; i < promises.length; i++) {
@@ -1158,6 +1170,7 @@ Promise.race = function(promises) {
 Promise.all = function(promises) {
   let arr = [];
   let i = 0;
+
   function processData(index, data) {
     arr[index] = data;
     i++;
@@ -1215,7 +1228,7 @@ if (!Promise.all) {
 
 ---
 
-`ECMAScript`标准规定了7种数据类型，分两种：原始类型和引用类型
+`ECMAScript`标准规定了8种数据类型，分两种：原始类型和引用类型
 
 原始类型：
 
@@ -1250,7 +1263,7 @@ typeof function() {}; // 'function'
 
 `null`表示"没有对象"，即该处不应该有值。`undefined`表示"缺少值"，就是此处应该有一个值，但是还没有定义。
 
-注意：对未经声明或未初始化的变量，使用`typeof`都会返回`'undefined'`，但无法使用`delete`删除一个直接通过`var`声明的全局变量
+注意：对未经声明或未初始化的变量，使用`typeof`都会返回`'undefined'`，但无法使用`delete`删除一个直接通过`var`声明的全局变量，因为configurable为false
 
 ```js
 var aa;
@@ -1283,7 +1296,7 @@ Number(null) === 0; // true
 
 Number 类型在 ECMAScript 中，使用[IEEE754][ieee_754url]格式来表示整数和浮点数(又称双精度数值)。常见的格式有 10，2，8，16 进制等。
 
-8 进制的第一位必须是 0，然后是 8 进制数字(0~7)，如果字面值中的数字超过了（0~7），那么前导 0 被忽略，后面的数值将当做 10 进制解析，如下
+8 进制的第一位必须是 0，然后是 8 进制数字(0~7)，如果字面值中的数字超过了（0~7），那么前导 0 被忽略，后面的数值将当做 10 进制解析（其实即使如果是非法的八进制就按十进制计算），如下
 
 ```js
 var octalNum1 = 070; // 8进制56 即 (7 * 8 + 0 * 8)
@@ -1359,6 +1372,7 @@ Number.NEGATIVE_INFINITY; // -Infinity，保存着溢出后的最小值
 var overflowMaxVal = Number.MAX_VALUE * 2;
 var overflowMinVal = Number.MIN_VALUE - 2e308;
 
+// 检测数据是否溢出
 isFinite(overflowMaxVal); // false
 isFinite(overflowMinVal); // false
 isFinite(666); // true
@@ -1371,7 +1385,7 @@ NaN，即非数值（not a number），是一个特殊的数值，用来表示**
 - 任何涉及 NaN 的操作都返回 NaN（如：NaN / 2）
 - 不等于任何值(包括自身，NaN === NaN 为 false)
 
-当然可以利用`isNaN()`函数来检测是否为 NaN，这个**函数在接收一个值以后，会尝试将这个值转为数值，如果不能转换为数值就会返回 true**。
+当然可以利用`isNaN()`函数来检测是否为 NaN，这个**函数在接收一个值以后，会尝试将这个值转为数值，如果不能转换为数值就会返回 true**。因此isNaN并不一定完全用来检测是不是NaN的，
 
 ```js
 isNaN(NaN); // true
@@ -1387,7 +1401,7 @@ isNaN(null); // false，null会被转换0
 
 `isNaN()`函数也可以传入**对象**，此时会**先调用对象的`valueOf()`方法，然后确定该方法返回的值是否可以转换为数值，如果不能，则基于这个返回值再调用`toString()`方法，再测试其返回值。**
 
-**注意：** `typeof NaN === 'number'`，也印证了NaN是一个特殊的数字。
+**注意：** `typeof NaN === 'number'`为true，也印证了NaN是一个特殊的数字。
 
 #### **数值转化**
 
@@ -1548,7 +1562,7 @@ parseInt("071"); // 57，在ES3引擎上为8进制
 在现在 chrome 浏览器，有以下行为：
 
 ```js
-parseInt("011", 2); // 3
+parseInt("011", 2); // 3，这里的'011'数是二进制
 parseInt("011"); // 11
 parseInt("071"); // 71
 parseInt("071", 8); // 57
@@ -1559,7 +1573,7 @@ parseInt("0b11"); // 0
 
 为了消除`parseInt()`函数可能导致的上述问题，可以为这个函数提供第二个参数，转换时使用的基数，如果知道要解析的值是 16 进制，那么就指定 16 作为第二个参数，以保证得到正确的结果。而且**若指定了第二个参数，还可以不带'0x'**
 
-**注意：**parseInt 方法的可选参数是**操作数的进制说明，不是要转化的目标的进制**。要想进制转换可以利用`Number.prototype.toString()`
+**注意：**parseInt 方法的可选参数是**操作数的进制说明，不是要转化的目标的进制**。要想进制转换可以利用`Number.prototype.toString()`.
 
 ```js
 // string 要被解析的值。如果参数不是一个字符串，则将其转换为字符串(使用toString 抽象操作)
@@ -1667,13 +1681,16 @@ str = "java" + "script";
 - 如果值为`undefined`，返回`'undefined'`
 
 。**toString()传参**  
-给 toString()传参，多数情况下不必传参，但是，在调用**数值**的`toString()`方法时，可以传递一个参数：**输出数值的基数**。默认情况下返回十进制的字符串表示
+给 toString()传参，多数情况下不必传参，但是，在调用**数值**的`toString()`方法时，可以传递一个参数：**输出数值的基数**。默认情况下返回十进制的字符串表示。
+
+
 
 ```js
 (10).toString(); // '10' ，之所以加()，因为小数点优先级高，会把10.toString看成数值而出错
 (10).toString(2);// '1010'
 (10).toString(8);// '12'
 (10).toString(16); // 'a'
+(10).toString(17); // 'a' ，这里超过16也按照16进制计算
 "10".toString(16); // '10'，注意此处传参了，但调用toString的不是数值，原样输出
 ```
 
@@ -1954,6 +1971,15 @@ const flatten = function(arr) {
   }
   return arr;
 };
+
+// 默认一层
+arr.flat(Infinity)
+
+// toString
+let arr1 = arr.toString().split(',').map((val)=>{
+  return val
+})
+console.log(arr1)
 ```
 
 #### **Date 类型**
@@ -2064,7 +2090,7 @@ var booleanVal = new Object(true);
 booleanVal instanceof Boolean; // true
 ```
 
-**注意：使用`new`调用基本包装类型的构造函数，与直接调用同名的转型函数时不一样的**。例如：
+**注意：使用`new`调用基本包装类型的构造函数，与直接调用同名的转型函数是不一样的**。例如：
 
 ```js
 var val1 = Number("25"); // 转型函数
@@ -2150,10 +2176,10 @@ str2.substr(3); // 'lo world'
 
 str2.slice(3, 7); // 'lo w' ，从3开始，不包含索引为7的字符
 str2.substring(3, 7); // 'lo w' ，同上
-str2.slice(3, 7); // 'lo worl'，从3开始，共7个字符
+str2.substr(3, 7); // 'lo worl'，从3开始，共7个字符
 ```
 
-当`slice()、substring()、substr()`参数里有负数时，行为就不尽相同了，其实`slice()`方法会将传入的负数与字符串的长度相加。`substr()`方法将的负的第一参数加上字符串的长度，而将负的第二个参数转换为 0。`substring()`则将所有负数都转换为 0。
+当`slice()、substring()、substr()`参数里有负数时，行为就不尽相同了，其实`slice()`方法会将传入的负数与字符串的长度相加。`substr()`方法将负的第一参数加上字符串的长度，而将负的第二个参数转换为 0。`substring()`则将所有负数都转换为 0。其实也可以理解为，`substring()`不支持复数，因为复数都会变为0。
 
 ```js
 var str3 = "hello";
@@ -2172,11 +2198,11 @@ str3.substring(-2, -1); // '', 等价于slice(0, 0)
 ```js
 var str4 = "hello world";
 str4.indexOf("o"); // 4
-str4.lastIndexOf("o"); // 7
+str4.lastIndexOf("o"); // 7，索引的位置都是从前向后数的，即使从最后开始遍历
 
 str4.indexOf("o", 5); // 7
 str4.lastIndexOf("o", 8); // 7
-str4.lastIndexOf("o", 1); // -1，索引的位置都是从前向后数的，即使从最后开始遍历
+str4.lastIndexOf("o", 1); // -1，索引的位置都是从前向后数的，即使从最后开始遍历，这里之所以是-1 ，因为虽然倒着数，但只有一项h，
 ```
 
 利用上面的特性，则可以循环获取所有匹配的项
@@ -2256,6 +2282,7 @@ text.replace(/(.at)/g, "word ($1)");
 // "word (cat), word (bat), word (sat), word (fat)"
 
 text.replace(/(.at)/, "hello $&");
+// 只替换第一项
 // "hello cat, bat, sat, fat"
 
 text.replace(/(.at)/g, "hello $&");
@@ -2268,6 +2295,7 @@ text.replace(/(.at)/g, "hello $`");
 // "hello , hello cat, , hello cat, bat, , hello cat, bat, sat, "
 
 text.replace(/(.at)/, "hello $'"); // 需转义，或双引号包裹
+// 这里相当于把cat替换成, bat, sat, fat  然后再拼接上之前的, bat, sat, fat
 // "hello , bat, sat, fat, bat, sat, fat"
 ```
 
@@ -2283,7 +2311,18 @@ text.replace(/(.at)/, "hello $'"); // 需转义，或双引号包裹
 | string     | 被匹配的原字符串。                                                                                                                                                                         |
 
 ```js
+var text = "cat, bat, sat, fat";
+text.replace(/(.at)/, function(match, offset, string) {
+  console.log('match', match);
+  console.log('offset', offset);
+  console.log('string', string);
+})
+
+
 function replacer(match, p1, p2, p3, offset, string) {
+  console.log('match', match);
+  console.log('offset', offset);
+  console.log('string', string);
   return [p1, p2, p3].join(" - ");
 }
 // [^\d]中括号里的^表示除了，这里匹配除了数字项，因此匹配到'abc'
@@ -2293,7 +2332,7 @@ var newString = "abc12345#$*%".replace(/([^\d]*)(\d*)([^\w]*)/, replacer);
 console.log(newString); // abc - 12345 - #$*%
 ```
 
-下面是一个转义`HTML`代码的函数：
+下面是一个转义`HTML`代码的函数，其实就是正则匹配标签，然后转义：
 
 ```js
 var text = "cat, bat, sat, fat";
@@ -2328,6 +2367,7 @@ var colors1 = colorText.split(",");
 var colors2 = colorText.split(",", 2); // 指定数组长度
 //["red", "blue"]
 
+colorText.replace(/[^\,]+/, "$");  // [$,blue,green,yellow]
 colorText.replace(/[^\,]+/g, "$"); // [$,$,$,$]
 var colors3 = colorText.split(/[^\,]+/);
 //["", ",", ",", ",", ""]
@@ -2349,11 +2389,15 @@ String.fromCharCode(104, 101, 108, 108, 111);
 // 下划线转换驼峰
 function toHump ( name ) {
   return name.replace( /\_(\w)/g, function ( all, letter ) {
+    console.log(all); 
     return letter.toUpperCase();
   } );
 }
+toHump('a_bb_c') // 打印：_b, _c
+
 // 驼峰转换下划线
 function toLine ( name ) {
+  // 先用变量字符串后，再整体转为小写
   return name.replace( /([A-Z])/g, "_$1" ).toLowerCase();
 }
 
@@ -2440,6 +2484,7 @@ var min = Math.min(1, 2, 5, 10); // 1
 
 ```js
 // apply参数一设置this，参数二正好为数组
+// 这里其实不太关心谁调用的，因此传null，undefined都行，但最好传 Object.create(null)
 var max = Math.max.apply(Math, [1, 2, 5, 10]); // 10
 
 // 利用展开语法
@@ -2713,7 +2758,7 @@ person1.sayName(); //"Nicholas"
 person2.sayName(); //"Greg"
 ```
 
-工厂模式虽然**解决了创建多个相似对象的问题，但却没有解决对象识别的问题（即怎样知道一个对象的类型）**
+工厂模式虽然**解决了创建多个相似对象的问题，但却没有解决对象识别的问题（即怎样知道一个对象的类型）**，工厂模式其实就是将实例化对象的过程，封装成一个函数而已
 
 `构造函数模式`  
 `ECMAScript`中的构造函数可以用来创建特定类型的对象，比如像`Object`和`Array`这样的原生构造函数。当然还可以自己定义构造函数，比如：
@@ -3143,6 +3188,7 @@ for (var prop in o) {
 // 要想取得所有实例属性，无论是否可枚举，可以用Object.getOwnPropertyNames()
 Object.getOwnPropertyNames(o);
 // ["toString", "_name"]
+// Object.getOwnPropertyDescriptors(Object) 方法用来获取一个对象的所有自身属性的描述
 
 // 发展历程六
 // 原型模式模式的问题，有点啰嗦，每次都得写Person.prototype
@@ -3818,7 +3864,7 @@ test(); // 2 20
 function setName(obj) {
   obj.name = "Nicholas";
 
-  obj.name = "Change";
+  obj = new Object();
 }
 
 var person = new Object();
