@@ -233,11 +233,13 @@ var root = {
   ]
 };
 
+// 其实就是把目标值放在一个数组，不断的去读取
 function bfs(root) {
-  let quene = [],
-    res = [];
+  let quene = [];
+  let res = [];
   quene.push(root);
   while (quene.length) {
+    debugger
     let node = quene.shift();
     res.push(node.val);
     if (!node.child) continue;
@@ -252,9 +254,11 @@ bfs(root);
 // ["a", "b", "d", "c", "e", "f"]
 ```
 
-#### **常见算法题**
 
-##### **字符串**
+
+### **常见算法题**
+
+#### **字符串**
 
 ```js
 // 题1、求最长公共前缀
@@ -344,7 +348,59 @@ function longestCommonPrefix(strs) {
 
   return prefix;
 }
+```
 
+```js
+/*
+请写一个字符串截取函数，按照最大140个汉字（280）个字符截断。
+汉字在js中是两个字节，而我们只想要140个字节的字符串
+
+思路：
+curByteLen代表当前的字节数，byteSum代表想要截取的总字节数，len代表当前访问的字符串的位置。
+while循环 遍历字符串，如果是两个字节的字符串，curByteLen+2，否则，curByteLen+2
+注意：有可能curByteLen大于byteSum，比如说，你想从”3中国人“截取6个字符，最后curByteLen 的长度是7，就要把最后一个字符给去掉
+*/
+
+
+function trimStringByByte(inputStr, byteSum) {
+  var newArr = [], len = 0, curByteLen = 0;
+  while (inputStr[len] && curByteLen < byteSum) {
+    // 其实就是利用字符的编码是否大于255来判断是否占用几个字节
+    if (inputStr.charCodeAt(len) > 255) {
+      curByteLen += 2;
+      newArr.push(inputStr[len]);
+      len++;
+    } else {
+      curByteLen += 1;
+      newArr.push(inputStr[len]);
+      len++;
+    }
+  }
+  // 如果长度大于想截取的长度，说明最后一个是两个字节的，所以把它从数组中去掉
+  if (curByteLen > byteSum) {
+    newArr.pop();
+  }
+  return newArr.join('');
+}
+
+```
+
+#### **数组**
+
+```js
+/*
+给定一个整数数组和目标值，找出数组中和为目标值的两个数
+*/
+function twoSum(nums, target) {
+  let res = [];
+  let numsLen = nums.length;
+  for (let i = 0; i < numsLen; i++) {
+    // 其实就是将两个值作为数组里的项
+    let temp = target - nums[i]
+    if (res[temp] !== void 0) retrun [res[temp], i];
+    res[nums[i]] = i;
+  }
+}
 
 ```
 
