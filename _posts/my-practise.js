@@ -1,4 +1,315 @@
-import { false } from "./good-codes/is";
+class Promise {
+  constructor(executor) {
+    this.status = 'pending';
+    this.val = undefined;
+    this.reason = undefined;
+
+    this.onResolvedCallbacks = [];
+    this.onRejectedCallbacks = []; 
+
+    let resolve = val => {
+      if (this.status === 'pending') {
+        this.status = 'fulfilled';
+        this.val = val;
+        this.onResolvedCallbacks.forEach(fn => fn())
+      }
+    };
+    let reject = reason => {
+      if (this.status === 'pending') {
+        this.status = 'rejected';
+        this.reason = reason;
+        this.onRejectedCallbacks.forEach(fn => fn())
+      }
+    };
+
+    try {
+      executor(resolve, reject);
+    } catch (err) {
+      reject(err);
+    }
+  }
+
+  then(onFulfilled, onRejected) {
+    if (this.status === 'fulfilled') {
+      onFulfilled(this.val);
+    }
+    if (this.status === 'rejected') {
+      onRejected(this.reason);
+    }
+
+    if (this.status === 'pending') {
+      this.onResolvedCallbacks.push(() => {
+        onFulfilled(this.val);
+      })
+      this.onRejectedCallbacks.push(() => {
+        onRejected(this.reason);
+      })
+    }
+  }
+}
+
+Promise.race = function(promises) {
+  return new Promise((resolve, reject) => {
+    for (let i = 0; i< promises.length; i++) {
+      promises[i].then(resolve, reject);
+    }
+  })
+}
+
+Promise.all = function(promises) {
+  let arr = [];
+  let i = 0;
+  function processData() {
+    arr[idx] = data;
+    i++;
+    if (promises.length === i) {
+      resolve(arr);
+    }
+  }
+  return new Promise((resolve, reject) => {
+    for(let j = 0; j< promises.length; j++) {
+      promises[j].then(data => {
+        processData(j, data);
+      }, reject)
+    }
+  })
+}
+
+function deepClone(target) {
+  let tempMap = new WeakMap();
+  function _getPrototype(val) {
+    return Object.prototype.toString.call(val).slice(8, -1);
+  }
+  function _deep(target) {
+    if (!target || _getPrototype !== 'Array' || _getPrototype !== 'Object') return target;
+    if (tempMap.has(target)) return tempMap.get(target);
+
+    let obj = Array.isArray(target) ? [] : {};
+    tempMap.set(target, obj);
+
+    Object.keys(target).forEach(key => {
+      if (obj[key]) return;
+      obj[key] = _deep(target[key])
+    })
+    return obj;
+  }
+  return _deep(target)
+}
+let xhr = new XMLHttpRequest();
+let url = '';
+let method = 'GET';
+
+xhr.open(method, url);
+xhr.send();
+xhr.abort();
+xhr.onreadystatechange = function() {
+  if (xhr.readyState === 4) {
+    clearTimeout(timeout);
+  }
+}
+
+// 斐波那切数列
+let count = 0;
+let fibonacci = function(n) {
+  count++;
+  return n < 2 ? n : fibonacci(n-1) + fibonacci(n -2);
+}
+for (let i = 0; i <= 10; i++) {
+  fibonacci(i);
+}
+
+// 优化版，利用map配合缓存
+var fibonacci = (function(n){
+  let cache = Object.create(null);
+
+  return n => {
+    if (n < 2) return n;
+
+    if (cache[n-2] === void 0) {
+      cache[n-2] = fibonacci(n-2)
+    }
+    if (cache[n-1] === void 0) {
+      cache[n-1] = fibonacci(n-1)
+    }
+    return cache[n] = cache[n-1] + cache[n-2]
+  }
+})()
+
+// 冒泡排序
+function bubleSort(arr) {
+  const arrLen = arr.length;
+  if (arrLen <= 1) return arr;
+
+  for(let i = 0; i< arrLen -1; i++){
+    let flag = true;
+    for (let j = 0; j < arrLen - i - 1; j++) {
+      if (arr[j] > arr[j+1]) {
+        [arr[j+1], arr[j]] = [arr[j], arr[j+1]]
+        flag = false;
+      }
+    }
+    if (flag) break;
+    return arr;
+  }
+}
+
+arr => {
+  return arr.filter((ele, idx, arr) => idx === arr.indexOf(ele))
+}
+
+// 防抖
+function debounce(fn, interval = 300) {
+  return (...args) => {
+    clearTimeout(fn.timeId);
+    fn.timeId = setTimeout(() => {
+      fn.apply(this, args);
+    },interval);
+  }
+}
+
+function debouncd(fn, interval = 300) {
+  return (...args) => {
+    clearTimeout(fn.timeId);
+    fn.timeId = setTimeout(() => {
+      fn.apply(this, interval);
+    }, interval)
+  }
+}
+
+function throttle(fn, interval = 300) {
+  let canRun = true;
+  return (...args) => {
+    if (!canRun) return false;
+    canRun = false;
+    setTimeout(() => {
+      fn.apply(this, args);
+      canRun = true;
+    }, interval);
+  }
+}
+function Point() {
+  this.x = x;
+}
+Point.prototype.toString = function() {
+
+}
+
+class Dep {
+  constructor() {
+    this.subs = [];
+  }
+
+  addSub(sub) {
+    this.subs.push(sub);
+  }
+  notify() {
+    this.subs.forEach(sub => sub.update())
+  }
+}
+
+class Watcher {
+  constructor() {
+    Dep.target = this;
+  }
+  update() {
+    console.log('视图更新啦');
+  }
+}
+
+const proxy = new Proxy({}, {
+  get: function(obj, prop) {
+    return obj[prop]
+  },
+  set: function(obj, prop, val) {
+    obj[prop] = val;
+  }
+})
+
+Dep.target = null;
+
+var getInstance = (function() {
+  let instance = null;
+  return function(name) {
+    if(!instance) {
+      instance = new Instance();
+    }
+    return instance;
+  }
+})()
+/**
+ . 匹配任意字符
+ \w 匹配所有大小写字符及数字及下划线
+ \W 匹配 \w以外的字段
+ ^ 以什么开始
+ $ 以什么结束
+
+ */
+
+/**
+Number可以将非数字转为数字，
+1、如果是Boolean，true就是1，false就是0
+2、如果是NaN，就是0
+3、如果是undefined，就是NaN
+4、如果是数字，则直接返回
+5、如果是字符串，
+ 5-1、只包含数字和正负号，则转为10进制
+ 5-2、只包含浮点数和正负号，则转为对应的浮点数，忽略前导0
+ 5-3、十六进制也转为10进制
+ 5-4、空字符串转为0
+
+web浏览器都是将这个全局对象作为window对象的一部分进行实现
+因此在全局作用域中声明的所有变量和函数，就都称为了window对象的属性
+在调用Object.defineProperty
+
+
+ */
+window.addEventListener('deviceorientation', handleOrientation, true)
+
+function deepClone1(obj) {
+  if(!obj || typeof obj !== 'object') return obj;
+
+  let temp = Array.isArray(obj) ? [] : {}
+
+  Object.keys(obj).forEach(key => {
+    if(temp[key]) return;
+    temp[key] = deepClone1(obj[key])
+  })  
+}
+
+function deepClone(target) {
+  let whiteList = ['Array', 'Object']
+  let tempMap = new WeakMap;
+  function _getPrototype(target) {
+    return Object.prototype.toString.call(target).slice(8, -1);
+  }
+  function _deep(target) {
+    if (!target || !whiteList.includes(_getPrototype(target))) return target;
+    if (tempMap.has(target)) return tempMap.get(target);
+
+    let obj = Array.isArray(target) ? [] : {};
+    tempMap.set(target, obj);
+
+    Object.keys(target).forEach(key => {
+      if (obj[key]) return;
+      obj[key] = _deep(target[key])
+    })
+
+    return obj;
+  };
+  return _deep(target);
+}
+
+var o = new Foo()
+// 
+var obj = {}
+obj._proto_ = Foo.prototype;
+let tempObj = Foo.apply(obj)
+if (typeof tempObj === 'object') {
+  return tempObj
+} else {
+
+}
+
 
 // 求两个二进制字符串的和，返回依然是二进制
 function addBinary (a, b) {
