@@ -11,6 +11,9 @@ date: Fri May 10 2019 17:25:47 GMT+0800 (中国标准时间)
 4. [v4新版本变化][v4WebpackWhatHaveChangeUrl]
 5. [webpack v1迁移到v2][WebpackV1ToV2Url]
 
+对标：淘票票，
+
+
 ### webpack解说版本一
 
 #### 1、webpack管理pageage的好处
@@ -1207,6 +1210,27 @@ import(/* webpackPrefetch: true */ 'LoginModal');
 
 这两者其实就是在最后标签里添加类似`<link rel="preload">`这样的效果，当然浏览器的支持度并不一致。另外尤其是preload，要注意使用，否则会损害性能。
 
+而dns-prefetch是什么呢？
+
+```html
+<link rel="dns-prefetch" href="//cdn.www.sojson.com">
+```
+
+DNS Prefetch 是一种DNS 预解析技术，当你浏览网页时，浏览器会在加载网页时对网页中的域名进行解析缓存，这样在你单击当前网页中的连接时就无需进行DNS 的解析，减少用户等待时间，提高用户体验。
+
+需要用域名去DNS 解析匹配  IP  ，这个是需要时间的，如果加了  dns-perfetch  呢，浏览器会记住（缓存）这个解析，直接就请求过去了，不需要再走DNS 解析。就是这么简单。
+
+预解析的实现：
+
+　　1、用meta信息来告知浏览器, 当前页面要做DNS预解析:<meta http-equiv="x-dns-prefetch-control" content="on" />
+
+　　2、在页面header中使用link标签来强制对DNS预解析: <link rel="dns-prefetch" href="http://bdimg.share.baidu.com" />
+　　注：dns-prefetch需慎用，多页面重复DNS预解析会增加重复DNS查询次数。
+
+　　需要注意的是，虽然使用 DNS Prefetch 能够加快页面的解析速度，但是也不能滥用，因为有开发者指出 禁用DNS 预读取能节省每月100亿的DNS查询 。
+
+　　如果需要禁止隐式的 DNS Prefetch，可以使用以下的标签：
+`<meta http-equiv="x-dns-prefetch-control" content="off">`
 
 ***boundle分析***<br/>
 如果我们以分离代码作为开始，那么就以检查模块作为结束，分析输出结果是很有用处的。

@@ -1,3 +1,190 @@
+Null
+Undefined
+String
+Number
+Boolean
+Symbol
+BitInt
+
+Object
+
+Object.prototype.toString.call(val).slice(8,-1)
+
+var obj = new Foo()
+
+----
+var o = new Objetct()
+o.__proto__ = Foo.prototype
+Foo.apply(o, args)
+
+
+let a;
+const b = new Promise((resolve, reject) => {
+  console.log('promise1');
+  resolve();
+}).then(() => {
+  console.log('promise2');
+}).then(() => {
+  console.log('promise3');
+}).then(() => {
+  console.log('promise4');
+});
+
+a = new Promise(async (resolve, reject) => {
+  console.log(a, 'a');
+  await b;
+  console.log(b, 'b');
+  console.log(a);
+  console.log('after1');
+  await a
+  console.log(a, 'a');
+  resolve(true);
+  console.log('after2');
+});
+
+console.log('end');
+// promise1  promise2 
+
+function fn(n) {
+    if(n<2) return n;
+    return fn(n-1) + fn(n-2)    
+}
+
+function goodFn(n) {
+    let cache = {};
+    if(n<2) return n;
+    if (cache[n-1] === void 0) {
+        cache[n-1] = goodFn(n-1)
+    }
+    if (cache[n-2] === void 0) {
+        cache[n-2] = goodFn(n-2)
+    }
+    return cache[n] = cache[n-2] + cache[n-1];
+}
+
+
+function Person(name){
+    this.name=name;
+}
+Person.prototype.sayName=function(){
+    console.log(this.name);
+ }
+    
+var person = new Person("xl");
+console.log(person.constructor);
+console.log(Person.prototype.constructor);
+
+// Person
+// Object // 这个错了，应该是Person，
+// 如果是 Person.prototype_proto_ 
+console.log(Person.constructor);
+// Function
+
+rem  em
+1em 16px
+
+
+html.style.fontSize = 100 ( clientWidth / 750) px
+1rem = 100 ( clientWidth / 750) px
+
+transform: scale()
+
+div
+div
+
+vue-cli
+webapack
+
+
+// TODO
+function use(obj) {
+  obj.name = 'bbb'
+  obj = new Object()
+  obj.name = 'aaa'
+ }
+ let person = new Object();
+ use(person);
+ log(person.name)
+ // -------------
+ function Foo() {
+   alert(1)
+ }
+ alert(Foo())
+ // -------------
+ function Foo() {
+   console.log(this)
+ }
+ var arr = []
+ arr.f = Foo
+ document.onclick = Foo
+ 
+ arr.f() // arr
+ document.onclick() // window
+ // --------------
+ var str = 'dgraf' // d|gr|af
+ str.replace(/(\w{2})$/g, '|$1');
+ // --------------
+ // 6  8
+ // 2时xx分xx秒
+ 
+ let timeArr = [0, 4, 8]
+ let targetTime = new Date(8).setHours
+ 
+ let resTime = time
+ formatTime(time)
+
+function test() { this.name = 1; return {} }
+
+console.log('1');
+async function async1() {
+  console.log('2');
+  await console('3');
+  console.log('4');
+}
+
+setTimeout(function () {
+  console.log('5');
+}, 0);
+
+async1();
+
+new Promise(function (resolve) {
+  console.log('6');
+  resolve();
+}).then(function () {
+  console.log('7');
+});
+console.log('8');
+
+// 1 2 3 6 8 4 7 5
+
+
+
+render: function (createElement) {
+  return createElement(
+    'h' + this.level,   // 标签名称
+    this.$slots.default // 子节点数组
+  )
+}
+
+
+[new Set(Array.from(10))].sort()
+
+
+class Dep {
+  constructor() {
+    this.subs = [];
+  }
+  addSub(sub) {
+    this.subs.push(sub);
+  }
+  notify() {
+    this.subs.forEach(sub => {
+      sub.update()
+    })
+  }
+}
+
 
 function trimStringByByte(inputStr, byteSum) {
   var newArr = [], len = 0, curByteLen = 0;

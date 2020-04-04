@@ -451,6 +451,7 @@ var a = {
   },
   func2: function() {
     setTimeout(function() {
+      // 定时器里的回调绑定的是全局
       this.func1(); // this为window
     }, 100);
   },
@@ -563,6 +564,8 @@ Function.prototype.myBind = function (context, ...args){
     this.apply(context, [...args, ...args2]);
   };
 };
+
+
 
 // 测试一下
 let obj2 = { name: "test2" };
@@ -1385,7 +1388,7 @@ NaN，即非数值（not a number），是一个特殊的数值，用来表示**
 - 任何涉及 NaN 的操作都返回 NaN（如：NaN / 2）
 - 不等于任何值(包括自身，NaN === NaN 为 false)
 
-当然可以利用`isNaN()`函数来检测是否为 NaN，这个**函数在接收一个值以后，会尝试将这个值转为数值，如果不能转换为数值就会返回 true**。因此isNaN并不一定完全用来检测是不是NaN的，
+当然可以利用`isNaN()`函数来检测是否为 NaN，这个**函数在接收一个值以后，会尝试将这个值转为数值，如果不能转换为数值就会返回 true**。因此isNaN并不一定完全用来检测是不是NaN的
 
 ```js
 isNaN(NaN); // true
@@ -1682,8 +1685,6 @@ str = "java" + "script";
 
 。**toString()传参**  
 给 toString()传参，多数情况下不必传参，但是，在调用**数值**的`toString()`方法时，可以传递一个参数：**输出数值的基数**。默认情况下返回十进制的字符串表示。
-
-
 
 ```js
 (10).toString(); // '10' ，之所以加()，因为小数点优先级高，会把10.toString看成数值而出错
@@ -2017,7 +2018,8 @@ new Date(Date.UTC(2019, 1)); //Fri Feb 01 2019 08:00:00 GMT+0800 (中国标准�
 
 ```js
 function getDate() {
-  console.log(Date.now()); // 1557651029232
+  console.log(
+    .now()); // 1557651029232
   console.log(+new Date()); // 1557651029232
 }
 ```

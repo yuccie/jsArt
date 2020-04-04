@@ -389,18 +389,40 @@ function trimStringByByte(inputStr, byteSum) {
 
 ```js
 /*
+两数之和
 给定一个整数数组和目标值，找出数组中和为目标值的两个数
 */
 function twoSum(nums, target) {
   let res = [];
   let numsLen = nums.length;
   for (let i = 0; i < numsLen; i++) {
-    // 其实就是将两个值作为数组里的项
+    // 其实就是将两个值作为数组里的索引，而值就是要得到的目标索引
     let temp = target - nums[i]
     if (res[temp] !== void 0) retrun [res[temp], i];
     res[nums[i]] = i;
   }
 }
+/*
+最大子序和
+给定一个整数数组，求这个数组中，哪个连续子数组的和最大，和是多少
+
+直接forEach，然后累计加和，如果和每次都增大，则继续累加，如果和小于0，又从0开始计数
+*/
+var maxSubArray = function(nums) {
+  var maxn = -Number.MAX_VALUE;
+  var sum = 0;
+  nums.forEach(function(item, index, array) {
+    sum += item;
+    if (sum > maxn)
+      maxn = sum;
+    if (sum < 0)
+      sum = 0;
+  });
+
+  return maxn;
+};
+
+maxSubArray([-2,1,-3,4,-1,2,1,-5,4]) // 6
 
 ```
 

@@ -52,7 +52,7 @@ https://mp.weixin.qq.com/s/DL06fe2bwEdiAbiIwOqbog
 
 注意：
 
-- xml.open(method，url，async)，参数三为是否同步，ture为异步false为同步。
+- xml.open(method，url，async)，参数三为是否同步，ture为异步(默认),false为同步。
 - get和post除了请求方式和请求体不同，还有一点就是get请求会被缓存
 - 相比XMLHttpRequest对象这种最原始的请求方式，不但不方便而且结构啰嗦，Fetch被称为下一代Ajax技术,采用Promise方式来处理数据。 是一种简洁明了的API，比XMLHttpRequest更加简单易用。说白了Ajax是使用事件监听，而Fetch是使用promise处理响应。但现在还不能做到所有浏览器支持，可以引入polyfill。fetch是浏览器原生支持的，并有没利用XMLHttpRequest 来封装。
 - 代码里若是调用XMLHttpRequest，则是直接走网络进程，不需要浏览器主进程介入。
@@ -109,7 +109,7 @@ Redis参考：https://mp.weixin.qq.com/s/OYu_dwA3BvSFt_5T2VYE1Q
 
 在默认情况下，如果打开一个标签页，那么浏览器会默认为其创建一个渲染进程。但如果从一个标签页中打开了另一个新标签页，当新标签页和当前标签页属于**同一站点(相同协议，相同根域名)**的话，那么新标签页会复用当前标签页的渲染进程。
 
-如过如果我们分别打开这两个标签页，比如先打开极客邦的标签页，然后再新建一个标签页，再在这个新标签页中打开极客时间，这时候我们可以看到这两个标签页分别使用了两个不同的渲染进程。这里既然都是同一站点，**为什么从 A 标签页中打开 B 标签页，就会使用同一个渲染进程，而分别打开这两个标签页，又会分别使用不同的渲染进程**？
+如果如果我们分别打开这两个标签页，比如先打开极客邦的标签页，然后再新建一个标签页，再在这个新标签页中打开极客时间，这时候我们可以看到这两个标签页分别使用了两个不同的渲染进程。这里既然都是同一站点，**为什么从 A 标签页中打开 B 标签页，就会使用同一个渲染进程，而分别打开这两个标签页，又会分别使用不同的渲染进程**？
 
 这就需要知道，**浏览器标签页之间是可以通过js脚本进行连接**的，常用的方式有：
 
@@ -605,7 +605,7 @@ V8 的解释器和编译器的取名也很有意思。解释器 Ignition 是点�
 
 - 编译的单位是全局代码或函数，比如下载完一个js文件，先编译这个js文件,但是js文件内定义的函数是不会编译的。等调用到该函数的时候，Javascript引擎才会去编译该函数！
 - 最后反正都需要字节码，为何不直接编译成字节码？可以认为WebAssembly就是，WebAssembly经过TuboFan处理下就能执行
-- 字节码最终也会转为机器码，因为最后都是cpu来执行，cpu只执行机器码
+- 字节码最终也会转为机器码，因为最后都是cpu来执行，cpu只执行机器码（机器码？二进制文件？一样？这里应该是二进制文件吧）
 
 ### 浏览器中的页面循环系统
 
@@ -784,7 +784,7 @@ setTimeOut(MyObj.showName.bind(MyObj), 1000)
 
 注册好回调事件之后，接下来就需要配置基础的请求信息了，通过 open 接口配置一些基础的请求信息，包括请求的地址、请求方法（是 get 还是 post）和请求方式（同步还是异步请求）
 
-还可以通过xhr.responseType = "text"来配置服务器返回的格式，将**服务器返回的数据自动转换为自己想要的格式**，如果将 responseType 的值设置为 json，那么系统会自动将服务器返回的数据转换为 JavaScript 对象格式。还可以通过 xhr.setRequestHeader 来添加自定义请求头
+还可以通过xhr.responseType = "text"来配置服务器返回的格式，将**服务器返回的数据自动转换为自己想要的格式**，如果将 responseType 的值设置为 json，那么浏览器会自动将服务器返回的数据转换为 JavaScript 对象格式。还可以通过 xhr.setRequestHeader 来添加自定义请求头
 
 **第四步：发起请求。**
 
@@ -839,6 +839,10 @@ HTTPS 混合内容是 HTTPS 页面中包含了不符合 HTTPS 安全要求的内
 通过 HTML 文件加载的混合资源，虽然给出警告，**但大部分类型还是能加载的。而使用 XMLHttpRequest请求时，浏览器认为这种请求可能是攻击者发起的，会阻止此类危险的请求。**比如我通过浏览器打开地址 https://www.iteye.com/groups ，然后通过控制台，使用 XMLHttpRequest 来请求 http://img-ads.csdn.net/2018/201811150919211586.jpg ，这时候请求就会报错：
 
 `Mixed Content: The page at 'https://www.google.com/search?q=%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE&rlz=1C5CHFA_enUS880US881&oq=%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE&aqs=chrome..69i57j0l7.5259j0j4&sourceid=chrome&ie=UTF-8' was loaded over HTTPS, but requested an insecure XMLHttpRequest endpoint 'http://img-ads.csdn.net/2018/201811150919211586.jpg'. This request has been blocked; the content must be served over HTTPS.`
+
+如何解决：？
+- 让浏览器自动升级请求。在服务器的响应头中加入：`header("Content-Security-Policy: upgrade-insecure-requests");`
+- 如果我们不方便在服务器/Nginx 上操作，也可以在页面中加入 meta 头：`<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />`
 
 综上：这里不单纯地讲一个问题，而是将回调类型、循环系统、网络请求和安全问题“串联”起来了。
 
@@ -938,7 +942,7 @@ foo()
 
 整个异步处理的逻辑都是使用同步代码的方式来实现的，而且还支持 try catch 来捕获异常，这就是完全在写同步代码，所以是非常符合人的线性思维的。
 
-要想明白async和await到底是怎么工作的，我们首先需要介绍生成器(Generator)是如何工作的，然后分析Generator的底层实现机制——协程，而async/await使用Generator和Promise两种技术。
+要想明白async和await到底是怎么工作的，我们首先需要介绍生成器(Generator)是如何工作的，然后分析Generator的底层实现机制——**协程**，而async/await使用Generator和Promise两种技术。
 
 **生成器VS协程**
 
@@ -1066,6 +1070,18 @@ console.log(0)
 foo()
 console.log(3)
 // 0 1 3 100 2
+
+async function foo() {
+  console.log(1)
+  // 注意await里面会执行
+  let a = await console.log(4)
+  console.log(a)
+  console.log(2)
+}
+console.log(0)
+foo()
+console.log(3)
+// 0 1 4 3 undefined 2
 ```
 
 执行顺序：
@@ -1138,6 +1154,7 @@ Chrome 开发者工具（简称DevTools）是一组网页制作和调试的工�
 #### DOM树：JavaScript是如何影响DOM树构建的？
 
 **什么是 DOM**
+
 从网络传给渲染引擎的HTML文件字节流是无法直接被渲染引擎理解的，所以要将其转化为渲染引擎能够理解的内部结构，这个结构就是 DOM。DOM 提供了对 HTML 文档结构化的表述，在渲染引擎中，DOM 有三个层面的作用：
 
 - 从页面的视角来看，DOM 是生成页面的基础数据结构
@@ -2241,7 +2258,7 @@ mov ax,bx         汇编指令
 和汇编语言一样，处理器也不能直接识别由高级语言所编写的代码，那怎么办呢？通常，要有两种方式（**解释执行和编译执行**）来执行这些代码。
 
 - 第一种是解释执行，需要先将输入的源代码通过**解析器编译成中间代码**，之后直接使用**解释器解释执行中间代码**，然后直接输出结果
-- 第二种是编译执行。采用这种方式时，也需要先将源代码转换为中间代码，然后我们的编译器再将中间代码编译成机器代码。通常编译成的机器代码是以二进制文件形式存储的，需要执行这段程序的时候直接执行二进制文件就可以了。还可以使用虚拟机将编译后的机器代码保存在内存中，然后直接执行内存中的二进制代码。 
+- 第二种是编译执行。采用这种方式时，也需要先将源代码转换为中间代码，然后我们的编译器再将中间代码编译成机器代码。通常编译成的**机器代码是以二进制文件形式存储的**，需要执行这段程序的时候直接执行二进制文件就可以了。还可以使用虚拟机将编译后的机器代码保存在内存中，然后直接执行内存中的二进制代码。 
 
 但是针对不同的高级语言，这个实现方式还是有很大差异的，比如要执行 C 语言编写的代码，你需要将其编译为二进制代码的文件，然后再直接执行二进制代码。而**对于像 Java 语言、JavaScript 语言等，则需要不同虚拟机，模拟计算机的这个编译执行流程**。执行 Java 语言，需要经过 Java 虚拟机的转换，执行 JavaScript 需要经过 JavaScript 虚拟机的转换。
 
@@ -2276,7 +2293,9 @@ JavaScript 中的函数非常灵活，其根本原因在于 JavaScript 中的函
 
 **基于函数是一等公民的设计，使得 JavaScript 非常容易实现一些特性，比如闭包，还有函数式编程等**，而其他语言要实现这些特性就显得比较困难，比如要在 C++ 中实现闭包需要实现大量复杂的代码，而且使用起来也异常复杂。
 
-函数式编程和闭包在实际的项目中会经常遇到，如果不了解这些特性，那么在你使用第三方代码时就会非常吃力，同时自己也很难使用这些特性写出优雅的代码，因此我们很有必要了解这些特性的底层机制。
+函数式编程（函数式编程关心数据的映射，命令式编程关心解决问题的步骤）和闭包在实际的项目中会经常遇到，如果不了解这些特性，那么在你使用第三方代码时就会非常吃力，同时自己也很难使用这些特性写出优雅的代码，因此我们很有必要了解这些特性的底层机制。
+
+函数式编程参考：https://www.zhihu.com/question/28292740?sort=created
 
 **什么是 JavaScript 中的对象？**
 
