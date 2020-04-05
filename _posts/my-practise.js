@@ -68,7 +68,7 @@ function Person(name){
 }
 Person.prototype.sayName=function(){
     console.log(this.name);
- }
+}
     
 var person = new Person("xl");
 console.log(person.constructor);
