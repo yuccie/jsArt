@@ -987,6 +987,143 @@ matchObj.index = 1
 
 ```
 
+**题：给定一个字符串，找出其中不含有重复字符的 最长子串 的长度。？**
+
+```js
+/*
+思路一：遍历字符串，保留一个临时字符串，如果重复就删除第一个重复的字符，直到最长的那个
+*/
+function lengthOfLongestSubstring1(s) {
+  let num = 0, res = 0, m = '';
+  for (let n of s) {
+    if (m.indexOf(n) === -1) {
+      m += n;
+      num++;
+      res = num > res ? num : res;
+    } else {
+      m += n;
+      // 删除第一个重复的字符
+      m = m.slice(m.indexOf(n)+1)
+      num = m.length;
+    }
+  }
+  return res;
+}
+
+function lengthOfLongestSubstring2(str) {
+  if (!str.length) return 0
+  let tmpStr = ''   // 每次循环找到的不含重复字符的子字符串
+  let maxStrLen = 0   // 最大不含重复字符的子字符串的长度
+  let len = str.length   
+  let left = 0  // 不含重复字符的子字符串的左游标
+  for (let i = 0; i < len; i++) {
+    if (tmpStr.indexOf(str[i]) !== -1) {
+      left += (str.slice(left, i).indexOf(str[i]) + 1)
+      continue
+    }
+    tmpStr = str.slice(left, i + 1)
+    maxStrLen = Math.max(maxStrLen, tmpStr.length)
+  }
+  return maxStrLen
+}
+```
+
+**题：给定一个字符串，判断是否由n个重复字符串构成？**
+
+```js
+/*
+思路一：n大于1
+*/
+function repeatedSubstringPattern(s) {
+  let tempStr = ''
+  for (let m of s) {
+    if (tempStr.indexOf(m) === -1) {
+      tempStr += m;
+    } else {
+      break;
+    }
+  }
+  // 当'a'时错误
+  // if (s.split(tempStr).every(item => item === '') ) {
+  //   return true
+  // } else {
+  //   return false;
+  // }
+
+
+  // "abaababaab"时错误
+  // 如果分割成数组，且每项都为空，则为true
+  // let tempArr = s.split(tempStr);
+  // if (tempArr.length > 2 && tempArr.every(item => item === '') ) {
+  //   return true
+  // } else {
+  //   return false;
+  // }
+
+  // 当 abac时，下面逻辑就会有问题
+  // if (s.length % tempStr.length === 0) {
+  //   return true;
+  // } else {
+  //   return false;
+  // }
+};
+repeatedSubstringPattern('a')
+
+function repeatedSubstringPattern2(s) {
+  // \1就是匹配的前面的组
+  let reg = /^(\w+)\1+$/;
+  return reg.test(s);
+}
+
+function repeatedSubstringPattern3(s) {
+  // 先合并，再掐头去尾，如果还包含，则正确
+  // abab => abababab => bababa => abab
+  let s1 = (s + s).slice(1, -1);
+  return s1.indexOf(s) !== -1;
+}
+```
+
+**题：找出两个字符串中共有的最大公共子字符串**
+
+```js
+/*
+题目：字符串的最大公因子
+思路一：
+*/
+function gcdOfStrings(str1, str2) {
+  if (str1 + str2 !== str2 + str1) return '';
+
+  // 将字符串问题转为数学问题，求最大公因子公式（辗转相除法）
+  // 求出字符串在字符串str1中截止的索引位置
+  const gcd = (a, b) => (0 === b ? a : gcd(b, a % b))
+
+  // 截取字符串
+  return str1.substring(0, gcd(str1.length, str2.length))
+}
+
+
+function gcdOfStrings(str1, str2) {
+let n1 = str1.length, n2 = str2.length
+  if(n1 === n2) {
+    if(str1 === str2) return str1
+    else return ''
+  }
+  if(n1 < n2) {
+    let tmp = str2.split(str1).filter((val) => val !== '')
+    if(tmp.length === 0) return str1
+    else if(tmp.length > 1 || tmp[0] === str2) return ''
+    else return gcdOfStrings(tmp[0], str1)
+  }
+
+  if(n1 > n2) {
+    let tmp = str1.split(str2).filter((val) => val !== '')
+    if(tmp.length === 0) return str2
+    else if(tmp.length > 1 || tmp[0] === str1) return ''
+    else return gcdOfStrings(tmp[0], str2)
+  }
+};
+```
+
 
 
 #### **算法之数组相关**
@@ -996,16 +1133,17 @@ matchObj.index = 1
 两数之和
 给定一个整数数组和目标值，找出数组中和为目标值的两个数
 */
-function twoSum(nums, target) {
-  let res = [];
+function twoSum1(nums, target) {
+  let res = {};
   let numsLen = nums.length;
   for (let i = 0; i < numsLen; i++) {
     // 其实就是将两个值作为数组里的索引，而值就是要得到的目标索引
     let temp = target - nums[i]
-    if (res[temp] !== void 0) retrun [res[temp], i];
+    if (res[temp] !== void 0) return [res[temp], i];
     res[nums[i]] = i;
   }
 }
+twoSum2([2,7,11,15], 9);
 
 /*
 最大子序和
@@ -1063,6 +1201,459 @@ function findUnsortedSubarray(nums) {
 };
 let nums = [2,6,4,8,10,9,15];
 findUnsortedSubarray(nums);
+```
+
+**题：给定一个未排序的整数数组，返回最长、连续且递增的子序列的长度**
+
+```js
+/*
+思路一：从第一项开始比较，如果后面比前面大，则累计次数，然后两层循环
+*/
+
+function findLongSunArr(nums) {
+  let len = nums.length;
+  let longest = 0;
+  for(let i = 0; i< len; i++) {
+    // 外层每次循环都需要重新计数
+    let tempLen = 0;
+    for (j = 0; j< len; j++) {
+      if (nums[j] < nums[j+1]) {
+        tempLen ++;
+        continue;
+      } else {
+        // 如果有一个不满足，直接退出当前循环
+        break
+      }
+    }
+    longest = Math.max(longest, tempLen)
+  }
+  return longest;
+}
+findLongSunArr([1,3,5,7,6]);
+```
+
+**题：给定一个排序的整数数组，使用原地算法删除重复的元素，并返回新的数组长度**
+
+```js
+/*
+思路一：循环，发现相等的，就原地删除，切记数组长度是即时变化的，不能缓存
+*/
+
+function removeDuplicates1(nums) {
+  for (let i = 0; i< nums.length; i++){
+    if (nums[i] === nums[i+1]) {
+      nums.splice(i, 1);
+    }
+  }
+  return nums.length;
+}
+removeDuplicates1([1,1,5,7,7]); // 3
+```
+
+**题：给定一个排序无重复的整数数组和一个目标值，返回目标值在数组中的位置**
+
+```js
+/*
+题目：搜索插入位置
+思路一：目标值可能在，也可能不在数组中
+*/
+
+function findTargetIndex(nums, target) {
+  // 先假设在数组中
+  let tempIdx = nums.indexOf(target);
+  
+  if (~tempIdx) {
+    return tempIdx;
+  } else {
+    // 不在数组中
+    for (let i = 0; i< nums.length; i++){
+      if (nums[i] < target && target < nums[i+1]) {
+        return i+1;
+      }
+    }
+  }
+}
+findTargetIndex([1,5,7,8], 6); // 2
+```
+
+**题：给定一个长度为n的数组，找出其中的众数**
+
+```js
+/*
+思路一：众数特征，出现次数大于 n/2 的。
+*/
+
+function findZhongShu1(nums) {
+  let len = nums.length;
+  let map = {};
+  for (let i = 0; i < len; i++) {
+    if (map[nums[i]] !== void 0) {
+      map[nums[i]] ++;
+    } else {
+      map[nums[i]] = 1;
+    }
+
+    // 可以在循环里直接判断
+    if (map[nums[i]] > len/2) {
+      return nums[i];
+    }
+  }
+
+  // 再次遍历结果，也行，但没必要
+  // let res = [];
+  // for (let [item, val] of Object.entries(map)) {
+  //   if (val > len/2) {
+  //     res.push(item);
+  //   }
+  // }
+  // return res;
+}
+findZhongShu1([3,2,3]); // ['3']
+```
+
+**题：给定一个整数数组和一个整数k，判断是否存在索引不同，但值相同，且索引差的绝对值为k**
+
+```js
+/*
+思路一：
+*/
+
+function containsNearbyDuplicate(nums, k) {
+  let len = nums.length;
+  for (let i = 0; i< len; i++) {
+    if (nums[i] === nums[i+k]) {
+      return [i, i+k]
+    }
+  }
+}
+containsNearbyDuplicate([1,2,3,1], 3); // [0,3]
+```
+
+**题：给定一个整数数组和一个整数k，返回所有索引不同，但对应的值相差k的组合**
+
+```js
+/*
+思路一：双层循环，但会有可能会产生重复的组合，因此最好先排序
+思路一：结果里可能出现类似 [1,2] [2,1]这种，需要去除
+*/
+
+function findPairs(nums, k) {
+  let len = nums.length;
+  let res = [];
+  nums = [...new Set(nums)]
+  for (let i = 0; i< len; i++) {
+    for (let j = 1; j< len; j++) {
+      if (Math.abs(nums[i] - nums[j]) === k) {
+        res.push([nums[i],nums[j]])
+      }
+    }
+  }
+  return res;
+}
+findPairs([3,1,4,1,5], 2); // 
+findPairs([1,2,3,4,5], 1); // 
+
+function findPairs2(nums, k) {
+  let len = nums.length;
+  let res = [];
+  // nums = [...new Set(nums)]
+  for (let i = 0; i< len; i++) {
+    for (let j = 1; j< len; j++) {
+      if (Math.abs(nums[i] - nums[j]) === k && i < j) {
+        res.push([nums[i],nums[j]])
+      }
+    }
+  }
+  // 去重
+  let map = {};
+  res.forEach(item => {
+    map[item.toString()] = item;
+  })
+
+  return Object.values(map);
+}
+// findPairs2([1,2,3,4,5], 1); // 
+// findPairs2([1,3,1,5,4], 0); // 
+findPairs2([1,1,1,2,1], 1); // 
+
+// 这个可以的。
+function findPaires3(nums, k) {
+  let len = nums.length;
+  let map = new Map();
+
+  for (let i = i; i < len; i++) {
+    if (map.has(nums[i])) {
+      map.set(nums[i], map.get(nums[i]) + 1);
+    } else {
+      map.set(nums[i], 1)
+    }
+  }
+
+  for (let i = i; i < len; i++) {
+    if (map.has(nums[i]) && map.get(num[i]) > 0) {
+      // k > 0 && map.has(nums[i]+k)，其实就是当k大于0，map对象里nums[i]+k有值即可
+      // k === 0 && map.get(num[i]) > 1，k===0，说明必须重复才可以，也就是map.get(num[i]) > 1
+      if ((k > 0 && map.has(nums[i]+k) || (k === 0 && map.get(num[i]) > 1))) {
+        count++;
+      } else {
+        map.set(num[i], -1)
+      }
+    }
+  }
+  return count;
+}
+
+```
+
+**题：给出一个数组(0-n)，找出缺少哪个数字**
+
+```js
+/*
+思路一：排序，比对
+思路二：存在map里，比对
+*/
+
+function findMissedNums(nums) {
+  let len = nums.length;
+  nums.sort((a,b) => a-b);
+
+  for (let i = 0; i< len; i++) {
+    if (nums[i] !== i) {
+      return i;
+    }
+  }
+}
+findMissedNums([1,2,4,0]); // 3
+
+function findMissedNums2(nums) {
+  let len = nums.length;
+  let map = {};
+
+  nums.forEach(item => map[item] = true);
+
+  for (let i = 0; i< len; i++) {
+    if (!map[i]) return i;
+  }
+}
+findMissedNums2([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：先统计0出现次数n，然后用0分割数组，再合并，最后补加n个0
+思路二：遍历，等于0就删除，然后累计次数，最后拼接
+思路三：遍历，等于0就删除，然后直接push(0)，但需要注意是倒序，长度也就不变了
+*/
+
+function moveZeroes(nums) {
+  let n = 0;
+  nums.forEach((item,idx) => {
+    if (item === 0) {
+      nums.splice(idx,1);
+      n ++;
+    }
+  })
+  return nums.concat(Array(n).fill(0))
+}
+moveZeroes([1,2,4,0,1,3]); 
+
+function moveZeroes2(nums) {
+  for (let i = nums.length -1; i > -1;i--) {
+    if (nums[i] === 0) {
+      nums.splice(i,1);
+      nums.push(0);
+    }
+  }
+  return nums;
+}
+moveZeroes2([1,2,4,0,1,3]); 
+```
+
+**题：给定一个数组，返回数组中第三大的数，不存在第三个，则返回最大值**
+
+```js
+/*
+思路一：排序，去重，获取第三个，若不存在，返回第一个
+*/
+
+function findThridMax(nums) {
+  // 升序是a-b，倒序是 b-a
+  nums = [...new Set(nums)].sort((a,b) => b-a);
+  if (nums[2]) {
+    return nums[2]
+  } else {
+    return nums[0]
+  }
+}
+findThridMax([1,2,4,0,2,4,1]); // 1
+```
+
+**题：给定一个二进制数组，计算其中最大连续1的个数**
+
+```js
+/*
+思路一：遍历，一个值存储最大，一个值存储每次比较的
+*/
+
+function findLongestOnes(nums) {
+  let len = nums.length;
+  let max = 0, temp = 0;
+  for (let i = 0; i< len;i ++) {
+    if (nums[i] === 1) {
+      temp ++;
+      max = max < temp ? temp : max;
+    } else {
+      temp = 0;
+    }
+  }
+  return max
+}
+findLongestOnes([1,1,0,1,1,1]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
+```
+
+**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
+
+```js
+/*
+思路一：
+*/
+
+function moveZeroes(nums) {
+
+}
+moveZeroes([1,2,4,0]); // 3
 ```
 
 ### **相关链接**
