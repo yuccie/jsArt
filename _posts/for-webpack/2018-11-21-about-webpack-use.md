@@ -11,8 +11,6 @@ date: Fri May 10 2019 17:25:47 GMT+0800 (中国标准时间)
 4. [v4新版本变化][v4WebpackWhatHaveChangeUrl]
 5. [webpack v1迁移到v2][WebpackV1ToV2Url]
 
-对标：淘票票，
-
 
 ### webpack解说版本一
 
@@ -206,7 +204,7 @@ module: {
 
 3. 编辑css文件，引入并使用
 
-其中[style-loader][styleLoaderUrl]插件作用是在最终页面插入`style`标签，同时自动引入对应的css文件。而且还要在页面中查看（不要检查页面源代码，因为它不会显示结果），查看head标签，就可以看到style标签。
+其中[style-loader][styleLoaderUrl]插件作用是在最终页面插入`style`标签，同时自动引入对应的css文件。而且还要在页面中查看（注意：不要检查页面源代码，因为它不会显示结果），查看head标签，就可以看到style标签。
 
 **疑问？**在不使用分离插件时，css文件被打包到了main.js文件里，👆的过程是如何实现的？
 
@@ -1398,7 +1396,7 @@ Webpack 的运行流程是一个串行的过程，从启动到结束会依次执
 
 在以上过程中，Webpack 会在特定的时间点广播出特定的事件，插件在监听到感兴趣的事件后会执行特定的逻辑，并且插件可以调用 Webpack 提供的 API 改变 Webpack 的运行结果。
 
-#### 流程细节
+#### **webpack生命周期**
 
 ```js
 // Webpack 的构建流程可以分为以下三大阶段(初始化 -> 编译 -> 输出)：
@@ -1555,6 +1553,13 @@ module.exports = {
 // 加上以上配置后， Webpack 会先去 node_modules 项目下寻找 Loader，如果找不到，会再去 ./loaders/ 目录下寻找。
 ```
 
+#### 插件和loader的区别
+
+**loader：**用于对模块源码的转换，loader描述了webpack如何处理非javascript模块，并且在build中引入这些依赖。loader可以将文件从不同的语言（如TypeScript）转换为JavaScript，或者将内联图像转换为data URL。比如说：CSS-Loader，Style-Loader等。因此主要侧重在打包之前文件转化层面。
+
+**插件：**目的在于解决loader无法实现的其他事，从打包优化和压缩，到重新定义环境变量，功能强大到可以用来处理各种各样的任务。webpack提供了很多开箱即用的插件：CommonChunkPlugin主要用于提取第三方库和公共模块，避免首屏加载的bundle文件，或者按需加载的bundle文件体积过大，导致加载时间过长，是一把优化的利器。而在多页面应用中，更是能够为每个页面间的应用程序共享代码创建bundle。plugins的定义为处理loader无法处理的事物，例如loader只能在打包之前运行，但是plugins在整个编译周期都起作用。
+
+
 #### 开发一个插件
 
 该插件的名称取名叫 EndWebpackPlugin，作用是在 Webpack 即将退出时再附加一些额外的操作，例如在 Webpack 成功编译和输出了文件后执行发布操作把输出的文件上传到服务器。 同时该插件还能区分 Webpack 构建是否执行成功。使用该插件时方法如下：
@@ -1603,14 +1608,48 @@ module.exports = EndWebpackPlugin
 // 4. 并且可以通过 compiler 对象去操作 Webpack。
 ```
 
+插件：
+- 其实就是一个js模块，模块里有apply方法，方法接受compiler参数，然后通过compiler监听webpack的钩子，然后做一些事情。
+- 回调函数，通过实例化的时候传入，这样就可以在前台根据webpack不同的生命周期做不同的事情了。
+- compilation.assets对象里就是生成的文件列表
+- compilation.assets[文件名].source() 就可以获取到文件的源码，进而再利用操作文件方法操作文件内容
+
+#### **webpack生命周期钩子**
+
+名称 | 说明
+| - | - |
+entryOption | 在 entry 配置项处理过之后，执行插件。
+afterPlugins | 设置完初始插件之后，执行插件。
+afterResolvers | resolver 安装完成之后，执行插件。
+environment | environment 准备好之后，执行插件。
+afterEnvironment | environment 安装完成之后，执行插件。
+beforeRun | compiler.run() 执行之前，添加一个钩子
+run | 开始读取 records 之前，钩入(hook into) compiler。
+watchRun | 监听模式下，一个新的编译(compilation)触发之后，执行一个插件，但是是在实际编译开始之前。
+normalModuleFactory | NormalModuleFactory 创建之后，执行插件。
+contextModuleFactory | ContextModuleFactory 创建之后，执行插件。
+beforeCompile | 编译(compilation)参数创建之后，执行插件。
+compile | 一个新的编译(compilation)创建之后，钩入(hook into) compiler。
+thisCompilation | 触发 compilation 事件之前执行（查看下面的 compilation）。
+compilation | 编译(compilation)创建之后，执行插件。
+make | make
+afterCompile | afterCompile
+shouldEmit | shouldEmit
+needAdditionalPass | needAdditionalPass
+emit | 生成资源到 output 目录之前。
+afterEmit | 生成资源到 output 目录之后。
+done | 编译(compilation)完成。
+failed | 编译(compilation)失败。
+invalid | 监听模式下，编译无效时。
+watchClose | 监听模式停止。
+
 #### 常见细节：
 
 ```js
 // Compiler 和 Compilation
-// 1. Compiler 对象包含了 Webpack 环境所有的的配置信息，包含 options，loaders，plugins 这些信息，
-// 这个对象在 Webpack 启动时候被实例化，它是全局唯一的，可以简单地把它理解为 Webpack 实例；
-// 2. Compilation 对象包含了当前的模块资源、编译生成资源、变化的文件等。当 Webpack 以开发模式运行时，每当检测到一个文件变化，一次新的 Compilation 将被创建。
-// Compilation 对象也提供了很多事件回调供插件做扩展。通过 Compilation 也能读取到 Compiler 对象。
+// compiler 对象代表了完整的 webpack 环境配置。这个对象在启动 webpack 时被一次性建立，并配置好所有可操作的设置，包括 options，loader 和 plugin。当在 webpack 环境中应用一个插件时，插件将收到此 compiler 对象的引用。可以使用它来访问 webpack 的主环境。
+
+// compilation 对象代表了一次资源版本构建。当运行 webpack 开发环境中间件时，每当检测到一个文件变化，就会创建一个新的 compilation，从而生成一组新的编译资源。一个 compilation 对象表现了当前的模块资源、编译生成资源、变化的文件、以及被跟踪依赖的状态信息。compilation 对象也提供了很多关键时机的回调，以供插件做自定义处理时选择使用。
 
 // Compiler 和 Compilation 的区别在于：
 // Compiler 代表了整个 Webpack 从启动到关闭的生命周期，而 Compilation 只是代表了一次新的编译。
@@ -1861,8 +1900,6 @@ module.exports = {
   }
 }
 ```
-
-#### **webpack生命周期**
 
 
 
