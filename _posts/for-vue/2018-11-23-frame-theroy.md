@@ -207,6 +207,79 @@ new Vue({
 
 其实就是调用`createElement`函数**创建一个虚拟 Dom(也是 VNode 的总称)并返回**。
 
+```js
+import Vue from 'vue';
+// 定义初始选项
+let Hello = Vue.extend({
+  // Vue 选项中的 render 函数若存在，
+  // 则 Vue 构造函数不会从 template 选项或通过 el 选项指定的挂载元素中提取出的 HTML 模板编译渲染函数。
+  render: function(createElement) {
+    /**
+     * createElement 本身也是一个函数，它有三个参数
+     * 返回值: VNode，即虚拟节点
+     * 1. 一个 HTML 标签字符串，必需参数。{String | Object | Function} - 就是你要渲染的最外层标签
+     * 2. 标签中的属性，比如style，props等等
+     * 3. 子虚拟节点 (VNodes)，由 `createElement()` 构建而成，也可以使用字符串来生成“文本虚拟节点”。可选参数。文本节点直接写就可以
+     */
+
+    // 这里也可以增加一些逻辑
+    // todo
+
+    return createElement(
+      // 1. 要渲染的标签名称：第一个参数【必需】
+      'div',
+      // 2. 1中渲染的标签的属性，【可选】
+      {
+        style: {
+          color: 'pink',
+          border: '1px solid #ccc'
+        }
+      },
+      // 3. 1中渲染的标签的子元素数组：第三个参数【可选】
+      [
+        'hello', // 文本节点直接写就可以
+        createElement('p', {}, ['这是p标签的内容']),
+        createElement('button', {
+          on: {
+            click: function() { console.log('点击我了'); }
+          }
+        }, ['点我']) // createElement()创建的VNodes
+      ]
+    );
+  },
+  template: `
+    <div>
+      <p v-if="flag">hello, {{name}}</p>
+      <button @click="welcome">欢迎标语</button>
+    </div>`,
+  data() {
+    return {
+      name: 'zhangsan',
+      flag: false
+    };
+  }
+});
+
+// 使用setTimeout是解决报#app元素找不到的警告
+setTimeout(() => {
+  // 扩展选项
+  new Hello({
+    methods: {
+      welcome() {
+        this.flag = !this.flag;
+      }
+    }
+  }).$mount('#app');
+}, 0);
+
+export default {
+  name: 'App',
+  data() {
+    return {};
+  }
+};
+```
+
 #### **响应式**
 
 这里的 getter 跟 setter 已经在之前介绍过了，在 init 的时候通过 Object.defineProperty 进行了绑定，它使得当被设置的对象被读取的时候会执行 getter 函数，而在当被赋值的时候会执行 setter 函数。
@@ -1264,6 +1337,78 @@ const router = new VueRouter({
 // 2、require.ensure()； v1和v2均可使用
 // 3、import()；v2支持，v1不支持
 ```
+
+### **Vue 插件**
+
+#### 插件分类
+
+插件通常用来为 Vue 添加全局功能。插件的功能范围没有严格的限制——一般有下面几种：
+
+- 添加全局方法或者属性。如：vue-custom-element
+- 添加全局资源：指令/过滤器/过渡等。如 vue-touch
+- 通过全局混入来添加一些组件选项。如 vue-router
+- 添加 Vue 实例方法，通过把它们添加到 Vue.prototype 上实现。
+- 一个库，提供自己的 API，同时提供上面提到的一个或多个功能。如 vue-router
+
+#### 插件使用
+
+通过全局方法 Vue.use() 使用插件。它需要在你调用 new Vue() 启动应用之前完成：
+
+```js
+Vue.use(MyPlugin)
+// 也可以传入一个可选的选项对象
+Vue.use(MyPlugin, { someOption: true })
+
+new Vue({
+  // ...组件选项
+})
+```
+
+注意：
+- Vue.use 会自动阻止多次注册相同插件，届时即使多次调用也只会注册一次该插件。
+- ue.js 官方提供的一些插件 (例如 vue-router) 在检测到 Vue 是可访问的全局变量时会自动调用 Vue.use()。然而在像 CommonJS 这样的模块环境中，你应该始终显式地调用 Vue.use()
+
+#### 插件开发
+
+Vue.js 的插件应该暴露一个 install 方法。这个方法的第一个参数是 Vue 构造器，第二个参数是一个可选的选项对象：
+
+```js
+MyPlugin.install = function (Vue, options) {
+  // 1. 添加全局方法或属性
+  Vue.myGlobalMethod = function () {
+    // 逻辑...
+  }
+
+  // 2. 添加全局资源
+  Vue.directive('my-directive', {
+    bind (el, binding, vnode, oldVnode) {
+      // 逻辑...
+    }
+    ...
+  })
+
+  // 3. 注入组件选项
+  Vue.mixin({
+    created: function () {
+      // 逻辑...
+    }
+    ...
+  })
+
+  // 4. 添加实例方法
+  Vue.prototype.$myMethod = function (methodOptions) {
+    // 逻辑...
+  }
+}
+```
+
+#### Vue.extend()
+
+在使用es6中继承类的时候，会用到extends，其实也就是实现类的继承。同理，在Vue中，Vue.extend()实现的也是继承，创建一个子类。
+
+vue.extend相当于一个扩展实例构造器，用于创建一个具有初始化选项的Vue子类，在实例化时可以进行扩展选项，最后使用**`$mount方法绑定在元素上`**。
+
+而Vue.component则是其中的一个api，用来注册组件用的，可比性不大。
 
 ### **Vuex 状态管理**
 
