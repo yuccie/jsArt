@@ -485,20 +485,6 @@ function makeIterator(array) {
     }
   };
 }
-
-// 手写一个迭代器
-function makeIterator(arr) {
-  let nextIdx = 0;
-  // 返回一个对象，对象里有个next方法
-  return {
-    next: function() {
-      // 每次执行next，都会返回当前成员的value以及一个布尔值
-      return nextIndex < arr.length
-      ? { value: arr[nextIndex++], done: false }
-      : { value: undefined, done: true }
-    }
-  }
-}
 ```
 
 其实上面 makeIterator 函数，就是一个遍历器生成函数，作用是返回一个遍历器对象，也就是指针对象。指针对象的 next 方法，用来移动指针。从上也可以知道，数据结构与遍历器其实是可以分开的，也就是说对于不具有遍历功能的对象添加遍历器对象之后，就可以遍历了

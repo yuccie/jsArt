@@ -43,7 +43,7 @@ a = new Promise(async (resolve, reject) => {
 });
 
 console.log('end');
-// promise1  promise2 
+// promise1 a Promise end promise2 promise3 promise4 b Promise after1 
 
 function fn(n) {
     if(n<2) return n;
