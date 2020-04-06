@@ -45,6 +45,28 @@ SSL能使用户/服务器应用之间的通信不被攻击者窃听，并且始�
 暂存区：git 开始管理，只是还没有提交到分支上
 commit: commit 后就将暂存区的内容提到分支上了，如果此时在 git push 则把本地修改同步到远程
 
+#### github连接超时
+
+有时候在操作github仓库时，经常提示如下错误：
+
+```bash
+ssh_dispatch_run_fatal: Connection to 52.74.223.119 port 22: Operation timed out
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+# 如果直接ping github.com，如下会提示超时
+ping github.com
+# PING github.com (52.74.223.119): 56 data bytes
+# Request timeout for icmp_seq 0
+# Request timeout for icmp_seq 1
+
+# 因此到这里就可以基本锁定（本身网络没问题，github也没问题），dns解析有异常，因此可以增加hosts配置如下：
+192.30.255.112  github.com git 
+185.31.16.184   github.global.ssl.fastly.net 
+```
+
 #### 本地配置多git账户
 
 经常情况下，我们一个电脑需要配置多个账户，比如公司的仓库和自己的github账号。
