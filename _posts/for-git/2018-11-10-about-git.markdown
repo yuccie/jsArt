@@ -248,7 +248,7 @@ $ git clean -fd -f
 $ git branch -d xxx
 
 # 删除远程分支
-$ git push origin -delete xxx
+$ git push origin --delete xxx
 
 # 修改分支名（未推到远程）
 $ git branch -m oldName newName
