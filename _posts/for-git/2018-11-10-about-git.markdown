@@ -429,6 +429,8 @@ $ git push --force origin
 $ git pull --rebase origin master
 ```
 
+`git pull --rebase origin master`意为先取消commit记录，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，之后同步远程库到本地，最后合并补丁到本地库之中。
+
 #### 代码回滚
 
 ```bash
