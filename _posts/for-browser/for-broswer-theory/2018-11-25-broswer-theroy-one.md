@@ -2618,8 +2618,8 @@ JavaScript **仅仅在对象中引入了一个原型的属性，就实现了语�
 ```js
 // 构造函数
 function DogFactory(type,color){
-    this.type = type
-    this.color = color
+  this.type = type
+  this.color = color
 }
 // 结合关键字“new”就可以创建对象了
 var dog = new DogFactory('Dog','Black')
