@@ -20,23 +20,6 @@ SQL vs NoSql
 HTML5 语义化
 CSS3 新特性
 
-遍历DOM节点，<body><div><span><b></b></span><div></body> ->  
-body div span b
-
-function fn(...args) {
-    if(args.length>1) {
-        let tempVal = 0;
-        args.forEach(item => tempVal += item)
-        return tempVal;
-    } else {
-        return (...arg1s) => {
-           return fn.apply(this,[...args, ...arg1s])
-        }
-    }
-}
-console.log(fn(1,2),fn(1)(2))
-写一个加法函数(sum)，使他可以同时支持sum(x,y)和sum(x)(y)两种调用方式。
-console.log(fn(1,2),fn(1)(2))
 
 function Person(name) {
   this.name = name;

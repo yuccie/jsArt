@@ -488,6 +488,184 @@ myObj.showThis()
 1. 普通函数中的this默认指向window
 实际工作中，我们并不想让this默认指向window，这时可以利用call,apply,bind等来显示改变，当然还可以设置js的严格模式，该模式下this默认指向undefined。
 
+**普通函数和箭头函数的区别：**
+
+参考：https://segmentfault.com/a/1190000018609721/
+
+箭头函数的this指向规则：
+
+1、箭头函数没有prototype(原型)，所以箭头函数本身没有this
+
+```js
+let a = () => {};
+a.prototype; // undefinwd
+```
+
+2、箭头函数的this指向在定义的时候继承自外层第一个普通函数的this。
+
+```js
+let a;
+let barObj = { msg: 'barObj' };
+let fooObj = { msg: 'fooObj' };
+
+function foo() {
+  a();
+}
+function bar() {
+  a = () => {
+    console.log(this.msg);
+  };
+  a()
+}
+
+bar.call(barObj); // barObj
+foo.call(fooObj); // barObj
+```
+
+`bar.call(barObj)`相当于给箭头函数注册this，此时箭头函数的this就指向了`barObj`。而`foo.call(fooObj)`只是在别的地方再次调用箭头函数而已，并没有显示改变this指向，因此依然打印`barObj`。所以：
+
+- 被继承的普通函数的this指向改变，箭头函数的this指向会跟着改变(因此想修改箭头函数的this指向，可以修改外层)
+- 箭头函数的this指向定义时所在的外层第一个普通函数，跟使用位置没有关系。
+
+3、不能直接修改箭头函数的this指向
+
+```js
+let fnObj = { msg: '尝试直接修改箭头函数的this指向' };
+function foo() {
+  a.call(fnObj);
+}
+foo();// 依然是 barObj
+```
+
+4、箭头函数外层没有普通函数，严格模式和非严格模式下它的this都会指向window(全局对象)
+
+```js
+var arrowFn1 = () => {
+  // 'use strict'
+  console.log(this);
+}
+arrowFn1(); // window
+
+
+// 但需要普通函数在是否严格模式下的this指向
+function foo() {
+  "use strict";
+  // 此时函数体处于严格模式下，会被绑定到undefined
+  console.log(this.a);
+}
+var a = 2;
+foo(); // TypeError: Cannot read property 'a' of undefined
+
+// 如下，函数体在非严格模式，而执行在严格模式
+function foo() {
+  console.log(this.a);
+}
+var a = 2;
+(function() {
+  "use strict";
+  foo(); // 2，正常打印
+})();
+```
+
+5、箭头函数的arguments
+
+如果箭头函数的this指向window(全局对象)使用arguments会报错，未声明arguments。
+
+```js
+let b = () => {
+  console.log(arguments);
+};
+b(1, 2, 3, 4); // Uncaught ReferenceError: arguments is not defined
+```
+
+如果箭头函数的this指向普通函数时,它的argumens继承于该普通函数。
+
+```js
+function bar() {
+  console.log(arguments); // 1
+
+  bb(1.1);
+  function bb() {
+    console.log(arguments); // 1.1
+    let a = () => {
+      console.log(arguments, 'arrow'); // 1.1 arrow
+    };
+    a(2); // 这里传入的参数无效，因为arguments继承于外层的普通函数
+  }
+}
+bar(1);
+```
+
+6、使用new调用箭头函数会报错
+
+```js
+let Foo = () => {};
+let b = new Foo(); // Foo is not a constructor
+```
+
+7、箭头函数不支持new.target
+
+es6引入新属性，new.target属性，普通函数如果通过new调用，new.target会返回该函数的引用。
+
+```js
+function Foo() {
+  console.log(new.target)
+}
+new Foo(); // Foo {}
+
+let Bar = () => {
+  console.log(new.target); // new.target expression is not allowed here
+}
+Bar(); // 这里不能使用new，
+```
+
+箭头函数的this指向普通函数，它的new.target就是指向该普通函数的引用。
+
+```js
+new Bar();
+function Bar() {
+  let a = () => {
+    console.log(new.target); // Bar {}
+  };
+  a();
+}
+```
+
+8、箭头函数不支持重命名函数参数,普通函数的函数参数支持重命名
+
+```js
+function func1(a, a) {
+  console.log(a, arguments); // 2 [1,2]
+}
+func1(1, 2);
+
+var func2 = (a,a) => {
+  console.log(a); // Duplicate parameter name not allowed in this context
+};
+func2(1, 2);
+```
+
+项目中经常有下面的写法：
+
+```js
+const obj = {
+  array: [1, 2, 3],
+  sum: () => {
+    // 外层没有普通函数this会指向全局对象
+    return this.array.push('全局对象下没有array，这里会报错'); // 找不到push方法
+  }
+};
+obj.sum();
+
+// 只需
+const obj = {
+  array: [1, 2, 3],
+  sum() {
+    return this.array.push('全局对象下没有array，这里会ok');
+  }
+};
+```
+
 ### v8工作原理
 
 #### 栈空间和堆空间：数据是如何存储的？

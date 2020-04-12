@@ -271,6 +271,9 @@ $ git branch -m old-name new-name
 # 查看带详细分支图的提交日志
 $ git log --graph
 
+# 只查看commit的详细分支图
+$ git log --graph --pretty=oneline --abbrev-commit
+
 # 修改已经提交的commit，会让你修改上次的提交内容
 git commit --amend
 ```
@@ -427,9 +430,15 @@ $ git push --force origin
 # 多人开发一个分支时，远程更新后，本地commit后直接push后会出错，此时若先pull后push，则提交记录会分叉
 # 为了让提交记录在一条直线上同时解决问题，可以如下，然后push即可
 $ git pull --rebase origin master
+
+# 可以根据不同的提示，修复不同的问题，如下：
+# Resolve all conflicts manually, mark them as resolved with
+# "git add/rm <conflicted_files>", then run "git rebase --continue".
+# You can instead skip this commit: run "git rebase --skip".
+# To abort and get back to the state before "git rebase", run "git rebase --abort".
 ```
 
-`git pull --rebase origin master`意为先取消commit记录，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，之后同步远程库到本地，最后合并补丁到本地库之中。
+`git pull --rebase origin master`意为先取消commit记录，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，之后同步远程库到本地，最后合并补丁到本地库之中。其实就是先把远程的更新插入到提交树上，然后将自己的提交放在挪到了最后，从而看起来所有的提交都在一条线上。
 
 #### 代码回滚
 

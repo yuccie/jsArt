@@ -978,9 +978,17 @@ function test() {
 ```js
 async function async1() {
 	console.log('async1 start');
-	await async2();
+	await async2(); // 注意这里会执行
 	console.log('async1 end');
 }
+async function async2() {
+  console.log('async2');
+}
+console.log('start');
+async1();
+console.log('end');
+// start、async1 start、async2、end、async1 end
+
 // 等价于，也就是await后面的逻辑会被Promise.resolve()包装一下，
 // 而await下面的语句，会变为then回调函数里的内容
 async function async1() {
@@ -989,6 +997,12 @@ async function async1() {
     console.log('async1 end');
   })
 }
+async function async2() {
+  console.log('async2');
+}
+console.log('start');
+async1();
+console.log('end');
 
 let a = 0
 let b = async () => {
@@ -1072,6 +1086,46 @@ a = new Promise(async (resolve, reject) => {
 });
 console.log('end');
 // promise1 end promise2 promise3 promise4 Promise {<pending>} "a" after1
+```
+
+#### 面试题
+
+```js
+async function async1 () {
+  console.log('async1 start');
+  await async2();
+  console.log('async1 end');
+}
+
+async function async2 () {
+  console.log('async2');
+}
+
+console.log('start');
+
+setTimeout(function () {
+  console.log('setTimeout');
+}, 0);
+
+async1();
+
+new Promise(function (resolve) {
+  console.log('promise1');
+  resolve();
+}).then(function () {
+  console.log('promise2');
+});
+
+console.log('end');
+// 我的理解
+// start、async1 start、promise1、end、async2、async1 end、promise2、setTimeout
+
+// 浏览器
+// start、async1 start、async2、promise1、end、async1 end、promise2、setTimeout
+
+// 务必注意：Promise.resolve()里是js逻辑，会同步执行，再看上面的错误就很正常了
+Promise.resolve(console.log(222)).then(() => {console.log('then');});
+console.log('end');
 ```
 
 #### 多个script

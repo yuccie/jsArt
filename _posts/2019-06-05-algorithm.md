@@ -801,6 +801,25 @@ divideByAny(8, 2); // '1000'
 divideByAny(10, 16); // 'A'
 ```
 
+#### **柯理化**
+
+写一个加法函数(sum)，使他可以同时支持sum(x,y)和sum(x)(y)两种调用方式。
+
+```js
+function fn(...args) {
+  if(args.length>1) {
+    let tempVal = 0;
+    args.forEach(item => tempVal += item)
+    return tempVal;
+  } else {
+    return (...arg1s) => {
+      return fn.apply(this,[...args, ...arg1s])
+    }
+  }
+}
+console.log(fn(1,2),fn(1)(2))
+```
+
 #### **队列**
 
 ```js
@@ -913,6 +932,10 @@ console.log("胜利者：" + winner);
 
 可以将火车想象成一个链表，每节车厢通过铰链链接，断开任意两个车厢间的铰链就可以插入一节新的车厢。。。
 
+**深度优先遍历和广度优先遍历**  
+树形结构一般有两种遍历方法，深度优先遍历和广度优先遍历
+所谓深度优先就是先选择一个子树纵向遍历，而广度优先则是同级别横向遍历。
+
 #### **广度优先**
 
 广度优先算法（`Breadth-First Search`），同广度优先搜索，又称作宽度优先搜索，或横向优先搜索，简称 BFS，是一种图形搜索演算法。简单的说，BFS 是从根节点开始，沿着树的宽度遍历树的节点，如果发现目标，则演算终止。广度优先搜索的实现一般采用 open-closed 表。
@@ -941,8 +964,8 @@ var root = {
 };
 
 function bfs(root) {
-  let quene = [],
-    res = [];
+  let quene = [];
+  let res = [];
   quene.push(root);
   while (quene.length) {
     let node = quene.shift();
@@ -957,6 +980,43 @@ function bfs(root) {
 
 bfs(root);
 // ["a", "b", "d", "c", "e", "f"]
+```
+
+遍历dom节点
+
+```js
+let root=document.documentElement;
+let res = []
+function Dom(root){
+  if (root.nodeName) {
+    res.push(root.nodeName);
+  }
+
+  var children = root.children;  
+  for(var i=0;i<children.length;i++){
+    Dom(children[i]);
+  }
+}
+Dom(root);
+
+// 如果遍历一个非结构化的数据，用正则比较方便，如下：
+// 给定一个字符串格式的dom结构，然后打印所有的标签
+var reg = /<(\w+)>/g;
+var str = '<body><div><span><b></b></span></div></body>'
+
+while(true) {
+  var match = reg.exec(str);
+  if (!match) break;
+  console.log(match[1]);
+  // body div span b
+}
+
+// 还可以直接匹配
+function logDom(str) {
+  let reg = /<(\w+)>/g;
+  str.replace(reg, (all, letter) => console.log(letter));
+}
+logDom(str);
 ```
 
 #### **常见算法题**
