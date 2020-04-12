@@ -43,6 +43,20 @@ function getTimePerformance(fn, n) {
 // 1.6、 ^ 匹配字符串的开始  
 // 1.7、 $ 匹配字符串的结束  
 
+// \b 的例子
+/\bworld/.test('hello world') // true
+/\bworld/.test('hello-world') // true
+/\bworld/.test('helloworld')  // false
+
+// \B 的例子
+/\Bworld/.test('hello-world') // false
+/\Bworld/.test('helloworld') // true
+
+// 利用
+'helloworld'.replace(/\Bworld/, ' ') // "hello "
+'helloworld'.replace(/\B(?=world)/, ' ') // "hello world"
+'helloworld'.replace(/(?=world)/, ' ') // "hello world"
+
 // 利用基本元素可以写简单的正则表达式
 \abc或者^abc // 匹配有abc开头的字符串
 ^\d\d\d\d\d\d\d\d$ // 匹配8位数字的QQ号码
@@ -89,8 +103,10 @@ console.log(Number(1761083581512345678923)) // 1.7610835815123457e+21
 
 // 注意：[]只是包含就行，而()则是完全匹配
 /[12|13]/g.test(1); // ture
+/[123]/g.test(1); // true，只要有其中一个即可匹配上
+/[123]/g.test(1235); // true，只要有其中一个即可匹配上
 /(12|13)/g.test(1); // false
-/(12|13)/g.test(12); // false
+/(12|13)/g.test(12); // true
 
 // 正则实例对象的几种方法
 // 1. exec 在字符串中查找，返回数组(成员是匹配成功的子字符串),未匹配到返回null
@@ -102,7 +118,7 @@ var r2 = /y/;
 r1.exec(s) // ["x"]
 r2.exec(s) // null
 
-// 1-2. 正则表示式包含圆括号（即含有“组匹配”），则返回的数组会包括多个成员，第一个成员是整个匹配的结果，成员二是圆括号里规则里匹配的内容。。。
+// 1-2. 正则表示式包含圆括号（即含有“组匹配”），则返回的数组会包括多个成员，第一个成员是整个正则匹配的结果，成员二是圆括号里规则里匹配的内容。。。
 //    也就是说，第二个成员对应第一个括号，第三个成员对应第二个括号。
 var r = /a(b+)a/;
 var arr = r.exec('_abbba_aba_');
@@ -132,13 +148,13 @@ while(true) {
 // 2-3. 正则模式是一个空字符串，则匹配所有字符串
 
 // 3. match 在字符串中查找，返回数组，未匹配到返回null，
-// 3-1. 字符串的match与正则的exec相似
-// 3-2. 但若带g修饰符，match会一次性返回所有匹配成功的结果
+// 3-1. 字符串的match与正则的exec相似，只是exec返回值更加丰富
+// 3-2. 但若带g修饰符，match会一次性返回所有匹配成功的结果，而exec则无效
 var s = 'abba';
 var r = /a/g;
 
 s.match(r) // ["a", "a"]
-r.exec(s) // ["a"]
+r.exec(s) // [ 'a', index: 0, input: 'a', groups: undefined ]
 // 3-3. 设置正则表达式的lastIndex，此时无效，始终从0开始
 
 // 4. search 在字符串中查找，返回第一个匹配到的位置索引(失败返回-1)
@@ -161,27 +177,89 @@ r.exec(s) // ["a"]
 
 // 手机号脱敏
 function formatTelNum(telNum) {
-  var str = String(telNum) || "18912341234";
+  var str = String(telNum);
   var pat = /(\d{3})\d*(\d{4})/; // 必须带括号，表示分组
   return str.replace(pat,'$1***$2');
 }
-formatTelNum(); // 189***1234
+formatTelNum(18912341234); // 189***1234
+
+// 匹配固定电话号码
+function validZuoJiPhone(telNum) {
+  var str = telNum;
+  var reg = /^(0\d{3}-)?([2-9]\d{6,7})+(-\d{1,4})?$/;
+  return reg.test(str);
+}
+validZuoJiPhone("0110-23456780"); // true
 
 // 格式化人民币
-const FormatMoney = (s)=> {
-  if (/[^0-9\.]/.test(s)) return "invalid value";
-  s = s.replace(/^(\d*)$/, "$1.");
+var FormatMoney = (s)=> {
+  // 1、如果不是数字或.开头，则不是数字
+  if (/[^\d\.]/.test(s)) return "invalid value";
+  // 2、如果是整数，则拼接小数点 .
+  s = String(s).replace(/^(\d*)$/, "$1.");
+  // 3、先拼00，然后再匹配小数格式，去掉多余00
   s = (s + "00").replace(/(\d*\.\d\d)\d*/, "$1");
+  // 4、将小数点换成,
   s = s.replace(".", ",");
+  // 5、循环，如果有(\d)(\d{3},)，就插入,号 123456,23 => 2123,456,23 => 2,123,456,23
   var re = /(\d)(\d{3},)/;
   while (re.test(s)) {
     s = s.replace(re, "$1,$2");
   }
+  // 6、将最后一个,\d{2} 替换成 '.$1' 即可
   s = s.replace(/,(\d\d)$/, ".$1");
-  return  s.replace(/^\./, "0.")
+  // 7、最后如果是以 . 开头，添加0.即可
+  return s.replace(/^\./, "0.")
 }
+FormatMoney(.1); // 0.10
+FormatMoney(0); // 0.00
+FormatMoney(1234567789); // "1,234,567,789.00"
+
+// 下面方式更简洁
+function formatNumber(val) {
+  var num = val + '';
+  var str = '';
+  var ret = num.split('.');
+  
+  if (ret[0] !== undefined) {
+    // \B表示后面的内容，不是处在开始位置
+    // (?:\d{3}) 非捕获组
+    // (?=XXX+$)，先行断言，其实这里匹配的就是 组前面的一个字符？？？
+    str = ret[0].replace(/(?=(?:\d{3})+$)/g, ',');
+    if (ret[1]) {
+      str += '.' + ret[1];
+    }
+  }
+  return str;
+}
+formatNumber(1234567789); // "1,234,567,789"
+formatNumber(0); // "0"
+formatNumber(12456.734567); // "12,456.734567"
+
+// 下面方式更简洁
+function formatNumber1(val) {
+  var num = val + '';
+  var str = '';
+  var ret = num.split('.');
+  
+  if (ret[0] !== undefined) {
+    str = ret[0].replace(/(?=(?:\d{3})+$)/g, ',');
+  }
+  // 拼接.00格式
+  ret[1] = ret[1] !== void undefined ? ret[1] : '';
+  str += '.' + ret[1] + '00';
+  // 截取小数点后两位之前的内容
+  str = str.replace(/(\d*\.\d{2})\d*/, '$1')
+  // 处理.开头的内容
+  str = str.replace(/^\./, '0.');
+  return str;
+}
+formatNumber1(12456.734567); // "12,456.73"
+formatNumber1(0); // "0.00"
+formatNumber1(.1); // "0.10"
 
 // 5-3. 参数二还可以是函数
+// 函数场景，就类似map方法，对每个对象都执行一次指定操作
 '3 and 5'.replace(/[0-9]+/g, function (match) {
   return 2 * match;
 })
@@ -196,17 +274,17 @@ a.replace(pattern, function replacer(match) {
 // The QUICK BROWN fox jumped over the LAZY dog.
 
 // 6. split 在字符串中查找指定字符，并且以指定字符切割字符串，返回切割后的字符串数组(不含被切字符)
-// 6-1. 参数一时正则，参数二是返回数组的最大成员数量
+// 6-1. 参数一是正则，参数二是返回数组的最大成员数量
 // 非正则分隔
 'a,  b,c, d'.split(',')
 // [ 'a', '  b', 'c', ' d' ]
 
 // 正则分隔，去除多余的空格
-'a,  b,c, d'.split(/, */)
+'a,  b,c,d '.split(/\s*,\s*/)
 // [ 'a', 'b', 'c', 'd' ]
 
 // 指定返回数组的最大成员
-'a,  b,c, d'.split(/, */, 2)
+'a , b,c,d'.split(/\s*,\s*/, 2)
 [ 'a', 'b' ]
 
 // 例一
@@ -237,22 +315,6 @@ s.match(/a+?/) // ["a"]
 // *?：表示某个模式出现0次或多次，匹配时采用非贪婪模式。
 // +?：表示某个模式出现1次或多次，匹配时采用非贪婪模式。
 
-function formatNumber(val) {
-  var num = val + '';
-  var str = '';
-  var ret = num.split('.');
-  
-  if (ret[0] !== undefined) {
-    // \B是非单词边界，这里没有意义
-    str = ret[0].replace(/\B(?=(?:\d{3})+$)/g, ',');
-    if (ret[1]) {
-      str += '.' + ret[1];
-    }
-  }
-  return str;
-}
-
-
 // 8. 组匹配
 // 正则表达式的括号表示分组匹配，括号中的模式可以用来匹配分组的内容
 /fred+/.test('fredd');       // true
@@ -261,24 +323,25 @@ function formatNumber(val) {
 var m = 'abcabc'.match(/(.)b(.)/);
 m ;// ['abc', 'a', 'c']
 // 正则表达式/(.)b(.)/一共使用两个括号，第一个括号捕获a，第二个括号捕获c。
-// 使用组匹配，不宜使用g修饰符，否则match方法不会捕获分组的内容。
+
+// 使用组匹配，不宜使用g修饰符，否则match方法不会捕获分组的内容。其实就是少了每一次具体的细节
 var m = 'abcabc'.match(/(.)b(.)/g);
 m ;// ['abc', 'abc']
 
+// \n是用在正则中的，而$n使用在字符串中的。要区分开
 // 可以用\n引用括号匹配的内容，n是从1开始的自然数，表示对应顺序的括号。
-/(.)b(.)\1b\2/.test("abcabc");
-// true
+/(.)b(.)\1b\2/.test("abcabc"); // true
 // \1表示第一个括号匹配的内容（即a），\2表示第二个括号匹配的内容（即c）。
 
 /y(..)(.)\2\1/.test('yabccab') // true，此时\2就是c,\1就是ab
 
 /y((..)\2)\1/.test('yabababab') // true
-// 面代码中，\1指向外层括号，\2指向内层括号。
+// 上面代码中，\1指向外层括号，\2指向内层括号。
 
 //  8-1. 组匹配之非捕获组
 // (?:x)称为非捕获组，表示不返回该组匹配的内容，即匹配的结果中不计入这个括号。
-// 使用场景，假定需要匹配foo或者foofoo，正则表达式就应该写成/(foo){1, 2}/
-// 但这样就会占用一个组匹配。这时就可以这样：/(?:foo){1, 2}/
+// 使用场景，假定需要匹配foo或者foofoo，正则表达式就应该写成/(foo){1,2}/
+// 但这样就会占用一个组匹配。这时就可以这样：/(?:foo){1,2}/
 
 var m1 = 'abc'.match(/(.)b(.)/);
 m1; // ["abc", "a", "c"]
@@ -286,14 +349,23 @@ var m = 'abc'.match(/(?:.)b(.)/);
 m // ["abc", "c"]
 // 使用非捕获组，所以最终返回的结果中就没有第一个括号。
 
+// (?=pattern) 零宽正向先行断言
+// (?!pattern) 零宽负向先行断言
+// 断言的意思是判断是否满足，零宽的意思是它只匹配一个位置，如同^匹配开头，$匹配末尾一样，只是一个位置，不返回匹配到的字符，正向表示需要满足pattern，负向表示不能满足pattern，先行表示这个断言语句现在期望返回的匹配字符的后面。
+
 // x(?=y)称为先行断言，x只有在y前面才匹配，y不会被计入返回结果。
-var m = 'abc'.match(/b(?=c)/);
-m // ["b"]
+// 比如下面，只匹配在c前面的b，但并不返回c
+var m = 'abc'.match(/b(?=c)/);// ['b']
+var m = 'abc'.match(/(?=c)/); // ["", index: 2, input: "abc", groups: undefined]
+'abc'.replace(/(?=c)/, 'd');  // abdc
 var m = 'abc'.match(/b(c)/);
 m // ["bc", "b"]
 
 // x(?!y)称为先行否定断言，x只有不在y前面才匹配，y不会被计入返回结果。
 /\d+(?!\.)/.exec('3.14') // ["14"]
+
+// b不在c前面所以被匹配，而且括号对应的d不会被返回
+'abd'.match(/b(?!c)/); // [b]
 ```
 
 #### 需要转义的字符
@@ -328,6 +400,8 @@ m // ["bc", "b"]
 function validCipher(str) {
   str = String(str);
   // 必须包含数字，大小写字符，特殊字符，且长度在6-12位
+  // ?= 断言只匹配一个位置，类似^匹配开头，$匹配结尾，
+  // 因此下面的意思就是必须有四个位置上分别有数字，小写，大写，特殊符号
   let reg = /(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{6,12}/;
   return reg.test(str);
 }
@@ -364,6 +438,20 @@ function validUrl(str) {
   return reg.test(str);
 }
 validUrl('abc-12@126.com.cn');  // false
+```
+
+**. 身份证相关：**
+
+```js
+// 匹配身份证号
+function validIdcard(str) {
+  let reg = /^\d{17}(\d|X|x)$/;
+  return reg.test(str);
+}
+validIdcard('372930199012126619');
+
+/^\d{17}(\d|xX)$/.test('37293019901212661xX'); // true
+/^\d{17}[\d|xX]$/.test('37293019901212661xX'); // false
 ```
 
 **. 手机号相关：**
@@ -443,23 +531,44 @@ function getUrlKey (name) {
 /*
 题：输入abcde，输出 a-bc-de，也就是从后面开始，每隔两位插入一个符号
 */
-[...'abcde'.split('').reverse().join('').replace(/(.{2})/g, '$1-')].reverse().join('');
+function insertCode(str) {
+  return [...str.split('').reverse().join('').replace(/(.{2})/g, '$1-')].reverse().join('');
+}
+console.time();
+for(let i = 0; i < 10000; i++) {
+  insertCode('abcde'); // "a-bc-de"
+}
+console.timeEnd(); // 18.815185546875ms
+
+// 利用非捕获组与先行断言
+function insertCode1(str) {
+  str.replace(/(?=(?:\w{2})+$)/g, '-')
+}
+console.time();
+for(let i = 0; i < 10000; i++) {
+  insertCode1('abcde'); // "a-bc-de"
+}
+console.timeEnd(); // 3.998046875ms
+
+'abcde'.match(/(.{2})/g) // ["ab", "cd"]
+'abcde'.match(/(.{1,2})/g) // ["ab", "cd", "e"]
 
 
 /*
 题：改为驼峰命名
+
 1、_，-可能在两侧
 */
 function toHump (name) {
-  return name.replace( /[_|-](\w)?/g, function ( all, letter ) {
+  return name.replace( /[_-](\w)?/g, function ( all, letter ) {
     return letter ? letter.toUpperCase() : '';
   } );
 }
 toHump('hello-world-a_'); // "helloWorldA"
 
-
 /*
 题：驼峰改为下划线命名
+
 */
 function toLine1(name) {
   return name.replace( /([A-Z])/g, "_$1" ).toLowerCase();
@@ -467,9 +576,25 @@ function toLine1(name) {
 toLine1('aBcDfe');
 
 function toLine2(name) {
+  // replace参数二的函数，函数里的参数2开始都是匹配的组
   return name.replace(/([A-Z])/g, (str, letter) => `_${letter.toLowerCase()}`);
 }
 toLine2('aBcDfe');
+```
+
+**. 其他处理相关：**
+
+```js
+// 输入值不能全部为空格
+/.*[^ ].*/.test(' 2 '); // true
+/.*[^ ].*/.test('   '); // false
+
+// 不能纯数字，取反即可
+!/^\d+$/.test('2'); // false
+
+// 不能包含数字
+!/\d+/g.test('a2'); // false
+
 ```
 
 ### **日期相关**
@@ -531,7 +656,7 @@ valueOf() | 返回 Date 对象的原始值。
 
 #### setDate() 方法
 
-`setDate()`方法用来设定日期物件中本地时间的日，也就是每个月中的几号，传入参数是一个1~31的整数。若是传入的值超出当月份的正常范围，setDate（）方法也会依据超出的数值进行计算
+`setDate()`方法用来设定日期对象中本地时间的日，也就是每个月中的几号，传入参数是一个1~31的整数。若是传入的值超出当月份的正常范围，setDate（）方法也会依据超出的数值进行计算
 
 - 如setDate（0）会让日期变成前一个月的最后一天，
 - setDate（-1）会让日期变成前一个月的倒数第二天。
@@ -594,7 +719,7 @@ getWeekdaysInMonth(2020, 5);
 
 ```
 
-### **栈结构**
+#### **栈结构**
 
 ```js
 // 利用数组定义一个栈的类
@@ -815,13 +940,11 @@ var root = {
   ]
 };
 
-// 其实就是把目标值放在一个数组，不断的去读取
 function bfs(root) {
-  let quene = [];
-  let res = [];
+  let quene = [],
+    res = [];
   quene.push(root);
   while (quene.length) {
-    debugger
     let node = quene.shift();
     res.push(node.val);
     if (!node.child) continue;
@@ -836,8 +959,9 @@ bfs(root);
 // ["a", "b", "d", "c", "e", "f"]
 ```
 
+#### **常见算法题**
 
-#### **算法之字符串相关**
+##### **字符串相关**
 
 ```js
 // 题1、求最长公共前缀
@@ -927,733 +1051,8 @@ function longestCommonPrefix(strs) {
 
   return prefix;
 }
-```
 
-```js
-/*
-请写一个字符串截取函数，按照最大140个汉字（280）个字符截断。
-汉字在js中是两个字节，而我们只想要140个字节的字符串
 
-思路：
-curByteLen代表当前的字节数，byteSum代表想要截取的总字节数，len代表当前访问的字符串的位置。
-while循环 遍历字符串，如果是两个字节的字符串，curByteLen+2，否则，curByteLen+2
-注意：有可能curByteLen大于byteSum，比如说，你想从”3中国人“截取6个字符，最后curByteLen 的长度是7，就要把最后一个字符给去掉
-*/
-
-function trimStringByByte(inputStr, byteSum) {
-  var newArr = [], len = 0, curByteLen = 0;
-  while (inputStr[len] && curByteLen < byteSum) {
-    // 其实就是利用字符的编码是否大于255来判断是否占用几个字节
-    if (inputStr.charCodeAt(len) > 255) {
-      curByteLen += 2;
-      newArr.push(inputStr[len]);
-      len++;
-    } else {
-      curByteLen += 1;
-      newArr.push(inputStr[len]);
-      len++;
-    }
-  }
-  // 如果长度大于想截取的长度，说明最后一个是两个字节的，所以把它从数组中去掉
-  if (curByteLen > byteSum) {
-    newArr.pop();
-  }
-  return newArr.join('');
-}
-console.time();
-trimStringByByte('abc134中国人', 7);
-console.timeEnd();
-
-getTimePerformance(trimStringByByte, 1000);
-```
-
-**题：查找一个字符串在另一个字符串中的出现的第一个位置？**
-
-```js
-/*
-1、可以直接用match
-2、
-*/
-// 用indexOf
-var index = 'abcdefbc'.indexOf('bc')
-
-// 用search
-var index = 'abcdefbc'.search(/(bc)/)
-
-// 用match
-var matchObj = 'abcdefbc'.match(/(bc)/); 
-// ["bc", "bc", index: 1, input: "abcdefbc", groups: undefined]
-matchObj.index = 1
-
-```
-
-**题：给定一个字符串，找出其中不含有重复字符的 最长子串 的长度。？**
-
-```js
-/*
-思路一：遍历字符串，保留一个临时字符串，如果重复就删除第一个重复的字符，直到最长的那个
-*/
-function lengthOfLongestSubstring1(s) {
-  let num = 0, res = 0, m = '';
-  for (let n of s) {
-    if (m.indexOf(n) === -1) {
-      m += n;
-      num++;
-      res = num > res ? num : res;
-    } else {
-      m += n;
-      // 删除第一个重复的字符
-      m = m.slice(m.indexOf(n)+1)
-      num = m.length;
-    }
-  }
-  return res;
-}
-
-function lengthOfLongestSubstring2(str) {
-  if (!str.length) return 0
-  let tmpStr = ''   // 每次循环找到的不含重复字符的子字符串
-  let maxStrLen = 0   // 最大不含重复字符的子字符串的长度
-  let len = str.length   
-  let left = 0  // 不含重复字符的子字符串的左游标
-  for (let i = 0; i < len; i++) {
-    if (tmpStr.indexOf(str[i]) !== -1) {
-      left += (str.slice(left, i).indexOf(str[i]) + 1)
-      continue
-    }
-    tmpStr = str.slice(left, i + 1)
-    maxStrLen = Math.max(maxStrLen, tmpStr.length)
-  }
-  return maxStrLen
-}
-```
-
-**题：给定一个字符串，判断是否由n个重复字符串构成？**
-
-```js
-/*
-思路一：n大于1
-*/
-function repeatedSubstringPattern(s) {
-  let tempStr = ''
-  for (let m of s) {
-    if (tempStr.indexOf(m) === -1) {
-      tempStr += m;
-    } else {
-      break;
-    }
-  }
-  // 当'a'时错误
-  // if (s.split(tempStr).every(item => item === '') ) {
-  //   return true
-  // } else {
-  //   return false;
-  // }
-
-
-  // "abaababaab"时错误
-  // 如果分割成数组，且每项都为空，则为true
-  // let tempArr = s.split(tempStr);
-  // if (tempArr.length > 2 && tempArr.every(item => item === '') ) {
-  //   return true
-  // } else {
-  //   return false;
-  // }
-
-  // 当 abac时，下面逻辑就会有问题
-  // if (s.length % tempStr.length === 0) {
-  //   return true;
-  // } else {
-  //   return false;
-  // }
-};
-repeatedSubstringPattern('a')
-
-function repeatedSubstringPattern2(s) {
-  // \1就是匹配的前面的组
-  let reg = /^(\w+)\1+$/;
-  return reg.test(s);
-}
-
-function repeatedSubstringPattern3(s) {
-  // 先合并，再掐头去尾，如果还包含，则正确
-  // abab => abababab => bababa => abab
-  let s1 = (s + s).slice(1, -1);
-  return s1.indexOf(s) !== -1;
-}
-```
-
-**题：找出两个字符串中共有的最大公共子字符串**
-
-```js
-/*
-题目：字符串的最大公因子
-思路一：
-*/
-function gcdOfStrings(str1, str2) {
-  if (str1 + str2 !== str2 + str1) return '';
-
-  // 将字符串问题转为数学问题，求最大公因子公式（辗转相除法）
-  // 求出字符串在字符串str1中截止的索引位置
-  const gcd = (a, b) => (0 === b ? a : gcd(b, a % b))
-
-  // 截取字符串
-  return str1.substring(0, gcd(str1.length, str2.length))
-}
-
-
-function gcdOfStrings(str1, str2) {
-let n1 = str1.length, n2 = str2.length
-  if(n1 === n2) {
-    if(str1 === str2) return str1
-    else return ''
-  }
-  if(n1 < n2) {
-    let tmp = str2.split(str1).filter((val) => val !== '')
-    if(tmp.length === 0) return str1
-    else if(tmp.length > 1 || tmp[0] === str2) return ''
-    else return gcdOfStrings(tmp[0], str1)
-  }
-
-  if(n1 > n2) {
-    let tmp = str1.split(str2).filter((val) => val !== '')
-    if(tmp.length === 0) return str2
-    else if(tmp.length > 1 || tmp[0] === str1) return ''
-    else return gcdOfStrings(tmp[0], str2)
-  }
-};
-```
-
-
-
-#### **算法之数组相关**
-
-```js
-/*
-两数之和
-给定一个整数数组和目标值，找出数组中和为目标值的两个数
-*/
-function twoSum1(nums, target) {
-  let res = {};
-  let numsLen = nums.length;
-  for (let i = 0; i < numsLen; i++) {
-    // 其实就是将两个值作为数组里的索引，而值就是要得到的目标索引
-    let temp = target - nums[i]
-    if (res[temp] !== void 0) return [res[temp], i];
-    res[nums[i]] = i;
-  }
-}
-twoSum2([2,7,11,15], 9);
-
-/*
-最大子序和
-给定一个整数数组，求这个数组中，哪个连续子数组的和最大，和是多少
-
-直接forEach，然后累计加和，如果和每次都增大，则继续累加，如果总和小于0，从0开始累计。
-*/
-var maxSubArray = function(nums) {
-  var maxn = - Number.MAX_VALUE;
-  var sum = 0;
-  nums.forEach(function(item, index, array) {
-    sum += item;
-    // 如果每次累加都增大，说明
-    if (sum > maxn) {
-      maxn = sum;
-    }
-    if (sum < 0)
-      sum = 0;
-  });
-  console.log(arr);
-  return maxn;
-};
-
-maxSubArray([-2,1,-3,4,-1,2,1,-5,4]) // 6
-// 思考如何返回对应的子数组？？？
-```
-
-**题：找出最短的连续子数组，如果把子数组排序好了，整个数组也就排序好了**
-
-```js
-/*
-思路一：先对数组排序，拍好序后跟原来的数组进行对比，得到索引差
-*/
-function findUnsortedSubarray(nums) {
-  //将nums进行升序操作，与原数组进行前后比较，找出索引差
-  var arr = [...nums].sort((a,b)=>a-b);
-  var l = 0;
-  var r = 0;
-  for(var i=0;i<arr.length;i++){
-    if(arr[i] !== nums[i]){
-      l = i;
-      break;
-    }
-  }
-  for(var j=nums.length-1;j>-1;j--){
-    if(nums[j] !== arr[j]){
-      r = j;
-      break;
-    }
-  }
-  if(l === 0 && r === 0){
-    return 0;
-  }
-  return r - l + 1;
-};
-let nums = [2,6,4,8,10,9,15];
-findUnsortedSubarray(nums);
-```
-
-**题：给定一个未排序的整数数组，返回最长、连续且递增的子序列的长度**
-
-```js
-/*
-思路一：从第一项开始比较，如果后面比前面大，则累计次数，然后两层循环
-*/
-
-function findLongSunArr(nums) {
-  let len = nums.length;
-  let longest = 0;
-  for(let i = 0; i< len; i++) {
-    // 外层每次循环都需要重新计数
-    let tempLen = 0;
-    for (j = 0; j< len; j++) {
-      if (nums[j] < nums[j+1]) {
-        tempLen ++;
-        continue;
-      } else {
-        // 如果有一个不满足，直接退出当前循环
-        break
-      }
-    }
-    longest = Math.max(longest, tempLen)
-  }
-  return longest;
-}
-findLongSunArr([1,3,5,7,6]);
-```
-
-**题：给定一个排序的整数数组，使用原地算法删除重复的元素，并返回新的数组长度**
-
-```js
-/*
-思路一：循环，发现相等的，就原地删除，切记数组长度是即时变化的，不能缓存
-*/
-
-function removeDuplicates1(nums) {
-  for (let i = 0; i< nums.length; i++){
-    if (nums[i] === nums[i+1]) {
-      nums.splice(i, 1);
-    }
-  }
-  return nums.length;
-}
-removeDuplicates1([1,1,5,7,7]); // 3
-```
-
-**题：给定一个排序无重复的整数数组和一个目标值，返回目标值在数组中的位置**
-
-```js
-/*
-题目：搜索插入位置
-思路一：目标值可能在，也可能不在数组中
-*/
-
-function findTargetIndex(nums, target) {
-  // 先假设在数组中
-  let tempIdx = nums.indexOf(target);
-  
-  if (~tempIdx) {
-    return tempIdx;
-  } else {
-    // 不在数组中
-    for (let i = 0; i< nums.length; i++){
-      if (nums[i] < target && target < nums[i+1]) {
-        return i+1;
-      }
-    }
-  }
-}
-findTargetIndex([1,5,7,8], 6); // 2
-```
-
-**题：给定一个长度为n的数组，找出其中的众数**
-
-```js
-/*
-思路一：众数特征，出现次数大于 n/2 的。
-*/
-
-function findZhongShu1(nums) {
-  let len = nums.length;
-  let map = {};
-  for (let i = 0; i < len; i++) {
-    if (map[nums[i]] !== void 0) {
-      map[nums[i]] ++;
-    } else {
-      map[nums[i]] = 1;
-    }
-
-    // 可以在循环里直接判断
-    if (map[nums[i]] > len/2) {
-      return nums[i];
-    }
-  }
-
-  // 再次遍历结果，也行，但没必要
-  // let res = [];
-  // for (let [item, val] of Object.entries(map)) {
-  //   if (val > len/2) {
-  //     res.push(item);
-  //   }
-  // }
-  // return res;
-}
-findZhongShu1([3,2,3]); // ['3']
-```
-
-**题：给定一个整数数组和一个整数k，判断是否存在索引不同，但值相同，且索引差的绝对值为k**
-
-```js
-/*
-思路一：
-*/
-
-function containsNearbyDuplicate(nums, k) {
-  let len = nums.length;
-  for (let i = 0; i< len; i++) {
-    if (nums[i] === nums[i+k]) {
-      return [i, i+k]
-    }
-  }
-}
-containsNearbyDuplicate([1,2,3,1], 3); // [0,3]
-```
-
-**题：给定一个整数数组和一个整数k，返回所有索引不同，但对应的值相差k的组合**
-
-```js
-/*
-思路一：双层循环，但会有可能会产生重复的组合，因此最好先排序
-思路一：结果里可能出现类似 [1,2] [2,1]这种，需要去除
-*/
-
-function findPairs(nums, k) {
-  let len = nums.length;
-  let res = [];
-  nums = [...new Set(nums)]
-  for (let i = 0; i< len; i++) {
-    for (let j = 1; j< len; j++) {
-      if (Math.abs(nums[i] - nums[j]) === k) {
-        res.push([nums[i],nums[j]])
-      }
-    }
-  }
-  return res;
-}
-findPairs([3,1,4,1,5], 2); // 
-findPairs([1,2,3,4,5], 1); // 
-
-function findPairs2(nums, k) {
-  let len = nums.length;
-  let res = [];
-  // nums = [...new Set(nums)]
-  for (let i = 0; i< len; i++) {
-    for (let j = 1; j< len; j++) {
-      if (Math.abs(nums[i] - nums[j]) === k && i < j) {
-        res.push([nums[i],nums[j]])
-      }
-    }
-  }
-  // 去重
-  let map = {};
-  res.forEach(item => {
-    map[item.toString()] = item;
-  })
-
-  return Object.values(map);
-}
-// findPairs2([1,2,3,4,5], 1); // 
-// findPairs2([1,3,1,5,4], 0); // 
-findPairs2([1,1,1,2,1], 1); // 
-
-// 这个可以的。
-function findPaires3(nums, k) {
-  let len = nums.length;
-  let map = new Map();
-
-  for (let i = i; i < len; i++) {
-    if (map.has(nums[i])) {
-      map.set(nums[i], map.get(nums[i]) + 1);
-    } else {
-      map.set(nums[i], 1)
-    }
-  }
-
-  for (let i = i; i < len; i++) {
-    if (map.has(nums[i]) && map.get(num[i]) > 0) {
-      // k > 0 && map.has(nums[i]+k)，其实就是当k大于0，map对象里nums[i]+k有值即可
-      // k === 0 && map.get(num[i]) > 1，k===0，说明必须重复才可以，也就是map.get(num[i]) > 1
-      if ((k > 0 && map.has(nums[i]+k) || (k === 0 && map.get(num[i]) > 1))) {
-        count++;
-      } else {
-        map.set(num[i], -1)
-      }
-    }
-  }
-  return count;
-}
-
-```
-
-**题：给出一个数组(0-n)，找出缺少哪个数字**
-
-```js
-/*
-思路一：排序，比对
-思路二：存在map里，比对
-*/
-
-function findMissedNums(nums) {
-  let len = nums.length;
-  nums.sort((a,b) => a-b);
-
-  for (let i = 0; i< len; i++) {
-    if (nums[i] !== i) {
-      return i;
-    }
-  }
-}
-findMissedNums([1,2,4,0]); // 3
-
-function findMissedNums2(nums) {
-  let len = nums.length;
-  let map = {};
-
-  nums.forEach(item => map[item] = true);
-
-  for (let i = 0; i< len; i++) {
-    if (!map[i]) return i;
-  }
-}
-findMissedNums2([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：先统计0出现次数n，然后用0分割数组，再合并，最后补加n个0
-思路二：遍历，等于0就删除，然后累计次数，最后拼接
-思路三：遍历，等于0就删除，然后直接push(0)，但需要注意是倒序，长度也就不变了
-*/
-
-function moveZeroes(nums) {
-  let n = 0;
-  nums.forEach((item,idx) => {
-    if (item === 0) {
-      nums.splice(idx,1);
-      n ++;
-    }
-  })
-  return nums.concat(Array(n).fill(0))
-}
-moveZeroes([1,2,4,0,1,3]); 
-
-function moveZeroes2(nums) {
-  for (let i = nums.length -1; i > -1;i--) {
-    if (nums[i] === 0) {
-      nums.splice(i,1);
-      nums.push(0);
-    }
-  }
-  return nums;
-}
-moveZeroes2([1,2,4,0,1,3]); 
-```
-
-**题：给定一个数组，返回数组中第三大的数，不存在第三个，则返回最大值**
-
-```js
-/*
-思路一：排序，去重，获取第三个，若不存在，返回第一个
-*/
-
-function findThridMax(nums) {
-  // 升序是a-b，倒序是 b-a
-  nums = [...new Set(nums)].sort((a,b) => b-a);
-  if (nums[2]) {
-    return nums[2]
-  } else {
-    return nums[0]
-  }
-}
-findThridMax([1,2,4,0,2,4,1]); // 1
-```
-
-**题：给定一个二进制数组，计算其中最大连续1的个数**
-
-```js
-/*
-思路一：遍历，一个值存储最大，一个值存储每次比较的
-*/
-
-function findLongestOnes(nums) {
-  let len = nums.length;
-  let max = 0, temp = 0;
-  for (let i = 0; i< len;i ++) {
-    if (nums[i] === 1) {
-      temp ++;
-      max = max < temp ? temp : max;
-    } else {
-      temp = 0;
-    }
-  }
-  return max
-}
-findLongestOnes([1,1,0,1,1,1]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
-```
-
-**题：给定一个数组，将所有的0移到末尾，不能改变其他顺序**
-
-```js
-/*
-思路一：
-*/
-
-function moveZeroes(nums) {
-
-}
-moveZeroes([1,2,4,0]); // 3
 ```
 
 ### **相关链接**
