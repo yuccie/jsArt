@@ -280,6 +280,72 @@ export default {
 };
 ```
 
+**给出如下虚拟dom的数据结构，如何实现简单的虚拟dom，渲染到目标dom树?**
+
+```js
+//样例数据
+let demoNode = ({
+  tagName: 'ul',
+  props: {'class': 'list'},
+  children: [
+    ({tagName: 'li', children: ['douyin']}),
+    ({tagName: 'li', children: ['toutiao']})
+  ]
+});
+
+// 构建一个render函数，将demoNode对象渲染为以下dom
+<ul class="list">
+  <li>douyin</li>
+  <li>toutiao</li>
+</ul>
+```
+
+其实要明白render函数返回的是一个虚拟dom片段，也就是用js构建出来的结构。因此将虚拟dom渲染成真实的dom，需要两个步骤：构建虚拟dom、将虚拟dom插入页面中
+
+```js
+// 1、构建虚拟dom
+function Element({tagName, props, children}){
+  if(!(this instanceof Element)){
+      return new Element({tagName, props, children})
+  }
+  this.tagName = tagName;
+  this.props = props || {};
+  this.children = children || [];
+}
+
+Element.prototype.render = function(){
+  var el = document.createElement(this.tagName),
+      props = this.props,
+      propName,
+      propValue;
+  for(propName in props){
+      propValue = props[propName];
+      el.setAttribute(propName, propValue);
+  }
+  this.children.forEach(function(child){
+      var childEl = null;
+      if(child instanceof Element){
+          childEl = child.render();
+      }else{
+          childEl = document.createTextNode(child);
+      }
+      el.appendChild(childEl);
+  });
+  return el;
+};
+
+// 2、插入页面
+var elem = Element({
+  tagName: 'ul',
+  props: {'class': 'list'},
+  children: [
+    Element({tagName: 'li', children: ['item1']}),
+    Element({tagName: 'li', children: ['item2']})
+  ]
+});
+document.querySelector('body').appendChild(elem.render());
+```
+
 #### **响应式**
 
 这里的 getter 跟 setter 已经在之前介绍过了，在 init 的时候通过 Object.defineProperty 进行了绑定，它使得当被设置的对象被读取的时候会执行 getter 函数，而在当被赋值的时候会执行 setter 函数。

@@ -1,24 +1,42 @@
+// 问题：
+// 技术掌握深度不够 理论和项目经历还行 编程尚可
+// 对技术的理解和使用不够灵活，没有遇到过的问题想不到解决方案。代码能力不符合预期。
 
-任务
-面试官提出的问题将出现在这里。
+// 解决：
+// 1、每天总结
+// 2、每天一个算法，必须搞彻底明白，还要思考多方式
+// 3、加快node全流程项目落地
+// 4、将理论落地
 
-==  ===
-0 == ‘0’ = true | false
-事件循环 微任务
-set 1000
-基于对象
+// 1、如何计算一个超过存取范围的大数据的计算？
+// 2、落地页的图片如何优化？怎么支持不同的格式？
+// 3、无头浏览器
+// 4、spa与多页应用优缺点
+// 5、小程序双线程、及登录流程
+// 6、WebAssembly
+// 7、nextTick原理
+// 8、事件订阅与发布者模式，写个class
+// 9、jsBridge通信
+// 10、场景比较多，临界点突破机会多，对新特性应用的机会多，因此更能锻炼人。年轻有活力的公司。
+// 11、如何优化页面加载，页面性能？
 
-proptype  __proto__
-ES6
-... 
-Node.js 
-ES6 export 
-Commonjs
-git -> mrege vs  rebase
-commit  rebase -i
-SQL vs NoSql 
-HTML5 语义化
-CSS3 新特性
+// ==  ===
+// 0 == ‘0’ = true | false
+// 事件循环 微任务
+// set 1000
+// 基于对象
+
+// proptype  __proto__
+// ES6
+// ... 
+// Node.js 
+// ES6 export 
+// Commonjs
+// git -> mrege vs  rebase
+// commit  rebase -i
+// SQL vs NoSql 
+// HTML5 语义化
+// CSS3 新特性
 
 
 function Person(name) {

@@ -5,6 +5,7 @@ date: Wed Jan 30 2019 11:55:28 GMT+0800 (中国标准时间)
 ---
 
 ### 复制到粘贴板，去app打开
+
 参考：[js实现复制到粘贴板][jsCopyTextTOClipboardUrl]<br/>
 
 主要两种方法：
@@ -89,38 +90,6 @@ function _parseInt (string, radix) {
   }
   return result
 }
-```
-
-**Number.prototype.toString()**<br/>
-**注意：**在其他对象(Object,Array,Boolean,String,Function,RegExp)上也有这个toString()方法，都是覆盖的Objcet对象的toString方法。
-
-Number 对象覆盖了 Object 对象上的 toString() 方法，它不是继承的 Object.prototype.toString()。对于 Number 对象，toString() 方法以指定的基数返回该对象的字符串表示。
-
-如果转换的基数大于10，则会使用字母来表示大于9的数字，比如基数为16的情况，则使用a到f的字母来表示10到15。
-
-如果基数没有指定，则使用 10。
-
-如果对象是负数，则会保留负号。即使radix是2时也是如此：返回的字符串包含一个负号（-）前缀和正数的二进制表示，不是 数值的二进制补码。
-
-**进行数字到字符串的转换时，建议用小括号将要转换的目标括起来**，防止出错。
-```js
-// radix 指定要用于数字到字符串的转换的基数(从2到36)。如果未指定 radix 参数，则默认值为 10。
-numObj.toString([radix])
-
-var count = 10;
-
-console.log(count.toString());    // 输出 '10'
-console.log((17).toString());     // 输出 '17'
-console.log((17.2).toString());   // 输出 '17.2'
-
-var x = 6;
-
-console.log(x.toString(2));       // 输出 '110'
-console.log((254).toString(16));  // 输出 'fe'
-console.log((10).toString(8));  // 输出 '12'
-
-console.log((-10).toString(2));   // 输出 '-1010'
-console.log((-0xff).toString(2)); // 输出 '-11111111'
 ```
 
 ### 关于进度条

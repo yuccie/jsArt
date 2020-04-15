@@ -719,7 +719,313 @@ getWeekdaysInMonth(2020, 5);
 
 ```
 
-#### **栈结构**
+### **二分法**
+
+对于一个有序的列表（比如1-100），如果要查找1这个数的位置，二分查找：50 -> 25 -> 13 -> 7 -> 4 -> 2 -> 1通过七次就可以找到，如果挨个找，比如倒序就需要100次。$\log_2{18}$
+
+在数学中 2^3 = 8，那我想知道几个2相乘是8怎么算？即：$\log_2{8}$ = 3。
+
+```js
+// 在数学中
+2^3 = 8
+// 那我想知道几个2相乘是8怎么算？即
+log2^8 = 3
+```
+
+综上：**对数运算其实就是幂运算的逆运算**
+
+在使用大O表示法时，log 指的都是 $\log_2$，因此对于有序长度为 n 的列表，使用二分查找的时间复杂度为：logn，如果n为8，log8也就是3。
+
+```js
+// 实现一个二分查找，步骤如下
+// 1、函数接受一个数组和一个元素
+// 2、开始时，搜索范围是整个数组，因此lowIdx = 0, highIdx = len - 1
+// 3、每次取中间值，有余数则向上或向下取整，即 Math.floor((lowIdx + highIdx) / 2)
+// 4、如果元素等于中间值，直接返回索引，如果小于中间值，则将highIdx = 当前中间值索引 - 1，否则lowIdx = 当前中间值索引 + 1
+// 5、循环，如果lowIdx < highIdx则继续循环，否则返回空
+
+function binarySearch(arr, target) {
+  let lowIdx = 0;
+  let highIdx = arr.length - 1;
+  let times = 0;
+  // 当lowIdx = highIdx，也需要检测
+  while(lowIdx <= highIdx) {
+    let mid = Math.floor((lowIdx + highIdx) / 2);
+    times++;
+
+    if (target < arr[mid]) {
+      highIdx = mid - 1;
+    } else if (target > arr[mid]) {
+      lowIdx = mid + 1;
+    } else {
+      console.log(`运算次数：${times}；目标索引：${mid}`);
+      return mid;
+    }
+  }
+  // 循环结束，如果没有返回，说明没找到
+  return '没找到额！'
+}
+
+let arr = Array(1024).fill(0).map((item,idx) => idx)
+binarySearch(arr, 1);
+```
+
+运行时间：如果逐个查找时间，列表长度为100的话，就需要100次；长度为40亿次的话就需要40亿次，这种需要查找的次数和列表长度一致，这种叫做**线性时间**。如果用二分法，长度100只需7次，40亿次只需32次。所以大幅缩短了时间。
+
+注意：
+
+- 如果数值过大怎么办？数值在js中的范围？
+- 线性时间和对数时间的增长率不同，时间相差会越来越大
+
+#### **大O表示法**
+
+对于不同增长率的曲线，只对比某个时刻的时间相差多少，不准确。。。为了更可靠的识别不同曲线下的时间，需要大O表示法。
+
+大O表示法指出算法有多快，如果列表含有n个元素，挨个检查则需要n次操作，运行时间也就是O(n)。单位是什么呢？**大O表示法指的并非以秒为单位的速度，而是比较操作数，它指出了算法运行时间的增速**。
+
+如果用二分法检查，运行时间也就是操作数为 O(logn)，也就是指出了算法需要执行的**操作数**。
+
+大O表示法指出了最糟糕情况下的运行时间，比如长度为n的列表，挨个查找的时间为O(n)，那如果要查找的元素就是第一个呢？一次就找到，难道是O(1)。。。其实不是的，挨个查找也就是简单查找的运行时间总是O(n)，只是说一次就找到的情况是最佳情形，而**大O表示法指出了最糟糕情况下的运行时间**
+
+>除了最糟糕情形下的运行时间，还要考虑平均时间的。
+
+实际上，并不能直接将大O运行时间转换为操作数，但目前来说已经足够了。总结:
+
+- 算法的速度指的并非时间，而是操作数的增速
+- 谈论算法的速度时，我们说的是随着输入的增多，其运行时间将以什么样的速度增加。
+- O(logn)比O(n)快，当需要搜索的元素更多时，前者比后者快的越多
+
+### **选择排序**
+
+我们可以将内存理解为超市里的储物柜，每个格子就是一块内存，如果想同时并且连续放置4个柜子，就是数组。。。如果想连续放置100个柜子，数组很明显不满足，因为很容易不连续。这时就需要链表。
+
+而同样，本来四个柜子可以装下，现在又多了一个东西，还需一个柜子。。。就需要重新找一个可以连续放下5个东西的柜子。反应在计算机内就是重新开辟一个新的空间，然后放置。。。因此每次都很慢，这时可以提前向计算机申请一个大点的内存空间，从而预留一些位置。但还需要权衡这些空间是否会用到，以免浪费内存，如果后续超过了还需要重新换位置。
+
+而链表的话，不必是连续的内存空间，就如寻宝游戏，你前往第一个地址，那里有一张纸条写着"下一个元素的地址为123"，因此你前往123，那里又有一张纸条，写着“下一个元素的地址为847”，因此在链表中插入元素很容易，只需将其放入内存，并将其地址存储到前一个元素中。
+
+| | 数组 | 链表
+| - | - | - |
+读取 | O(1) | O(n)
+插入 | O(n) | O(1)
+删除 | O(n) | O(1)
+
+选择排序每一轮找出列表里的最大（或最小）值，放在列表循环的开始位置，比如第一轮放在索引为0的位置，第二轮则放在索引为1的位置。。。
+
+```js
+function selectSort(arr) {
+  // 1、每轮循环找出最小元素的索引
+  // 2、每轮循环结束，将最小元素放在循环开始位置
+  let len = arr.length;
+  let times = 0;
+  // 务必注意，这里是len - 1，因为最后要给j留一个元素
+  // 其实len也行，只是内层循环最后一次不执行而已，
+  for (let i = 0; i < len - 1; i++) {
+    let minIdx = i;
+
+    for(let j = i + 1; j < len; j++) {
+      times++;
+      if (arr[j] < arr[minIdx]) {
+        minIdx = j;
+      }
+    }
+    // 一轮循环结束，将最小的放在循环开始处
+    [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]]
+  }
+  console.log(`执行次数：${times}`);
+  return arr;
+}
+let arr = Array(4).fill(0).map((item, idx) => idx);
+selectSort(arr);
+```
+
+选择排序，每次都从剩余列表里找出最值的索引，最后放在开始或结束位置。而冒泡排序，是双层循环，每次比较相邻的两个值，然后交换位置
+
+```js
+// 冒泡排序
+function bubleSort(arr) {
+  let len = arr.length;
+  let times = 0;
+
+  for (let i = 0; i < len - 1; i++) {
+    for (let j = 0; j < len - 1 - i; j++) {
+      if (arr[j] < arr[j+1]) {
+        times++;
+        [arr[j], arr[j+1]] = [arr[j+1], arr[j]]
+      }
+    }
+  }
+  console.log(`执行次数：${times}`);
+  return arr;
+}
+let arr = Array(6).fill(0).map((item,idx) => idx)
+bubleSort(arr);
+```
+
+### **递归**
+
+如果使用循环，性能可能更高，如果使用递归，程序可能更容易理解。
+
+```js
+// 实现数的阶层n！
+function factorial(n) {
+  if (n === 1) return 1;
+  return n*factorial(n-1)
+}
+factorial(3); // 6
+
+// 实现斐波那契数列
+function fibonacci(n) {
+  if (n < 2) return n;
+  return fibonacci(n-2) + fibonacci(n-1)
+}
+
+// 实现斐波那契数列
+var count = 0;
+var fibonacci = function(n) {
+  count++;
+  return n < 2 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+};
+for (var i = 0; i <= 10; i++) {
+  fibonacci(i);
+}
+// 计算到10的斐波那契额数列竟然运行了453次函数调用
+console.log(count); // 453
+
+console.time();
+fibonacci(20)
+console.timeEnd(); // 1.965087890625ms
+
+// 当执行 fib(0) 时，调用 1 次
+// 当执行 fib(1) 时，调用 1 次
+// 当执行 fib(2) 时，相当于 fib(1) + fib(0) 加上 fib(2) 本身这一次，共 1 + 1 + 1 = 3 次
+// 当执行 fib(3) 时，相当于 fib(2) + fib(1) 加上 fib(3) 本身这一次，共 3 + 1 + 1 = 5 次
+// 当执行 fib(4) 时，相当于 fib(3) + fib(2) 加上 fib(4) 本身这一次，共 5 + 3 + 1 = 9 次
+// ...
+
+// 优化版，需要一个对象保存已经计算过的值
+var fibonacci = (function(n){
+  // 利用闭包保存已计算的值
+  let cache = Object.create(null);
+
+  // 因为最终要的是函数，所以这里返回函数
+  return n => {
+    if (n < 2) return n;
+
+    if (cache[n-2] === void 0) {
+      cache[n-2] = fibonacci(n-2)
+    }
+    if (cache[n-1] === void 0) {
+      cache[n-1] = fibonacci(n-1)
+    }
+    return cache[n] = cache[n-1] + cache[n-2]
+  }
+})()
+
+console.time();
+fibonacci(20)
+console.timeEnd(); // 0.055908203125ms
+```
+
+使用递归计算数组的累加和
+
+```js
+// 使用遍历或循环可以轻松的求出和，如果是递归呢？
+function addSum(arr) {
+  let sum = 0;
+  if (arr.length < 2) {
+    return arr.shift();
+  } else {
+    sum = arr.shift() + addSum(arr);
+  }
+  return sum;
+}
+addSum([1,2,3]); // 6
+
+// 使用递归找到数组中最大值rr
+function findMax(arr) {
+  let len = arr.length;
+  let max = 0;
+  if (len < 2) {
+    return arr[0]
+  } else {
+    let temp = arr.shift();
+    if (max < temp) {
+      max = temp;
+    }
+    findMax(arr);
+  }
+  return max;
+};
+findMax([1,2,3]); // 6
+```
+
+为什么能使用循环遍历的场合，非得用递归呢？因为在函数式编程里，没有循环，只有递归。
+
+### **数组相关**
+
+>两数之和，给定一个整数数组和一个目标值，找出数组中和为目标值的两个数
+
+```js
+function twoNumSum(arr, target) {
+  let map = {};
+  // arr.forEach();// 无法退出
+  for(let item of arr) {
+    let temp = target - item;
+    // 其实相当于将两个加数存到map里
+    if (map[temp] === void 0) {
+      map[item] = item;
+    } else {
+      return [map[temp], item]
+    }
+  }
+}
+twoNumSum([2,7,11,15], 9);
+```
+
+>删除排序数组中的重复项，给定一个排序数组，你需要使用原地算法删除重复的项，最后返回数组长度
+
+```js
+// 原地删除，就是不占用新的内存空间
+function removeDuplicates(arr) {
+  let len = 0;
+  for(let i = 0; i < arr.length; i++) {
+    if (arr[i] === arr[i+1]) {
+      arr.splice(i,1);
+      // 删除后，索引需要减少一个
+      i--
+    } else {
+      len++;
+    }
+  }
+  return len;
+}
+removeDuplicates([2,7,7,11,15]); // 4
+removeDuplicates([2]); // 1
+```
+
+>搜索插入位置，给定一个排序数组和一个目标值，在数组中找到目标值，并返回索引。如果目标值不在数组中，返回它将会被按顺序插入的位置
+
+```js
+// 需要考虑边界情况，比如就一项，比如只在两侧等等
+function searchInsert(arr, target) {
+  let idx = arr.indexOf(target);
+
+  if (idx === -1) {
+    // 如果手动查找，需要考虑边界情况，因此直接插入，重新排序
+    arr.push(target)
+    return arr.sort((a,b)=> a-b).indexOf(target);
+  } else {
+    return idx;
+  }
+}
+
+// 执行用时 :72 ms, 在所有 JavaScript 提交中击败了36.59%的用户
+// 内存消耗 :35.9 MB, 在所有 JavaScript 提交中击败了13.04%的用户
+searchInsert([2,7,7,11,15], 13); //
+```
+
+
+### **栈结构**
 
 ```js
 // 利用数组定义一个栈的类
@@ -801,7 +1107,7 @@ divideByAny(8, 2); // '1000'
 divideByAny(10, 16); // 'A'
 ```
 
-#### **柯理化**
+### **柯理化**
 
 写一个加法函数(sum)，使他可以同时支持sum(x,y)和sum(x)(y)两种调用方式。
 
@@ -820,7 +1126,7 @@ function fn(...args) {
 console.log(fn(1,2),fn(1)(2))
 ```
 
-#### **队列**
+### **队列**
 
 ```js
 function Queue() {
@@ -924,7 +1230,7 @@ var winner = hotPotato(names, 7);
 console.log("胜利者：" + winner);
 ```
 
-#### **链表**
+### **链表**
 
 数组提供了`[]`语法获取元素很是方便，然而（大多数语言中）数组的大小是固定的，从数组的起点或中间插入或移除元素的成本很高，因为需要移动元素。
 
@@ -932,11 +1238,11 @@ console.log("胜利者：" + winner);
 
 可以将火车想象成一个链表，每节车厢通过铰链链接，断开任意两个车厢间的铰链就可以插入一节新的车厢。。。
 
+### **广度优先**
+
 **深度优先遍历和广度优先遍历**  
 树形结构一般有两种遍历方法，深度优先遍历和广度优先遍历
 所谓深度优先就是先选择一个子树纵向遍历，而广度优先则是同级别横向遍历。
-
-#### **广度优先**
 
 广度优先算法（`Breadth-First Search`），同广度优先搜索，又称作宽度优先搜索，或横向优先搜索，简称 BFS，是一种图形搜索演算法。简单的说，BFS 是从根节点开始，沿着树的宽度遍历树的节点，如果发现目标，则演算终止。广度优先搜索的实现一般采用 open-closed 表。
 
@@ -1019,9 +1325,9 @@ function logDom(str) {
 logDom(str);
 ```
 
-#### **常见算法题**
+### **常见算法题**
 
-##### **字符串相关**
+#### **字符串相关**
 
 ```js
 // 题1、求最长公共前缀
@@ -1111,8 +1417,6 @@ function longestCommonPrefix(strs) {
 
   return prefix;
 }
-
-
 ```
 
 ### **相关链接**
