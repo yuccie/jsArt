@@ -982,6 +982,52 @@ function twoNumSum(arr, target) {
 twoNumSum([2,7,11,15], 9);
 ```
 
+>两数之和 II，给定一个已按照升序排列 的有序数组，找到两个数使得它们相加之和等于目标数。函数应该返回这两个下标值 index1 和 index2，其中 index1 必须小于 index2。
+
+```js
+function twoNumSumII(arr, target) {
+  let map = {};
+  let len = arr.length;
+  // let [item,idx] of map，可以，但不能用在数组arr上
+  for(let i = 0; i < len; i++) {
+    let temp = target - arr[i];
+    if (map[temp] === void 0) {
+      map[arr[i]] = i;
+    } else {
+      // +1是因为，返回的索引要求大于0开始
+      return [map[temp]+1, i+1]
+    }
+  }
+}
+// leetcode上的跑分，并不准确，同一份代码提交多次，耗时差别还挺大
+// 执行用时 :72 ms, 在所有 JavaScript 提交中击败了56.84%的用户
+// 内存消耗 :35.4 MB, 在所有 JavaScript 提交中击败了40.00%的用户
+twoNumSumII([2,7,11,15], 9); // [1,2]
+
+function twoNumSumII1(arr, target) {
+  // 因为数组是有序的
+  let lowIdx = 0;
+  let highIdx = arr.length - 1;
+
+  while(lowIdx < highIdx) {
+    let sum = arr[lowIdx] + arr[highIdx]
+    if (sum === target) {
+      return [lowIdx+1, highIdx+1];
+    } else if (sum < target) {
+      // 因为有序数组，所以，如果小于，则采用右侧大点的元素
+      lowIdx++;
+    } else {
+      highIdx--;
+    }
+  }
+  // while循环如果没返回，则返回
+  return [-1,-1];
+}
+// 执行用时 :68 ms, 在所有 JavaScript 提交中击败了71.27%的用户
+// 内存消耗 :35.1 MB, 在所有 JavaScript 提交中击败了70.00%的用户
+twoNumSumII1([2,7,11,15], 9); // [1,2]
+```
+
 >删除排序数组中的重复项，给定一个排序数组，你需要使用原地算法删除重复的项，最后返回数组长度
 
 ```js
@@ -1003,7 +1049,7 @@ removeDuplicates([2,7,7,11,15]); // 4
 removeDuplicates([2]); // 1
 ```
 
->搜索插入位置，给定一个排序数组和一个目标值，在数组中找到目标值，并返回索引。如果目标值不在数组中，返回它将会被按顺序插入的位置
+>搜索插入位置：给定一个排序数组和一个目标值，在数组中找到目标值，并返回索引。如果目标值不在数组中，返回它将会被按顺序插入的位置
 
 ```js
 // 需要考虑边界情况，比如就一项，比如只在两侧等等
@@ -1021,9 +1067,182 @@ function searchInsert(arr, target) {
 
 // 执行用时 :72 ms, 在所有 JavaScript 提交中击败了36.59%的用户
 // 内存消耗 :35.9 MB, 在所有 JavaScript 提交中击败了13.04%的用户
-searchInsert([2,7,7,11,15], 13); //
+searchInsert([2,7,7,11,15], 13); // 4
+
+
+function searchInsert1(arr, target) {
+  let map = Object.create(null);
+  let len = arr.length;
+
+  for (let i = 0; i< len; i++) {
+    map[arr[i]] = i;
+    if (map[target] !== void 0) return map[target]
+  }
+
+  // 为了排除边界的情况，可以在边界添加两个值
+  arr[-1] = -Infinity;
+  arr[len] = Infinity;
+  // 再次for循环，target肯定会落在这区间
+  for(let i = 0; i <= len; i++) {
+    if (arr[i-1] < target && target < arr[i]) {
+      return i;
+    }
+  }
+}
+
+// 执行用时 :84 ms, 在所有 JavaScript 提交中击败了18.08%的用户
+// 内存消耗 :37.5 MB, 在所有 JavaScript 提交中击败了8.7%的用户
+searchInsert1([2,7,7,11,15], 13); // 4
+// 这种反而效率不高。。。单次测试还是不准，因为复杂度分析必须得会
 ```
 
+>最大子序和，给定一个整数数组 nums ，找到一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
+
+```js
+function maxSubArray(arr) {
+  let max = -Infinity;
+  let sum = 0;
+
+  arr.forEach(item => {
+    sum += item;
+    if (max < sum) {
+      max = sum;
+    }
+    // 如果小于0，需要清零
+    if (sum < 0) {
+      sum = 0;
+    }
+  });
+}
+
+// 执行用时 :64 ms, 在所有 JavaScript 提交中击败了91.54%的用户
+// 内存消耗 :34.8 MB, 在所有 JavaScript 提交中击败了100.00%的用户
+maxSubArray([-2,1,-3,4,-1,2,1,-5,4]); // 6
+```
+
+>加一：给定一个由整数组成的非空数组所表示的非负整数，在该数的基础上加一。最高位数字存放在数组的首位， 数组中每个元素只存储单个数字。你可以假设除了整数 0 之外，这个整数不会以零开头。
+
+```js
+function plusOne(arr) {
+  // 注意每个元素只存储单个数字，其实相当于10进制
+  // 由于有进位的可能，如果想着直接转换成数字来计算，数字会溢出
+  // Number('1234567891234567891') => 1234567891234568000
+  let num = Number(digits.toString().replace(/,/g, ''));
+  num ++;
+  return num.toString().split(''); // 比较小点的数字可以
+}
+
+function plusOne1(arr) {
+  let ans = [];
+  let add = 0;
+  let len = arr.length;
+
+  // 直接运算一次
+  arr[len-1]++;
+
+  for (let i = len - 1; i > -1; i--) {
+    let sum = arr[i] + add;
+    // 其实每次将进位和当前数字相加，然后再计算
+    ans[i] = sum % 10; // 余数就是应该的值
+    add = ~~(sum/10);  // 其实可以理解为Math.floor，但负数表现不一致
+  }
+  // 如果循环完以后，还有add，则最开始处需要添加进位
+  if (add) {
+    ans.unshift(add);
+  }
+  return ans;
+}
+// 执行用时 :64 ms, 在所有 JavaScript 提交中击败了74.40%的用户
+// 内存消耗 :33.9 MB, 在所有 JavaScript 提交中击败了90.00%的用户
+plusOne1([9]); // [1,0]
+```
+
+> 买卖股票的最佳时机：给定一个数组，它的第 i 个元素是一支给定股票第 i 天的价格。如果你最多只允许完成一笔交易（即买入和卖出一支股票一次），设计一个算法来计算你所能获取的最大利润。
+
+```js
+function maxProfit(prices) {
+  let len = prices.length;
+  let max = 0;
+  for(let i = 0; i < len; i++) {
+    for (let j = i + 1; j < len; j++) {
+      if (prices[j] - prices[i] > max) {
+        max = prices[j] - prices[i];
+      }
+    }
+  }
+  // 通常利润是负数，一般不会交易，因此利润应该为0
+  if (max < 0) {
+    max = 0;
+  }
+  return max;
+}
+
+// 执行用时 :388 ms, 在所有 JavaScript 提交中击败了23.96%的用户
+// 内存消耗 :35.4 MB, 在所有 JavaScript 提交中击败了92.00%的用户
+maxProfit([7,6,4,3,1]); // 0
+
+
+function maxProfit1(prices) {
+  // 上面的暴力破解复杂度是O(n2)，比较低效，如何只用一层循环呢？
+  // 最小值，其实要设置数值上限
+  let minPrice = Infinity; // 记录最小值
+  let max = 0;
+  prices.forEach(price => {
+    if(price < minPrice) {
+      minPrice = price;
+    } else {
+      max = Math.max(max, price - minPrice)
+    }
+  })
+  return max;
+}
+
+// 执行用时 :76 ms, 在所有 JavaScript 提交中击败了60.59%的用户
+// 内存消耗 :35.3 MB, 在所有 JavaScript 提交中击败了92.00%的用户
+maxProfit1([7,1,5,3,6,4]); // 5
+
+function maxProfit3(prices) {
+  // 上面的暴力破解复杂度是O(n2)，比较低效，如何只用一层循环呢？
+  // 最小值，其实要设置数值上限
+  let minPrice = Infinity; // 记录最小值
+  let max = 0;
+  let len = prices.length;
+  for (let i = 0; i < len; i++) {
+    if (prices[i] < minPrice) {
+      minPrice = prices[i];
+    } else {
+      // 如果用三元，则能提高至66ms，内存没变化
+      // max = max < (prices[i] - minPrice) ? prices[i] - minPrice : max;
+      max = Math.max(max, prices[i] - minPrice);
+    }
+  }
+  return max;
+}
+
+// 执行用时 :88 ms, 在所有 JavaScript 提交中击败了43.08%的用户
+// 内存消耗 :35.3 MB, 在所有 JavaScript 提交中击败了92.00%的用户
+maxProfit3([7,1,5,3,6,4]); // 5
+// 综上forEach的效率要稍高于for循环，而三元表达式的效率要高于Math.max方法调用
+
+function maxProfit4(prices) {
+  let minPrice = Infinity;
+  let max = 0;
+
+  prices.forEach(price => {
+    minPrice = minPrice > price ? price : minPrice;
+    max =  max < (price - minPrice) ? price - minPrice : max;
+    //   minPrice = Math.min(minPrice, price);
+    //   max  = Math.max(max, price - minPrice)
+  });
+  return max;
+}
+
+// 执行用时 :76 ms, 在所有 JavaScript 提交中击败了60.59%的用户
+// 内存消耗 :35.1 MB, 在所有 JavaScript 提交中击败了100.00%的用户
+maxProfit4([7,1,5,3,6,4]); // 5
+
+// 还可以动态规划方式
+```
 
 ### **栈结构**
 
