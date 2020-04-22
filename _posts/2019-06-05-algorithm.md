@@ -472,10 +472,38 @@ function isTelNum(str) {
 }
 ```
 
+**. 数值相关：**
+
+```html
+<el-input
+  class="input-line"
+  size="mini"
+  placeholder="请输入"
+  type="text"
+  @input="val => numChange(val, scope.row.stockItems[0])"
+  v-model.trim.number="scope.row.stockItems[0].returnQuantity"
+></el-input>
+
+<script>
+  // element-ui中，input事件是值改变时触发，
+  function numChange(val, scopeData) {
+    // 要求是正整数，则不能有 -. 且不能0开头，
+    // 默认情况下input的类型是text，此时可以用正则匹配的输入字符串，然后修改
+    // 如果type改为number，或者修饰符添加.number，则会通过转换，将非法数字自动转换为''，比如：1-1 => ''
+    // 因此要想原汁原味的拿到输入的值，并正则匹配，可以写成type='text'，然后正则匹配，如下只允许输入正整数
+    if(!/^[1-9][0-9]*$/g.test(val)) {
+      this.$nextTick(() => {
+        scopeData.returnQuantity = ''
+      });
+    }
+  }
+</script>
+
+```
+
 **. url相关：**
 
 ```js
-
 // 匹配url的query字符串1
 function getQueryUrl1 (url) {
   url = window.decodeURIComponent(url || location.href);
@@ -963,6 +991,36 @@ findMax([1,2,3]); // 6
 
 ### **数组相关**
 
+>业务中，有时会从后台获取一个很大的数组，然后要么渲染在页面，要么过滤后渲染到页面上，如何高效渲染呢？
+
+```js
+<span
+-  v-for="item in vendorList"
+-  v-if="item.vendorId == scope.row.vendorId"
++  v-for="item in filterVendorList(scope.row.vendorId)"
++  :key="item.vendorId"
+>{{item.vendorName}}</span>
+
+// 减号是之前代码，v-for和v-if写在一块，每次接口数据回来后，页面都需要卡顿好几秒才可以交互，
+// 原因就是v-for的优先级高，因此哪怕我们只渲染出一小部分用户的元素，也得在每次重渲染的时候遍历整个列表
+// 加号是优化代码，避免写在一块，又不用增加新标签，如下其实，就是过滤一下大数组。
+filterVendorList(vendorId) {
+  if (this.vendorList) {
+    return this.vendorList.filter(item => {
+      return item.vendorId === vendorId
+    })
+  } else {
+    return [];
+  }
+}
+// 当然如果利用计算属性，效率会更好，计算属性如果涉及传参，可以内部返回函数
+filterVendorList() {
+  return function(vendorId) {
+    // todo
+  }
+}
+```
+
 >两数之和，给定一个整数数组和一个目标值，找出数组中和为目标值的两个数
 
 ```js
@@ -1157,6 +1215,109 @@ function plusOne1(arr) {
 plusOne1([9]); // [1,0]
 ```
 
+>求众数：给定义一个大小为n的数组，找到其中的众数。众数的特征是指在数组中出现次数大于 n/2 的元素。
+
+```js
+function findZhongShu(arr) {
+  let len = arr.length;
+  let map = {};
+  let res = [];
+  arr.forEach(item => {
+    if (map[item] === void 0) {
+      map[item] = 1;
+    } else {
+      map[item]++
+    }
+  });
+
+  for (let item of Object.entries(map)) {
+    if (item[1] > len/2) {
+      res.push(item[0]);
+    }
+  }
+  return res;
+}
+
+findZhongShu([3,2,3]); // ['3']
+
+function findZhongShu1(arr) {
+  let len = arr.length;
+  let map = {};
+  let res = [];
+  arr.forEach(item => {
+    if (map[item] === void 0) {
+      map[item] = 1;
+    } else {
+      map[item]++
+    }
+
+    // 第一种是双重循环，但这里每次都会判断。。。
+    if (map[item] > len/2) {
+      res.push(item)
+    }
+  });
+  return res;
+}
+
+findZhongShu1([3,2,3]); // [3]
+```
+
+>杨辉三角：给定一个非负整数 numRows，生成杨辉三角的前 numRows 行。在杨辉三角中，每个数是它左上方和右上方的数的和。
+
+```js
+function generate(numRows) {
+  let arr = [];
+  if (numRows === 1) return [[1]]
+
+  for (let i = 1; i <= numRows; i++) {
+    // 初始化每个子元素
+    arr[i-1] = [];
+    // 初始化每个子元素的开始和结束位置，都是1
+    arr[i-1][0] = 1;
+    arr[i-1][i-1] = 1;
+
+    // 如果大于2，开始产生中间数值，需要遍历并等于它左上方和右上方的数的和
+    if (i > 2) {
+      for (let j = 1; j <= i-2; j++) {
+        arr[i-1][j] = arr[i-2][j-1] + arr[i-2][j]
+      }
+    }
+  }
+  return arr;
+}
+generate(5);
+// [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]
+// 执行用时 :60 ms, 在所有 JavaScript 提交中击败了84.16%的用户
+// 内存消耗 :33.7 MB, 在所有 JavaScript 提交中击败了100.00%的用户
+
+function generate1(numRows) {
+  let arr = [];
+
+  for (let i = 0; i < numRows; i++) {
+    if (i === 0) {
+      arr[i] = [1];
+      continue;
+    }
+
+    // 其实这里从第二行就开始遍历，而上面的解法是从第三行开始遍历
+    for (let j = 0; j <= i; j++) {
+      if (j === 0) {
+        arr[i][j] = 1;
+      } else if(j === i) {
+        arr[i][j] = 1;
+      } else {
+        arr[i][j] =  arr[i-1][j-1]+ arr[i-1][j]
+      }
+    }
+  }
+  return arr;
+}
+generate1(5);
+// [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]
+// 执行用时 :56 ms, 在所有 JavaScript 提交中击败了93.59%的用户
+// 内存消耗 :33.7 MB, 在所有 JavaScript 提交中击败了100.00%的用户
+```
+
 > 买卖股票的最佳时机：给定一个数组，它的第 i 个元素是一支给定股票第 i 天的价格。如果你最多只允许完成一笔交易（即买入和卖出一支股票一次），设计一个算法来计算你所能获取的最大利润。
 
 ```js
@@ -1240,7 +1401,6 @@ function maxProfit4(prices) {
 // 执行用时 :76 ms, 在所有 JavaScript 提交中击败了60.59%的用户
 // 内存消耗 :35.1 MB, 在所有 JavaScript 提交中击败了100.00%的用户
 maxProfit4([7,1,5,3,6,4]); // 5
-
 // 还可以动态规划方式
 ```
 
