@@ -1636,10 +1636,10 @@ let aggregateData = await app.mongo.aggregate('order' , {
   pipeline: [
     {
       $lookup: {
-            from: 'order_item',
-            localField: 'order_id',
-            foreignField: 'order_id',
-            as: 'list'
+          from: 'order_item',
+          localField: 'order_id',
+          foreignField: 'order_id',
+          as: 'list'
         }
       },
     {
@@ -1716,8 +1716,8 @@ var u = new User({
     status: true
 })
 u.save((err) => {
-    if (err) return console.log(err);
-    console.log('成功');
+  if (err) return console.log(err);
+  console.log('成功');
 });
 
 // 7、修改数据
@@ -1866,7 +1866,7 @@ module.exports = ToolsService;
 async verify() {
   var captcha = await this.service.tools.captcha();  //服务里面的方法
   this.ctx.response.type = 'image/svg+xml';   /*指定返回的类型*/
-  this.ctx.body=captcha.data;      /*给页面返回一张图片*/
+  this.ctx.body = captcha.data;      /*给页面返回一张图片*/
 }
 
 // 页面上使用
@@ -2009,7 +2009,7 @@ module.exports = (options, app) => {
 
     // 这里就利用了上面保存的用户信息
     if (ctx.session.userinfo) {
-        //全局变量 ，页面有可能需要使用
+      //全局变量 ，页面有可能需要使用
       ctx.state.userinfo = ctx.session.userinfo;           
       await next();
     } else {
@@ -2087,6 +2087,8 @@ async doEdit() {
   await this.success('/admin/role', '编辑角色成功');
 }
 ```
+
+#### 商城项目之增加、编辑角色
 
 
 [whatForwardProxyOrReverseUrl]: https://zhuanlan.zhihu.com/p/25707362

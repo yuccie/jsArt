@@ -6,8 +6,31 @@
 总结：
 
 - 刚开始写算法题，就是耐着性子写，看看后续能不能针对什么类型的算法题总结出一套规则？
+- 能用递归的地方，一般都可以用动态规划，即递归看起来简洁，但不一定高效。
 - leetcode上的题，有错误记录，可以每次看看错误记录，然后慢慢的完善思维
 - 很多题都涉及排序，而经常用的排序sort效率如何呢？其他排序算法的效率呢？
+
+#### day04
+
+时间：2020/04/23
+
+总结：
+
+- egg性能监控及模板采用哪种方式？前后端分离？前后端代码放在一块，通过目录分开，然后起两个服务？还是通过第三方框架将egg，vue，webpack等柔和在一起？
+- 前端业务埋点(一段js代码压缩后植入到页面收集各种信息)？前端错误监控，其实就是借助sentry？
+- 异常监控使用的是mongodb数据库，而前端业务埋点的js代码是mfb-report-lib，后台依然是admin平台，admin平台数据库使用的redis，mysql，鲜知项目使用的是redis和mysql
+
+参考连接：
+
+- [Egg + Vue + Webpack SSR 服务端渲染和 CSR 前端渲染工程骨架项目](https://github.com/easy-team/egg-vue-webpack-boilerplate)
+- [easy-team](https://www.yuque.com/easy-team)
+- [Egg + Vue 服务端渲染开发指南](https://www.yuque.com/easy-team/egg-vue)
+- [Egg + Vue 服务端渲染开发指南](https://zhuanlan.zhihu.com/p/30445536)
+
+实施清单：
+
+1. 枚举项，前端可以根据哪个变化小的来定，比如：其他，而不是key值
+2. 算法练习，数组：两数之和，搜索插入位置，原地删除重复数组项
 
 #### day01
 
