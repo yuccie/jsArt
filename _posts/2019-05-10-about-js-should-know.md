@@ -2681,7 +2681,9 @@ arr; // ['red', 'blue', 'yellow']
 
 ```js
 var arr = ["red", "blue", "yellow"];
-arr.splice(); // []
+// arr.splice(); // []
+arr.splice(1); // ["blue", "yellow"]
+arr.splice(1,0); // []，务必注意参数2是删除的个数，如果不填将删除后面所有
 arr.splice(1, 1); // ['blue']
 arr; // ['red', 'yellow']
 arr.splice(-1, 0, "code", "js"); // 位置支持负数，只需加上length即可

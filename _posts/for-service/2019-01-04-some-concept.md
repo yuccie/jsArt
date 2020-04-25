@@ -1133,9 +1133,22 @@ $.html()
 #### 安装方式
 
 安装软件有几种方式：
+
 - 官方安装包
 - 下载源文件
 - mac终端软件管理器 homebrew
+
+```bash
+# homebrew基本使用
+
+# 搜索包
+brew search mongodb
+
+# 安装包
+brew install mongodb
+
+# brew -h
+```
 
 #### Mongodb4.x之基本配置
 
@@ -1237,6 +1250,8 @@ mongod --auth -p 27017 --dbpath /data/db
 
 # 5、重新连接数据库
 mongo -u "admin" -p "123456" --authenticationDatabase "admin"
+# 连接远程数据库
+mongo 远程IP地址:端口号/仓库 -u 用户名 -p 密码
 ```
 
 #### Mongodb数据库基本术语及操作
@@ -1276,6 +1291,7 @@ db.auth('admin', '123456') # 成功的话会输出 1
 ```
 
 有一些数据库名是保留的，可以直接访问这些有特殊作用的数据库。
+
 - admin： 从权限的角度来看，这是"root"数据库。要是将一个用户添加到这个数据库，这个用户自动继承所有数据库的权限（一般超级管理员就是在这里添加）。一些特定的服务器端命令也只能从这个数据库运行，比如列出所有的数据库或者关闭服务器。
 - local: 这个数据永远不会被复制，可以用来存储限于本地单台服务器的任意集合
 - config: 当Mongo用于分片设置时，config数据库在内部使用，用于保存分片的相关信息。
@@ -1315,6 +1331,7 @@ show dbs # 只会看到egg数据库
 ```
 
 数据库的一些角色
+
 - 1.数据库用户角色:read、readWrite; 
 - 2.数据库管理角色:dbAdmin、dbOwner、userAdmin; 
 - 3.集群管理角色:clusterAdmin、clusterManager、clusterMonitor、hostManager; 
@@ -1359,7 +1376,6 @@ exports.mongo = {
 let myDb = await app.mongo.find('egg'); // egg是集合
 console.log(myDb, 'myDb'); // 这里会打印集合里的所有文档
 ```
-
 
 #### 数据库的基本操作
 

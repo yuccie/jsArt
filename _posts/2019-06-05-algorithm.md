@@ -747,6 +747,40 @@ getWeekdaysInMonth(2020, 5);
 
 ```
 
+### **动态规划**
+
+淘宝的“双十一”购物节有各种促销活动，比如“满 200 元减 50 元”。假设你女朋友的购物车中有 n 个（n>100）想买的商品，她希望从里面选几个，在凑够满减条件的前提下，让选出来的商品价格总和最大程度地接近满减条件（200 元），这样就可以极大限度地“薅羊毛”。作为程序员的你，能不能编个代码来帮她搞定呢？
+
+动态规划(dynamic programming，DP)是一种将复杂问题分解成更小的子问题来解决的优化技术。动态规划只有当每个子问题都是离散的，即不依赖其他子问题时才管用。
+
+```js
+// 递归法：斐波那契数列数列
+function fib(n) {
+  if(n<2) return 1;
+  return fib(n-1) + fib(n-2);
+}
+console.time();
+fib(30)
+console.timeEnd(); // 13.01611328125ms
+
+// 动态规划
+function dyFib(n) {
+  let arr = [0,1]
+  if(n<2) return arr[n];
+  for (let i = 2; i<= n; i++) {
+    arr[i] = arr[i-1] + arr[i-2]
+  }
+  return arr[n];
+}
+console.time();
+dyFib(30)
+console.timeEnd(); // 0.063720703125ms
+```
+
+**注意**，动态规划和分而治之是不同的方法。分而治之方法是把问题分解成相互独立的子问题，然后组合它们的答案，而动态规划则是将问题分解成相互依赖的子问题(比如斐波那契数列)。
+
+动态规划学习路线动态规划比较适合用来求解最优问题，比如求最大值、最小值等等
+
 ### **二分法**
 
 对于一个有序的列表（比如1-100），如果要查找1这个数的位置，二分查找：50 -> 25 -> 13 -> 7 -> 4 -> 2 -> 1通过七次就可以找到，如果挨个找，比如倒序就需要100次。$\log_2{18}$
@@ -891,7 +925,7 @@ bubleSort(arr);
 
 ### **递归**
 
-如果使用循环，性能可能更高，如果使用递归，程序可能更容易理解。
+如果使用循环，性能可能更高，如果使用递归，程序可能更容易理解。但要注意的是递归写起来简洁，但实际上执行的效率并不高。
 
 ```js
 // 实现数的阶层n！
@@ -1105,6 +1139,85 @@ function removeDuplicates(arr) {
 }
 removeDuplicates([2,7,7,11,15]); // 4
 removeDuplicates([2]); // 1
+```
+
+>移除元素，给你一个数组 nums 和一个值 val，你需要 原地 移除所有数值等于 val 的元素，并返回移除后数组的新长度。不要使用额外的数组空间，你必须仅使用 O(1) 额外空间并 原地 修改输入数组。
+
+```js
+// 原地删除，就是不占用新的内存空间
+var removeElement = function(nums, val) {
+  for(let i = 0; i< nums.length; i++) {
+    if (nums[i] === val) {
+      nums.splice(i, 1);
+      i --;
+    }
+  }
+  return nums.length;
+};
+```
+
+>合并两个有序数组，给你两个有序整数数组 nums1 和 nums2，请你将 nums2 合并到 nums1 中，使 nums1 成为一个有序数组。
+
+```js
+// 初始化 nums1 和 nums2 的元素数量分别为 m 和 n 。
+// 你可以假设 nums1 有足够的空间（空间大小大于或等于 m + n）来保存 nums2 中的元素。
+// 输入:
+// nums1 = [1,2,3,0,0,0], m = 3
+// nums2 = [2,5,6],       n = 3
+
+// 输出: [1,2,2,3,5,6]
+
+var merge = function(nums1, m, nums2, n) {
+  let len = m + n;
+  while(n>0) {
+    // 当m<=0时，其实就是nums1里面全是位置，此时只需将nums2里的按顺序插入即可
+    // 这里还需要注意 --len是，执行前先进行减一操作。
+    if (m <= 0) {
+      nums1[--len] = nums2[--n]
+      continue
+    }
+    // 如果n大于0，且m>0，则两个数组里都没有比较完毕，需要继续比较
+    // 当n<=0，说明nums2已经处理完毕
+    nums1[--len] = nums1[m-1] < nums2[n-1] ? nums2[--n] :  nums1[--m]
+  }
+};
+```
+
+>最大连续1的个数，给定一个二进制数组， 计算其中最大连续1的个数。
+
+```js
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var findMaxConsecutiveOnes = function(nums) {
+  // [1,0,1,1,0,1]
+  // 转为字符串，然后分割，排除[0]
+  let arr = nums.toString().replace(/(0,?)+/g, ' ').split(' ');
+  let max = 0;
+  arr.forEach(item => {
+    item = item.replace(/,/g, '');
+    max = Math.max(max, item.length)
+  })
+  return max;
+};
+
+var findMaxConsecutiveOnes1 = function(nums) {
+  // [1,0,1,1,0,1]
+  let len = nums.length;
+  let count = 0;
+  let max = 0;
+
+  for (let i = 0; i < len; i++) {
+    if (nums[i] === 1) {
+      count ++;
+    } else {
+      max = Math.max(max, count);
+      count = 0;
+    }
+  }
+  return Math.max(max, count)
+};
 ```
 
 >搜索插入位置：给定一个排序数组和一个目标值，在数组中找到目标值，并返回索引。如果目标值不在数组中，返回它将会被按顺序插入的位置

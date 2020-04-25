@@ -1431,6 +1431,7 @@ new Vue({
 ```
 
 注意：
+
 - Vue.use 会自动阻止多次注册相同插件，届时即使多次调用也只会注册一次该插件。
 - ue.js 官方提供的一些插件 (例如 vue-router) 在检测到 Vue 是可访问的全局变量时会自动调用 Vue.use()。然而在像 CommonJS 这样的模块环境中，你应该始终显式地调用 Vue.use()
 
@@ -1628,6 +1629,14 @@ dispatch( type, payload ) {
 // 如果想深层次检测某个属性或对象可以添加deep:true，
 // 如果想检测嵌套对象里的属性可以用'obj.a.b'(){}
 // 但是对于$route对象，可以不加引号，不加deep
+
+// 一般情况下，this.$router.push()，this.$router.replace()都是在当前tab页面来回跳转，要是想新打开一个tab怎么办？window.open(href,'name')，可以打开一个新tab，前提是有一个href，因此可以借助this.$router.resolve()来生成一个路由对象，再从这个对象里取得href属性就可以跳转了。
+let routeUrl = this.$router.resolve({
+   path: "/docs"
+});
+// 然后再用window.open跳转即可
+window.open(routeUrl.href, '_blank');
+
 ```
 
 #### **导航守卫**
@@ -1813,6 +1822,23 @@ axios.post( '/user/12345', {
 
 // cancel the request (the message parameter is optional)
 source.cancel( 'Operation canceled by the user.' );
+```
+
+### 一些点
+
+```js
+// 组件可以如下方式引入
+components: {
+  // 组件还可以直接这样引入
+  JsonEditor: () => import("./editor/Json.editor.vue"),
+  SchemaHistory: () => import("./history/main.vue"),
+  SelectPage: () => import("./select.component.vue")
+},
+
+// import进来的方法也可以直接如下，其实就相当于matActions
+methods: {
+  parseTime,
+}
 ```
 
 ### 参考链接

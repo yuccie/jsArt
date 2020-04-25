@@ -2538,6 +2538,69 @@ JavaScript 中的函数非常灵活，其根本原因在于 JavaScript 中的函
 
 函数式编程（函数式编程关心数据的映射，命令式编程关心解决问题的步骤）和闭包在实际的项目中会经常遇到，如果不了解这些特性，那么在你使用第三方代码时就会非常吃力，同时自己也很难使用这些特性写出优雅的代码，因此我们很有必要了解这些特性的底层机制。
 
+平时写代码一般都是命令式编程，在命令式编程中，我们按部就班地编写程序代码，详细描述要完成的事情以及完成的顺序。函数式编程是一种曾经主要用于学术领域的范式，多亏了 Python 和 Ruby 等现代语言，它才开始在行业开发者中流行起来。值得欣慰的是，借助 ES2015 的能力， JavaScript 也能够进行函数式编程。
+
+```js
+// 假设我们想打印一个数组中所有的元素。我们可以用命令式编程，声明的函数如下。
+const printArray = function(array) {
+  for (var i = 0; i < array.length; i++){
+    console.log(array[i]);
+  }
+};
+printArray([1, 2, 3, 4, 5]);
+```
+
+现在，我们试着把这个例子转换成函数式编程。在函数式编程中，函数就是摇滚明星。我们 关注的重点是需要描述什么，而不是如何描述。回到这一句:“我们迭代数组，打印每一项。”那 么，首先要关注的是迭代数据，然后进行操作，即打印数组项。下面的函数负责迭代数组。
+
+```js
+const forEach = function(array, action){
+  for (var i = 0; i < array.length; i++){
+    action(array[i]);
+  }
+};
+```
+
+接下来，要创建另一个负责把数组元素打印到控制台的函数(考虑为回调函数)，如下所示。
+
+```js
+const logItem = function(item) {
+  console.log(item);
+};
+```
+
+然后只需要`forEach([1,2,3], logItem)`这一行代码，就能描述我们要把数组的每一项打印到控制台。这是我们的第一个 3
+函数式编程的例子!
+
+有了 ES2015+的新功能，用 JavaScript 进行函数式编程就变得更加容易了。
+
+考虑我们要找出数组中最小的值。要用命令式编程完成这个任务，只要迭代数组，检查当前 的最小值是否大于数组元素;如果是，就更新最小值，代码如下。
+
+```js
+var findMinArray = function(array){
+  var minValue = array[0];
+  for (var i=1; i<array.length; i++){
+    if (minValue > array[i]){
+      minValue = array[i];
+    }
+  }
+  return minValue;
+};
+console.log(findMinArray([8,6,4,5,9])); // 输出4
+```
+
+要用函数式编程完成相同的任务，可以使用 Math.min 函数，传入所有要比较的数组元素。我们可以像下面的例子里这样，使用 ES2015 的解构运算符(...)，把数组转换成单个的元素。
+
+```js
+const min_ = function(array){
+  return Math.min(...array)
+};
+console.log(min_([8,6,4,5,9])); // 输出4
+
+// 使用 ES2015 的箭头函数，可以进一步简化上面的代码。
+const min = arr => Math.min(...arr);
+console.log(min([8, 6, 4, 5, 9]));
+```
+
 函数式编程参考：https://www.zhihu.com/question/28292740?sort=created
 
 **什么是 JavaScript 中的对象？**
