@@ -231,27 +231,134 @@ nginx -s reload
 
 ```
 
+## rddis常用知识
+
+```bash
+# 用homebrew安装后，提示如下：
+# 多数情况下，安装的第三方包的配置文件都在 /usr/local/etc/ 下
+To have launchd start redis now and restart at login:
+  brew services start redis
+Or, if you don't want/need a background service you can just run:
+  redis-server /usr/local/etc/redis.conf
+```
+
+**启动与连接redis：**
+
+```bash
+# 启动redis
+redis-server /usr/local/etc/redis.conf
+
+# 新打开一个终端，查看 redis 是否启动？
+redis-cli
+# 以上命令会打开以下终端，127.0.0.1 是本机 IP ，6379 是 redis 服务端口。
+redis 127.0.0.1:6379>
+# 现在我们输入 PING 命令。会输出PONG，说明redis已经成功安装。
+```
+
+**redis数据类型：**
+
+Redis支持五种数据类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
+
+**redis常用命令：**
+
+- 命令一般都是大写，但用小写也可以，建议都用大写。
+- redis输入命令时，一般在控制台都有提示，很友好
+
+```bash
+# * 获取所有配置项
+CONFIG GET *
+
+# 可以通过修改 redis.conf 文件或使用 CONFIG set 命令来修改配置。
+
+# 设置一个变量，并命名，在控制台输入时，会有命令的提示：
+# set key value [expiration EX seconds|PX milliseconds] [NX|XX]
+# 一个键最大能存储 512MB。
+set testRedisNmae 'redis名字'
+=> OK
+# 获取设置的名字
+get testRedisNmae
+=> redis\xe5\x90\x8d\xe5\xad\x97
+
+# 为了展示非编码格式的数据，可以采用
+redis-cli --raw
+
+# 删除设置的名字
+del testRedisNmae
+=> 1
+
+# Hash（哈希）
+# 每个 hash 可以存储 232 -1 键值对（40多亿）。
+redis 127.0.0.1:6379> HMSET runoob field1 "Hello" field2 "World"
+"OK"
+redis 127.0.0.1:6379> HGET runoob field1
+"Hello"
+redis 127.0.0.1:6379> HGET runoob field2
+"World"
+
+
+# List (列表)
+# Redis 列表是简单的字符串列表，按照插入顺序排序。你可以添加一个元素到列表的头部（左边）或者尾部（右边）。
+# 列表最多可存储 232 - 1 元素 (4294967295, 每个列表可存储40多亿)。
+redis 127.0.0.1:6379> lpush runoob redis
+(integer) 1
+redis 127.0.0.1:6379> lpush runoob mongodb
+(integer) 2
+redis 127.0.0.1:6379> lpush runoob rabitmq
+(integer) 3
+redis 127.0.0.1:6379> lrange runoob 0 10 # liange key start stop
+1) "rabitmq"
+2) "mongodb"
+3) "redis"
+
+# Set(集合)
+# Redis 的 Set 是 string 类型的无序集合。
+# 集合是通过哈希表实现的，所以添加，删除，查找的复杂度都是 O(1)。
+
+# sadd 命令
+# 添加一个 string 元素到 key 对应的 set 集合中，成功返回 1，如果元素已经在集合中返回 0。
+sadd mySet name1
+1
+sadd mySet name1
+1
+sadd mySet name1
+1
+
+# 即使插入两次，因为集合内元素的唯一性，第二次插入的name1将被忽略。
+smemebers mySet
+name
+name1
+
+
+# zset(sorted set：有序集合)
+# Redis zset 和 set 一样也是string类型元素的集合,且不允许重复的成员。
+# 不同的是每个元素都会关联一个double类型的分数。redis正是通过分数来为集合中的成员进行从小到大的排序。
+
+# zset的成员是唯一的,但分数(score)却可以重复。
+# zadd 命令
+# 添加元素到集合，元素在集合中存在则更新对应score
+zadd key score member
+
+redis 127.0.0.1:6379> zadd runoob 0 redis
+(integer) 1
+redis 127.0.0.1:6379> zadd runoob 0 mongodb
+(integer) 1
+redis 127.0.0.1:6379> zadd runoob 0 rabitmq
+(integer) 1
+redis 127.0.0.1:6379> zadd runoob 0 rabitmq
+(integer) 0
+redis 127.0.0.1:6379> > ZRANGEBYSCORE runoob 0 1000
+1) "mongodb"
+2) "rabitmq"
+3) "redis"
+```
+
 ## mysql常用知识
+
 在了解mysql之前，我们需要知道为何会产生数据库，
 
 首先要知道，NoSQL是Not Only SQL，不仅仅是sql的意思，主要呈现的方式是键值对，类似js中的对象。而mysql则是相应的表。
 
 用brew安装完mysql，一般会有如下提示：大意是安装的数据库没有密码，如果想安全的运行，其实就是设置密码等，可以运行mysql_secure_installation
-
-运行mysql_secure_installation会执行几个设置：
-
-1. 为root用户设置密码
-2. 删除匿名账号
-3. 取消root用户远程登录
-4. 删除test库和对test库的访问权限
-5. 刷新授权表使修改生效
-
-
-然后是mysql默认只允许localhost的连接。
-
-连接数据库，用mysql -u root，因为刚开始是没有密码的
-
-后台运行mysql的话，可以brew services start mysql
 
 ```
 We've installed your MySQL database without a root password. To secure it run:
@@ -266,21 +373,117 @@ To have launchd start mysql now and restart at login:
   brew services start mysql
 Or, if you don't want/need a background service you can just run:
   mysql.server start
+==> **Summary**
+🍺  /usr/local/Cellar/mysql/8.0.16: 275 files, 269.8MB
 ```
+
+运行mysql_secure_installation会执行几个设置：
+
+1. 为root用户设置密码
+2. 删除匿名账号
+3. 取消root用户远程登录
+4. 删除test库和对test库的访问权限
+5. 刷新授权表使修改生效
+
+然后是mysql默认只允许localhost的连接。
+
+连接数据库，用mysql -u root，因为刚开始是没有密码的
+
+后台运行mysql的话，可以brew services start mysql
+
+配置文件的话，一般路径在`/usr/local/etc/my.cnf`里。若想修改可以编辑该文件
 
 ***登录mysql***<br/>
 
 ```bash
-# 第一次安装时，没有密码，可以直接登录
+# 启动mysql服务
+mysqld
+# 关闭mysql服务，如果没有命令，只能查进程号，然后杀进程
+
+# 新建一个终端，第一次安装时，没有密码，可以直接登录
 mysql -u root
 
 # 当配置完密码后，就需要如下
 # 连接mysql，输入以下命令后，需要输入数据库的连接密码
 mysql -u root -p
+
+mysql -h 主机名 -u 用户名 -p
+# -h : 指定客户端所要登录的 MySQL 主机名, 登录本机(localhost 或 127.0.0.1)该参数可以省略;
+# -u : 登录的用户名;
+# -p : 告诉服务器将会使用一个密码来登录, 如果所要登录的用户名密码为空, 可以忽略此选项。
+
+# 如果直接运行mysql，一般会产生如下格式提示：
+ERROR 1045 (28000): Access denied for user 'mac'@'localhost' (using password: NO)
+
+# 断开mysql连接
+mysql＞ quit
+# 或者
+mysql> exit
 ```
+
+- MySQL 的SQL语句以分号 (;) 作为结束标识。
+- sql语句大小写都行，但一般为大写
+
+```bash
+# 新建数据表
+mysql> use RUNOOB;
+Database changed
+
+# 列出 MySQL 数据库管理系统的数据库列表。
+mysql> SHOW DATABASES;
+
+# 显示指定数据库的所有表，使用该命令前需要使用 use 命令来选择要操作的数据库。
+mysql> SHOW TABLES;
+
+# 显示数据表的属性，属性类型，主键信息 ，是否为 NULL，默认值等其他信息。
+mysql> SHOW COLUMNS FROM runoob_tbl;
+
+# 显示数据表的详细索引信息，包括PRIMARY KEY（主键）。
+mysql> SHOW INDEX FROM runoob_tbl;
+
+# 输出Mysql数据库管理系统的性能及统计信息。
+mysql> SHOW TABLE STATUS  FROM RUNOOB;   # 显示数据库 RUNOOB 中所有表的信息
+mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%';     # 表名以runoob开头的表的信息
+mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%'\G;   # 加上 \G，查询结果按列打印
+```
+
 参考：[设置密码强度][reSetMysqlPWPolicyUrl]
 参考：[找到mysql默认的配置文件][findMysqlConfFileUrl]
 参考：[mysql没有默认的配置文件，需要自己建][findMysqlConfFileUrl1]
+
+### mysql、redis、mongodb对比
+
+**一、mongodb：**
+
+- 它是一个内存数据库，数据都是放在内存里面的。
+- 对数据的操作大部分都在内存中，但mongodb并不是单纯的内存数据库。
+
+**mongodb持久化方式：**
+
+mongodb的所有数据实际上是存放在硬盘的，所有要操作的数据通过mmap的方式映射到内存某个区域内。然后，mongodb就在这块区域里面进行数据修改，避免了零碎的硬盘操作。至于mmap上的内容flush到硬盘就是操作系统的事情了，所以，如果，mongodb在内存中修改了数据后，mmap数据flush到硬盘之前，系统宕机了，数据就会丢失。
+
+mmap详解链接：http://www.cnblogs.com/techdoc/archive/2010/12/22/1913521.html
+
+**二、redis：**
+
+它就是一个不折不扣的内存数据库了。
+
+**redis持久化方式：**
+redis所有数据都是放在内存中的，持久化是使用RDB方式或者aof方式。
+
+解密redis持久化：http://blog.nosqlfan.com/html/3813.html
+
+**三、mysql**：
+
+无论数据还是索引都存放在硬盘中。到要使用的时候才交换到内存中。能够处理远超过内存总量的数据。
+
+- Redis是完全在内存中保存数据的数据库，使用磁盘只是为了持久性目的,Redis数据全部存在内存，定期写入磁盘，当内存不够时，可以选择指定的LRU算法删除数据,持久化是使用RDB方式或者aof方式。
+- mongodb是文档型的非关系型数据库，MongoDB更类似MySQL，支持字段索引、游标操作，其优势在于查询功能比较强大，擅长查询JSON数据，能存储海量数据，但是不支持事务。
+- Redis 事务支持比较弱，只能保证事务中的每个操作连续执行，mongodb不支持事务
+- MongoDB 内置了数据分析的功能(mapreduce),Redis不支持
+- Redis只能使用单线程，性能受限于CPU性能
+
+参考：https://www.cnblogs.com/klb561/p/9085772.html
 
 ## appache常用知识
 
@@ -303,6 +506,7 @@ Express 和 Koa 是 Node.js 社区广泛使用的框架，简单且扩展性强�
 初始化之前，需要先安装，如 npm i -g egg-init
 
 初始化时可以直接：
+
 - egg-init ,控制台会让选择安装的版本及目录
 - egg-init dir --type=simple，或者命令行指定安装的版本
 
@@ -318,6 +522,7 @@ Express 和 Koa 是 Node.js 社区广泛使用的框架，简单且扩展性强�
 - .autod.conf.js 是egg加载时需要用到的文件
 
 在app目录里，还细分如下结构目录：
+
 - public 静态资源，其实egg会自动启动一个静态文件服务器
 - view 视图，模板，负责页面的展示
 - controller 控制器，负责一些业务逻辑的处理
@@ -1160,6 +1365,8 @@ brew install mongodb
 
 # 创建了目录还有可能有写入权限问题，如下
 # Attempted to create a lock file on a read-only directory: /data/db
+# 可以使用，下面命令，递归将这个文件夹下的所有权限改为当前用户，以后就不用sudo了。
+sudo chown -R $(whoami) /data
 ```
 
 另外要清楚，**数据库服务分两部分：服务部分、客户端部分**。其实可以理解平时项目的前端和后端，要想看到整个服务的效果，需要后端服务起来，同时前端访问。。。数据库也是同理。
@@ -1348,7 +1555,7 @@ show dbs # 只会看到egg数据库
 插件为 egg-mongo-native 基于 node-mongodb-native，提供了 MongoDB 官方 driver 及 API。插件对一些常用 API 进行了简单封装以简化使用，同时保留了所有原版属性（非 Egg.js 用户请使用 easy-mongodb。）
 
 ```js
-// 安装 
+// 安装
 npm i egg-mongo-native
 
 // 注册

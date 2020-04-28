@@ -1042,8 +1042,12 @@ HTTPS 混合内容是 HTTPS 页面中包含了不符合 HTTPS 安全要求的内
 `Mixed Content: The page at 'https://www.google.com/search?q=%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE&rlz=1C5CHFA_enUS880US881&oq=%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE&aqs=chrome..69i57j0l7.5259j0j4&sourceid=chrome&ie=UTF-8' was loaded over HTTPS, but requested an insecure XMLHttpRequest endpoint 'http://img-ads.csdn.net/2018/201811150919211586.jpg'. This request has been blocked; the content must be served over HTTPS.`
 
 如何解决：？
+
 - 让浏览器自动升级请求。在服务器的响应头中加入：`header("Content-Security-Policy: upgrade-insecure-requests");`
 - 如果我们不方便在服务器/Nginx 上操作，也可以在页面中加入 meta 头：`<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />`
+
+比如审核平台线上域名是http，如果此时通过https域名打开，控制台就会报如下错误，并blocked掉所有的http请求，打开控制台可以看到network的status为`(blocked:mixed-content)`。
+`VM17691:1 Mixed Content: The page at 'https://pfop.xxx.net/' was loaded over HTTPS, but requested an insecure XMLHttpRequest endpoint 'http://itema.xxx/audit/getTicketList'. This request has been blocked; the content must be served over HTTPS.`
 
 综上：这里不单纯地讲一个问题，而是将回调类型、循环系统、网络请求和安全问题“串联”起来了。
 
