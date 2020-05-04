@@ -1384,6 +1384,12 @@ ps aux | grep mongod
 # 当然如果没有配置环境变量，则也是获取不到的
 which nginx
 => /usr/local/bin/nginx
+
+# 可以用whereis查找
+whereis nginx
+
+# 如果都不行，可以用find
+find / -name nginx
 ```
 
 使用homebrew安装完以后，会提示如下内容：
