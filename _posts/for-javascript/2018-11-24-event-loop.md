@@ -531,6 +531,34 @@ someAsyncThing()
 // carry on [ReferenceError: y is not defined]
 ```
 
+try...catch...不能捕获到异步的异常，这是因为： js 是单线程的，当我们 try 中执行的代码是异步的时候，当异步执行报错时候，可能同步代码已经从执行栈中取出并执行完毕了，所以没有办法捕获到异步的异常。
+
+那我们应该如何捕获异步的异常呢？
+
+- 利用上面的 Promise 的 catch 可以捕获到异常
+- 使用 async 和 await 时候捕获异常
+
+```js
+run();
+async function run() {
+  try {
+    await Promise.reject(new Error("Oops!"));
+  } catch (error) {
+    error.message; // "Oops!"
+  }
+}
+```
+
+没有写 catch 的 Promise 中抛出的错误无法被 onerror 或 try-catch 捕获到，所以我们务必要在 Promise 中不要忘记写 catch 处理抛出的异常。
+
+解决方案： 为了防止有漏掉的 Promise 异常，建议在全局增加一个对 unhandledrejection 的监听，用来全局监听Uncaught Promise Error。使用方式：
+
+```js
+window.addEventListener("unhandledrejection", function(e){
+  console.log(e);
+});
+```
+
 #### 5、Promise.prototype.finally()
 
 finally 方法用于指定不管 Promise 对象最后状态如何，都会执行的操作。该方法是 ES2018 引入标准的。
