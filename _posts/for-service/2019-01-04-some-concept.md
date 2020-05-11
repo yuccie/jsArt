@@ -393,15 +393,25 @@ Or, if you don't want/need a background service you can just run:
 
 配置文件的话，一般路径在`/usr/local/etc/my.cnf`里。若想修改可以编辑该文件
 
-***登录mysql***<br/>
+
+***登录mysql***
 
 ```bash
+# mysqladmin 工具来获取服务器状态
+mysqladmin --version
+=> mysqladmin  Ver 8.0.16 for osx10.14 on x86_64 (Homebrew)
+
 # 启动mysql服务
 mysqld
 # 关闭mysql服务，如果没有命令，只能查进程号，然后杀进程
 
 # 新建一个终端，第一次安装时，没有密码，可以直接登录
 mysql -u root
+
+# Mysql安装成功后，默认的root用户密码为空，你可以使用以下命令来创建root用户的密码：
+mysqladmin -u root password 'new_password'
+# 会提示如下，但是此时已经设置密码成功了，再用mysql -u root就登陆不上了。
+# mysqladmin: [Warning] Using a password on the command line interface can be insecure.
 
 # 当配置完密码后，就需要如下
 # 连接mysql，输入以下命令后，需要输入数据库的连接密码
@@ -425,7 +435,21 @@ mysql> exit
 - sql语句大小写都行，但一般为大写
 
 ```bash
-# 新建数据表
+# MySQL 用户设置，只需要在 mysql 数据库中的 user 表添加新用户即可。
+
+# 1、创建数据库，如果有重复的数据库，会提示database exists
+create database <数据库名>;
+# 1-1、通过mysqladmin创建
+mysqladmin -u root -p create <数据库名>
+
+# 2、删除数据库，如果有重复的数据库，会提示database exists
+drop database <数据库名>;
+# 1-1、通过mysqladmin创建
+mysqladmin -u root -p drop <数据库名>
+
+
+
+# 切换数据库，
 mysql> use RUNOOB;
 Database changed
 
@@ -452,6 +476,8 @@ mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%'\G;   # 加上 \G，查询结
 参考：[mysql没有默认的配置文件，需要自己建][findMysqlConfFileUrl1]
 
 ### mysql、redis、mongodb对比
+
+文档
 
 **一、mongodb：**
 
@@ -1446,6 +1472,7 @@ db.createUser(
     roles: [ { role: "root", db: "admin" } ] 
   }
 )
+
 # => Successfully added user
 
 # 2.3 查看人员
@@ -1465,6 +1492,7 @@ mongod --auth -p 27017 --dbpath /data/db
 mongo -u "admin" -p "123456" --authenticationDatabase "admin"
 # 连接远程数据库
 mongo 远程IP地址:端口号/仓库 -u 用户名 -p 密码
+
 ```
 
 #### Mongodb数据库基本术语及操作
@@ -1492,6 +1520,7 @@ primary key | primary key | 主键,MongoDB自动将_id字段设置为主键
 - db.auth("用户名","password")，密码认证
 
 db.auth()什么时候用呢？其实除了直接输入用户名和密码进行登录连接外，还可以如下:
+
 ```bash
 # 1、连接数据库，当然虽然连接了，但是无法执行命令
 mongo admin
@@ -1510,6 +1539,9 @@ db.auth('admin', '123456') # 成功的话会输出 1
 - config: 当Mongo用于分片设置时，config数据库在内部使用，用于保存分片的相关信息。
 
 SQL数据库与NoSql数据库，在一些名字的叫法上也不同：
+
+参考：https://blog.csdn.net/MCpang/article/details/7714744
+
 SQL | NoSql
 -|-
 表格 | 集合
@@ -1517,6 +1549,222 @@ SQL | NoSql
 列 | 字段
 表联合 | 嵌入文档
 主键 | 主键 (MongoDB 提供了 key 为 _id )
+
+**其实，在NoSql中，文档其实就相当于一条数据，对应着Sql里的一行（也就是一条记录）。然后一个集合里可以有多个文档，就像一个表格里可以有多行。而多个集合就构成了数据库。**
+
+关系型数据库，在安装数据库的时候数据库实例创建，同时存在系统默认的管理员用户。之后可以创建多个用户并进行赋权，创建的表存在于不同的用户之下，不同的用户存储着不同的数据。mongodb以文档的形式保存在集合中，可以同一数据库存储不同的数据或者集合。
+
+mongodb服务器可以存在多应用或者用户的数据，可以相互独立。数据的命名规则：
+
+- 不能使空字符串（""）
+- 不得含有''（空格）、.、$、/、|和\0（空字符）
+- 应全部小写
+- 最多64字节
+
+保留数据库名：admin、local、config
+
+mongoose数据库基本操作：
+参考：https://www.runoob.com/mongodb/mongodb-create-database.html
+
+```js
+// 1、创建数据库
+// 如果数据库不存在，则创建数据库，否则切换到指定数据库。
+use monitor
+=> switched to db monitor
+
+// 将该数据库的连接赋值给全局变量db，因此 db 可以理解为指向数据库monitor的指针
+db
+=> monitor
+
+// 此时如果直接：show dbs 查看数据库，其实并没有monitor，只需插入一条数据即可
+// 注意，其实此时，相当于在 monitor 数据库下又增加了一个 monitor 集合，
+// 为了防止干扰，可以在其他集合里添加数据
+db.monitor.insert({desc: '数据库下面可以有同样名字的集合'})
+
+// 1-1、切换数据库
+// 切换数据库，是用 use，而集合之间无需切换，因为可以直接：db.集合名
+
+// 1-2、删除数据库
+// 删除前，务必要切换到指定的数据库，db 查看是否为要删除的数据库
+db.dropDatabase()
+=> { "dropped" : "monitor", "ok" : 1 }
+
+// 1-3、查看数据库
+show dbs
+
+// 2、创建集合
+// db.createCollection(name, options)
+db.createCollection('errdb')
+=> { "ok" : 1 } // 不像数据库，这里即使是空的集合，show collections查看集合时也会显示
+
+// 2-1、创建集合
+// 在 MongoDB 中，你不需要创建集合。当你插入一些文档时，MongoDB 会自动创建集合。如下，至少传一个空对象
+db.errdb.insert({})
+
+// 2-2、查看集合
+show collectios
+// or
+show tables
+
+// 2-3、删除集合，这里的删除不但删除了集合里的数据，而且集合也删除了
+db.集合名.drop()
+
+// 3、插入文档
+// MongoDB 使用 insert() 或 save() 方法向集合中插入文档，语法如下：
+// 如果该集合不在该数据库中， MongoDB 会自动创建该集合并插入文档。
+// db.COLLECTION_NAME.insert(document)，比如在errdb集合中，插入一条空对象
+db.errdb.insert({})
+=> WriteResult({ "nInserted" : 1 })
+// 或者
+db.errdb.save({test: '这是用save插入的'})
+=> WriteResult({ "nInserted" : 1 })
+
+// 3-1、save不但可以插入文档，还可以更新指定的文档
+// 注意：插入文档时 db.col.save(document) 命令。如果不指定 _id 字段 save() 方法类似于 insert() 方法。如果指定 _id 字段，则会更新该 _id 的数据。注意这里需要：ObjectId(_id)
+db.errdb1.save({_id: ObjectId('5eb8fe6bc9d8726e8eb83fea'), a: '33'})
+=> WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+// 3-2、查看已经插入的文档
+db.COLLECTION_NAME.find()
+```
+
+```bash
+# 4、更新文档
+# update() 方法用于更新已存在的文档。语法格式如下：
+db.collection.update(
+   <query>,
+   <update>,
+   {
+     upsert: <boolean>,
+     multi: <boolean>,
+     writeConcern: <document>
+   }
+)
+# query : update的查询条件，类似sql update查询内where后面的。
+# update : update的对象和一些更新的操作符（如$,$inc...）等，也可以理解为sql update查询内set后面的
+# upsert : 可选，这个参数的意思是，如果不存在update的记录，是否插入objNew,true为插入，默认是false，不插入。
+# multi : 可选，mongodb 默认是false,只更新找到的第一条记录，如果这个参数为true,就把按条件查出来多条记录全部更新。
+# writeConcern :可选，抛出异常的级别。
+
+>db.col.insert({
+  title: 'MongoDB 教程', 
+  description: 'MongoDB 是一个 Nosql 数据库',
+  by: '菜鸟教程',
+  url: 'http://www.runoob.com',
+  tags: ['mongodb', 'database', 'NoSQL'],
+  likes: 100
+})
+
+>db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })   # 输出信息
+
+> db.col.find().pretty()
+{
+  "_id" : ObjectId("56064f89ade2f21f36b03136"),
+  "title" : "MongoDB",
+  "description" : "MongoDB 是一个 Nosql 数据库",
+  "by" : "菜鸟教程",
+  "url" : "http://www.runoob.com",
+  "tags" : [
+    "mongodb",
+    "database",
+    "NoSQL"
+  ],
+  "likes" : 100
+}
+
+# 以上语句只会修改第一条发现的文档，如果你要修改多条相同的文档，则需要设置 multi 参数为 true。
+>db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}},{multi:true})
+
+# 4-1、更新文档
+# 当然 save 也可以直接更新，也就没有那么多选项，因为 ObjectId(id) 是唯一的
+
+# 5、删除文档，语法如下
+db.collection.remove(
+  <query>,
+  {
+    justOne: <boolean>,
+    writeConcern: <document>
+  }
+)
+# query 是必须项，
+# justOne : （可选）如果设为 true 或 1，则只删除一个文档，如果不设置该参数，或使用默认值 false，则删除所有匹配条件的文档。
+# writeConcern :（可选）抛出异常的级别。
+
+# 5-1、全部移除指定项
+# 下面两种效果一样，都是全部移除匹配的项
+db.errdb1.remove({a:'33'}, {justOne: false})
+db.errdb1.remove({a:'33'})
+
+# 5-2、移除所有项
+db.errdb1.remove({})
+
+# 6、查询文档，但是是以非结构化的方式来显示所有文档。因此不易读，语法如下：
+db.collection.find(query, projection)
+# query ：可选，使用查询操作符指定查询条件
+# projection ：可选，返回的数据里是否含有指定的字段。查询时返回文档中所有键值，只需省略该参数即可（默认省略）。
+# { field1: <value>, field2: <value> ... }
+# value，可以是：1 or true是含有，0或false表示不含，如下示例
+db.errdb1.find({},{a:0})
+# { "_id" : ObjectId("5eb909adc9d8726e8eb83ff0") }
+
+db.errdb1.find({},{a:1})
+# { "_id" : ObjectId("5eb909adc9d8726e8eb83ff0"), "a" : "33" }
+
+# 6-1、想通过结构化的形式展示数据，可以如下
+db.errdb1.find().pretty()
+
+# 6-2、有时候想 and 或者 or 来查找，其实就是交并补集方式
+db.errdb1.find({$or: [{a: '33'}, {b: '44'}]}) # 其实就是a为33和b为44的合集
+
+db.errdb1.find({c: '55', $or: [{a: '33'}, {b: '44'}]}) # 其实就是c必须为55，然后必须有a或者b
+# 类似sql中 where c = '55' AND (a = '33' OR b = '44')
+
+# 7、条件操作符、$type操作符，无非是根据数据大小或者类型来过滤
+
+# 8、分页 Limit，
+>db.COLLECTION_NAME.find().limit(NUMBER)
+
+# 8-1、Skip，不能每次都取前多多少项，还需要跳过之前的项，也就实现了分页
+>db.COLLECTION_NAME.find().limit(NUMBER).skip(NUMBER)
+
+# 9、sort排序
+# sort() 方法可以通过参数指定排序的字段，并使用 1 和 -1 来指定排序的方式，其中 1 为升序排列，而 -1 是用于降序排列。
+>db.COLLECTION_NAME.find().sort({KEY:1})
+
+# 10、索引
+# 索引通常能够极大的提高查询的效率，如果没有索引，MongoDB在读取数据时必须扫描集合中的每个文件并选取那些符合查询条件的记录。
+# 索引是特殊的数据结构，索引存储在一个易于遍历读取的数据集合中，索引是对数据库表中一列或多列的值进行排序的一种结构
+>db.COLLECTION_NAME.createIndex(keys, options)
+
+>db.COLLECTION_NAME.createIndex({open: 1, close: 1}, {background: true})
+
+# 建好索引之后，如何使用？其实一个集合里搜集了数据之后，再增加索引即可，然后搜索时，就可用对应字段进行查找
+# 比如，创建key为 item，stock，且升序的索引，
+db.products.createIndex( { "item": 1, "stock": 1 } )
+
+# 这个 index 引用的 document 首先会根据 item 排序，然后在 每个 item 中，又会根据 stock 排序，
+# 以下语句都满足该索引：
+db.products.find( { item: "Banana" } )
+db.products.find( { item: "Banana", stock: { $gt: 5 } } )
+
+# 1、查看集合索引
+db.col.getIndexes()
+
+# 2、查看集合索引大小
+db.col.totalIndexSize()
+
+# 3、删除集合所有索引
+db.col.dropIndexes()
+
+# 4、删除集合指定索引
+db.col.dropIndex("索引名称")
+
+参考：https://www.runoob.com/mongodb/mongodb-indexing.html
+
+# 11、聚合
+
+```
 
 
 创建一个新的集合，并插入一个文档，在 MongoDB 中，你不需要创建集合。当你插入一些文档时，MongoDB 会自动创建集合。
@@ -1526,7 +1774,7 @@ SQL | NoSql
 db.egg.insert({ type: 'eggDb' })
 # show dbs，就可以看到egg数据库
 
-# 给egg这个数据库增加用户，
+# 给egg这个数据库增加用户，必须切换到这个集合上，相当于给这个集合添加用户
 db.createUser(
   {
     user: "eggOwner", 
@@ -1535,7 +1783,7 @@ db.createUser(
   }
 )
 
-# 连接egg这个数据库
+# 连接egg这个数据库，登陆时直接登录指定的集合
 mongo egg -u eggOwner -p 123456
 
 # 查看数据库
@@ -1629,6 +1877,7 @@ show collections
 ```
 
 mongoDB其实是基于js的，也就是说，在mongo语句里，不但支持正常的语句，还支持js表达式
+
 ```bash
 # 插入日期
 db.egg.insert({ curDate: 2020-03-08 }) 
@@ -1644,7 +1893,7 @@ db.egg.insert({ randomNum: Math.random() })
 
 另外，我们熟悉json，其实还有bson，BSON是一种类json的一种二进制形式的存储格式，简称Binary JSON，它和JSON一样，支持内嵌的文档对象和数组对象，但是BSON有JSON没有的一些数据类型，如Date和BinData类型。BSON可以做为网络数据交换的一种存储形式，优点是灵活性高，但它的缺点是空间利用率不是很理想，
 
-{"hello":"world"} 这是一个BSON的例子，其中"hello"是key name，它一般是cstring类型，字节表示是cstring::= (byte*) "/x00" ,其中*表示零个或多个byte字节，/x00表示结束符;后面的"world"是value值，它的类型一般是string,double,array,binarydata等类型。
+{"hello":"world"} 这是一个BSON的例子，其中"hello"是key name，它一般是cstring类型，字节表示是cstring::= (byte*) "/x00" ,其中*表示零个或多个byte字��，/x00表示结束符;后面的"world"是value值，它的类型一般是string,double,array,binarydata等类型。
 
 MongoDB使用了BSON这种结构来存储数据和网络数据交换，当然也还是支持json的。
 
