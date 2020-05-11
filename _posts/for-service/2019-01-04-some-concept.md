@@ -447,10 +447,8 @@ drop database <数据库名>;
 # 1-1、通过mysqladmin创建
 mysqladmin -u root -p drop <数据库名>
 
-
-
-# 切换数据库，
-mysql> use RUNOOB;
+# 3、切换数据库，
+mysql> use monitor;
 Database changed
 
 # 列出 MySQL 数据库管理系统的数据库列表。
