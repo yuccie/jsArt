@@ -393,15 +393,25 @@ Or, if you don't want/need a background service you can just run:
 
 配置文件的话，一般路径在`/usr/local/etc/my.cnf`里。若想修改可以编辑该文件
 
-***登录mysql***<br/>
+
+***登录mysql***
 
 ```bash
+# mysqladmin 工具来获取服务器状态
+mysqladmin --version
+=> mysqladmin  Ver 8.0.16 for osx10.14 on x86_64 (Homebrew)
+
 # 启动mysql服务
 mysqld
 # 关闭mysql服务，如果没有命令，只能查进程号，然后杀进程
 
 # 新建一个终端，第一次安装时，没有密码，可以直接登录
 mysql -u root
+
+# Mysql安装成功后，默认的root用户密码为空，你可以使用以下命令来创建root用户的密码：
+mysqladmin -u root password 'new_password'
+# 会提示如下，但是此时已经设置密码成功了，再用mysql -u root就登陆不上了。
+# mysqladmin: [Warning] Using a password on the command line interface can be insecure.
 
 # 当配置完密码后，就需要如下
 # 连接mysql，输入以下命令后，需要输入数据库的连接密码
@@ -425,17 +435,216 @@ mysql> exit
 - sql语句大小写都行，但一般为大写
 
 ```bash
-# 新建数据表
-mysql> use RUNOOB;
+# MySQL 用户设置，只需要在 mysql 数据库中的 user 表添加新用户即可。
+
+# 1、创建数据库，如果有重复的数据库，会提示database exists
+create database <数据库名>;
+# 1-1、通过mysqladmin创建
+mysqladmin -u root -p create <数据库名>
+
+# 2、删除数据库，如果有重复的数据库，会提示database exists
+drop database <数据库名>;
+# 1-1、通过mysqladmin创建
+mysqladmin -u root -p drop <数据库名>
+
+# 3、切换数据库，
+mysql> use monitor;
 Database changed
 
-# 列出 MySQL 数据库管理系统的数据库列表。
+# 3-1、列出 MySQL 数据库管理系统的数据库列表。
 mysql> SHOW DATABASES;
 
-# 显示指定数据库的所有表，使用该命令前需要使用 use 命令来选择要操作的数据库。
-mysql> SHOW TABLES;
+# 4、数据类型
+# 三类：数值、日期/时间和字符串(字符)类型。
+
+# 5、创建表，通用语法如下
+CREATE TABLE table_name (column_name column_type);
+# table_name 为表名，需要用反引号包裹：``
+# column_name 为表字段名，需要用反引号包裹：``
+# column_type 为如何定义每个表字段，什么数据类型，值，排序等配置等
+
+CREATE TABLE IF NOT EXISTS `runoob_tbl`(
+  `runoob_id` INT UNSIGNED AUTO_INCREMENT,
+  `runoob_title` VARCHAR(100) NOT NULL,
+  `runoob_author` VARCHAR(40) NOT NULL,
+  `submission_date` DATE,
+  PRIMARY KEY ( `runoob_id` )
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+# 如果你不想字段为 NULL 可以设置字段的属性为 NOT NULL， 在操作数据库时如果输入该字段的数据为NULL ，就会报错。
+# AUTO_INCREMENT定义列为自增的属性，一般用于主键，数值会自动加1。
+# PRIMARY KEY关键字用于定义列为主键。 您可以使用多列来定义主键，列间以逗号分隔。
+# ENGINE 设置存储引擎，CHARSET 设置编码。
+
+# 5-1、命令行模式创建表
+上面方式需要一次写完，可能不太方便，其实还可以命令行模式，其实就是一行一行输入：
+
+CREATE TABLE runoob_tbl(
+  -> runoob_id INT NOT NULL AUTO_INCREMENT,
+  -> runoob_title VARCHAR(100) NOT NULL,
+  -> runoob_author VARCHAR(40) NOT NULL,
+  -> submission_date DATE,
+  -> PRIMARY KEY ( runoob_id )
+  -> )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+注意：MySQL命令终止符为分号 ; 。
+注意： -> 是换行符标识，不要复制，只需在后面输入命令即可。
+
+# 5-2、查看创建表里的字段，其实就是看看表里有哪些字段，字段的属性啥的。
+desc runoob_tbl;
+
+# 6、删除表
+drop table runoob_tbl;
+
+# 7、插入数据，之前是创建表时插入数据，怎么向已有表插入数据呢？
+INSERT INTO table_name ( field1, field2,...fieldN )
+                      VALUES
+                      ( value1, value2,...valueN );
+insert into runoob_tbl (date) values (now());
+# now()是mysql里获取日期的方法，不支持js的方法，mongodb支持。
+# 如果数据是字符型，必须使用单引号或者双引号，如："value"。
+# 7-1、插入数据后，如何查看具体的数据？
+select * from runoob_tbl;
+
+# 8、查询数据，语法如下：
+SELECT column_name,column_name FROM table_name,table_name [WHERE Clause] [LIMIT N][ OFFSET M]
+# 查询语句中你可以使用一个或者多个表，表之间使用逗号(,)分割，并使用WHERE语句来设定查询条件。
+# SELECT 命令可以读取一条或者多条记录。
+# 你可以使用星号（*）来代替其他字段，SELECT语句会返回表的所有字段数据
+# 你可以使用 WHERE 语句来包含任何条件。
+# 你可以使用 LIMIT 属性来设定返回的记录数。
+# 你可以通过OFFSET指定SELECT语句开始查询的数据偏移量。默认情况下偏移量为0。
+
+# 我们执行完 SELECT 语句后，释放游标内存是一个很好的习惯。？
+
+# 9、where语句，表示哪些条件
+SELECT field1, field2 FROM table_name1, table_name2 [WHERE condition1 [AND [OR]] condition2;
+select * from runoob_tbl where id=1;
+
+# 9-1、where语句在匹配字符串时，默认是不区分字母大小写，如果想区分，可以用binary如下
+select * from runoob_tbl where binary title="Test";
+
+# where：数据库中常用的是where关键字，用于在初始表中筛选查询。它是一个约束声明，用于约束数据，在返回结果集之前起作用。
+# group by:对select查询出来的结果集按照某个字段或者表达式进行分组，获得一组组的集合，然后从每组中取出一个指定字段或者表达式的值。
+# having：用于对where和group by查询出来的分组经行过滤，查出满足条件的分组结果。它是一个过滤声明，是在查询返回结果集以后对查询结果进行的过滤操作。
+# 执行顺序： select –>where –> group by–> having–>order by
+
+# 10、update更新
+UPDATE table_name SET field1=new-value1, field2=new-value2 [WHERE Clause];
+
+# 11、删除某条记录
+DELETE FROM table_name [WHERE Clause]
+
+# 12、like子句，其实就是通配符，比如在正则里*号，而like里是使用 % 号表示任意字符。
+SELECT field1,field2 FROM table_name WHERE field1 LIKE condition1 [AND [OR]] filed2 = 'somevalue';
+# 比如，找出所有runoob_author字段里包含COM的数据。
+SELECT * from runoob_tbl  WHERE runoob_author LIKE '%COM';
+
+# 13、UNION 操作符用于连接两个以上的 SELECT 语句的结果组合到一个结果集合中，
+# 其实相当于将不同数据库表里的数据，搜集到一块去。但是UNION 只会选取不同的值。请使用 UNION ALL 来选取重复的值！
+# 如下从两个表里查出所有含有country字段的数据，如果country有重复的值，只会出现一次。
+SELECT country FROM Websites
+UNION
+SELECT country FROM apps
+ORDER BY country;
+
+# 14、排序，
+SELECT field1, field2 FROM table_name1, table_name2
+ORDER BY field1 [ASC [DESC][默认 ASC]], [field2...] [ASC [DESC][默认 ASC]];
+# ASC 升序，DESC 降序
+SELECT * from runoob_tbl ORDER BY submission_date ASC;
+
+# 15、group by语句，可以对数据进行分组，比如100条数据里，A出现了多少次。
+# function是sql函数（count,sum,avg等），参数就是列名或者*号
+# operator是运算符，比如like，= 等
+SELECT column_name, function(column_name)
+FROM table_name
+WHERE column_name operator value
+GROUP BY column_name;
+
+# 如下，是使用 GROUP BY 语句 将数据表按名字进行分组，并统计每个人有多少条记录：
+SELECT name, COUNT(*) FROM employee_tbl GROUP BY name;
+# 其实这里COUNT(*) 既作为查出来的数据的字段，同时函数 COUNT(*) 的结果还是对应的值。
+# 如果想自定义字段，可以用as，如下：
+select name, count(*) as new_count from employee_tbl group by name;
+
+# 上方虽然分组是按name，但函数里的参数*代表的就是 name，而不是其他列名，即使改为其他列名也不会生效。
+# 如果分组想用name，但统计又想用其他字段，可以用WITH ROLLUP
+SELECT name, SUM(singin) as singin_count FROM employee_tbl GROUP BY name WITH ROLLUP;
+# 查出来的数据中，其中记录 NULL 表示所有人的登录次数。
+# 如果不想显示null，可以用 coalesce(a,b,c) 函数，如果a==null,则选择b；如果b==null,则选择c；如果a!=null,则选择a；如果a b c 都为null ，则返回为null（没意义）。
+SELECT coalesce(name, '总数'), SUM(singin) as singin_count FROM  employee_tbl GROUP BY name WITH ROLLUP;
+
+
+# 16、连表处理，其实就是如何连接不同的表，然后处理交并补集的数据而已。
+# 比如A表里的a，在表B里出现了几次等，大致分三类：
+# INNER JOIN（内连接,或等值连接）：获取两个表中字段匹配关系的记录。
+# LEFT JOIN（左连接）：获取左表所有记录，即使右表没有对应匹配的记录。
+# RIGHT JOIN（右连接）： 与 LEFT JOIN 相反，用于获取右表所有记录，即使左表没有对应匹配的记录。
+# 参考：https://www.runoob.com/mysql/mysql-join.html
+
+# 17、处理null值，
+# IS NULL: 当列的值是 NULL,此运算符返回 true。
+# IS NOT NULL: 当列的值不为 NULL, 运算符返回 true。
+# <=>: 比较操作符（不同于 = 运算符），当比较的的两个值相等或者都为 NULL 时返回 true。
+
+# 18、正则表达式，sql语句里可以用LIKE ...% 来进行模糊匹配，也可以使用正则
+# 参考：https://www.runoob.com/mysql/mysql-regexp.html
+
+# 19、MySQL 事务
+# MySQL 事务主要用于处理操作量大，复杂度高的数据。比如说，在人员管理系统中，你删除一个人员，你既需要删除人员的基本资料，
+# 也要删除和该人员相关的信息，如信箱，文章等等，这样，这些数据库操作语句就构成一个事务！
+# 1、在 MySQL 中只有使用了 Innodb 数据库引擎的数据库或表才支持事务。
+# 2、事务处理可以用来维护数据库的完整性，保证成批的 SQL 语句要么全部执行，要么全部不执行。
+# 3、事务用来管理 insert,update,delete 语句
+
+# 一般来说，事务是必须满足4个条件（ACID）：：原子性（Atomicity，或称不可分割性）、一致性（Consistency）、隔离性（Isolation，又称独立性）、持久性（Durability）。
+
+# 原子性：一个事务（transaction）中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。
+# 一致性：在事务开始之前和事务结束以后，数据库的完整性没有被破坏。这表示写入的资料必须完全符合所有的预设规则，这包含资料的精确度、串联性以及后续数据库可以自发性地完成预定的工作。
+# 隔离性：数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。事务隔离分为不同级别，包括读未提交（Read uncommitted）、读提交（read committed）、可重复读（repeatable read）和串行化（Serializable）。
+# 持久性：事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。
+
+# 在 MySQL 命令行的默认设置下，事务都是自动提交的，即执行 SQL 语句后就会马上执行 COMMIT 操作。因此要显式地开启一个事务务须使用命令 BEGIN 或 START TRANSACTION，或者执行命令 SET AUTOCOMMIT=0，用来禁止使用当前会话的自动提交。
+
+# 其实事务，可以理解为将一系列操作包装一下，然后整体执行而已。
+# 参考：https://www.runoob.com/mysql/mysql-transaction.html
+
+# 19、ALTER命令，改数据表名或者修改数据表字段时，就需要使用到MySQL ALTER命令。
+# 19-1，删除表runoob_tbl里 i 字段
+ ALTER TABLE runoob_tbl DROP i;
+# 19-2，添加表 i 字段，并定义数据类型，会自动添加到数据表字段的末尾。
+ ALTER TABLE runoob_tbl ADD i INT;
+# 19-2，添加表 i 字段，并定义数据类型(必须定义)，会自动添加到数据表字段的末尾。
+ ALTER TABLE runoob_tbl ADD i INT;
+# 19-3，添加表 i 字段，并定义数据类型，并指定新增字段的位置。
+# FIRST (设定位第一列)， AFTER 字段名（设定位于某个字段之后）
+ALTER TABLE runoob_tbl ADD i INT FIRST; # 设定第一列
+ALTER TABLE runoob_tbl ADD i INT AFTER c; # 放在c字段之后
+
+# 19-4，修改数据类型。使用MODIFY 或 CHANGE 子句 。
+ALTER TABLE runoob_tbl MODIFY c CHAR(10);
+# 使用 CHANGE 子句, 语法有很大的不同。 在 CHANGE 关键字之后，紧跟着的是你要修改的字段名，然后指定新字段名及类型
+ALTER TABLE runoob_tbl CHANGE i j BIGINT;
+
+# 19-5，默认值，指定是否包含值或者是否设置默认值。
+# 指定字段 j 为 NOT NULL 且默认值为100 。
+ALTER TABLE runoob_tbl MODIFY j BIGINT NOT NULL DEFAULT 100;
+# 如果你不设置默认值，MySQL会自动设置该字段默认为 NULL。
+
+# 19-6，修改字段默认值
+ALTER TABLE runoob_tbl ALTER i SET DEFAULT 1000;
+#  ALTER 命令及 DROP子句来删除字段的默认值
+ALTER TABLE runoob_tbl ALTER i DROP DEFAULT;
+
+# 19-7，修改表名
+ALTER TABLE runoob_tbl RENAME TO alter_tbl;
+
+# 20，索引
+# 参考：https://www.runoob.com/mysql/mysql-index.html
 
 # 显示数据表的属性，属性类型，主键信息 ，是否为 NULL，默认值等其他信息。
+# 注意 COLUMNS 就是对的，不用再改为其他具体的列字段。
 mysql> SHOW COLUMNS FROM runoob_tbl;
 
 # 显示数据表的详细索引信息，包括PRIMARY KEY（主键）。
@@ -452,6 +661,8 @@ mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%'\G;   # 加上 \G，查询结
 参考：[mysql没有默认的配置文件，需要自己建][findMysqlConfFileUrl1]
 
 ### mysql、redis、mongodb对比
+
+文档
 
 **一、mongodb：**
 
@@ -1446,6 +1657,7 @@ db.createUser(
     roles: [ { role: "root", db: "admin" } ] 
   }
 )
+
 # => Successfully added user
 
 # 2.3 查看人员
@@ -1465,6 +1677,7 @@ mongod --auth -p 27017 --dbpath /data/db
 mongo -u "admin" -p "123456" --authenticationDatabase "admin"
 # 连接远程数据库
 mongo 远程IP地址:端口号/仓库 -u 用户名 -p 密码
+
 ```
 
 #### Mongodb数据库基本术语及操作
@@ -1492,6 +1705,7 @@ primary key | primary key | 主键,MongoDB自动将_id字段设置为主键
 - db.auth("用户名","password")，密码认证
 
 db.auth()什么时候用呢？其实除了直接输入用户名和密码进行登录连接外，还可以如下:
+
 ```bash
 # 1、连接数据库，当然虽然连接了，但是无法执行命令
 mongo admin
@@ -1510,6 +1724,9 @@ db.auth('admin', '123456') # 成功的话会输出 1
 - config: 当Mongo用于分片设置时，config数据库在内部使用，用于保存分片的相关信息。
 
 SQL数据库与NoSql数据库，在一些名字的叫法上也不同：
+
+参考：https://blog.csdn.net/MCpang/article/details/7714744
+
 SQL | NoSql
 -|-
 表格 | 集合
@@ -1517,6 +1734,222 @@ SQL | NoSql
 列 | 字段
 表联合 | 嵌入文档
 主键 | 主键 (MongoDB 提供了 key 为 _id )
+
+**其实，在NoSql中，文档其实就相当于一条数据，对应着Sql里的一行（也就是一条记录）。然后一个集合里可以有多个文档，就像一个表格里可以有多行。而多个集合就构成了数据库。**
+
+关系型数据库，在安装数据库的时候数据库实例创建，同时存在系统默认的管理员用户。之后可以创建多个用户并进行赋权，创建的表存在于不同的用户之下，不同的用户存储着不同的数据。mongodb以文档的形式保存在集合中，可以同一数据库存储不同的数据或者集合。
+
+mongodb服务器可以存在多应用或者用户的数据，可以相互独立。数据的命名规则：
+
+- 不能使空字符串（""）
+- 不得含有''（空格）、.、$、/、|和\0（空字符）
+- 应全部小写
+- 最多64字节
+
+保留数据库名：admin、local、config
+
+mongoose数据库基本操作：
+参考：https://www.runoob.com/mongodb/mongodb-create-database.html
+
+```js
+// 1、创建数据库
+// 如果数据库不存在，则创建数据库，否则切换到指定数据库。
+use monitor
+=> switched to db monitor
+
+// 将该数据库的连接赋值给全局变量db，因此 db 可以理解为指向数据库monitor的指针
+db
+=> monitor
+
+// 此时如果直接：show dbs 查看数据库，其实并没有monitor，只需插入一条数据即可
+// 注意，其实此时，相当于在 monitor 数据库下又增加了一个 monitor 集合，
+// 为了防止干扰，可以在其他集合里添加数据
+db.monitor.insert({desc: '数据库下面可以有同样名字的集合'})
+
+// 1-1、切换数据库
+// 切换数据库，是用 use，而集合之间无需切换，因为可以直接：db.集合名
+
+// 1-2、删除数据库
+// 删除前，务必要切换到指定的数据库，db 查看是否为要删除的数据库
+db.dropDatabase()
+=> { "dropped" : "monitor", "ok" : 1 }
+
+// 1-3、查看数据库
+show dbs
+
+// 2、创建集合
+// db.createCollection(name, options)
+db.createCollection('errdb')
+=> { "ok" : 1 } // 不像数据库，这里即使是空的集合，show collections查看集合时也会显示
+
+// 2-1、创建集合
+// 在 MongoDB 中，你不需要创建集合。当你插入一些文档时，MongoDB 会自动创建集合。如下，至少传一个空对象
+db.errdb.insert({})
+
+// 2-2、查看集合
+show collectios
+// or
+show tables
+
+// 2-3、删除集合，这里的删除不但删除了集合里的数据，而且集合也删除了
+db.集合名.drop()
+
+// 3、插入文档
+// MongoDB 使用 insert() 或 save() 方法向集合中插入文档，语法如下：
+// 如果该集合不在该数据库中， MongoDB 会自动创建该集合并插入文档。
+// db.COLLECTION_NAME.insert(document)，比如在errdb集合中，插入一条空对象
+db.errdb.insert({})
+=> WriteResult({ "nInserted" : 1 })
+// 或者
+db.errdb.save({test: '这是用save插入的'})
+=> WriteResult({ "nInserted" : 1 })
+
+// 3-1、save不但可以插入文档，还可以更新指定的文档
+// 注意：插入文档时 db.col.save(document) 命令。如果不指定 _id 字段 save() 方法类似于 insert() 方法。如果指定 _id 字段，则会更新该 _id 的数据。注意这里需要：ObjectId(_id)
+db.errdb1.save({_id: ObjectId('5eb8fe6bc9d8726e8eb83fea'), a: '33'})
+=> WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+// 3-2、查看已经插入的文档
+db.COLLECTION_NAME.find()
+```
+
+```bash
+# 4、更新文档
+# update() 方法用于更新已存在的文档。语法格式如下：
+db.collection.update(
+   <query>,
+   <update>,
+   {
+     upsert: <boolean>,
+     multi: <boolean>,
+     writeConcern: <document>
+   }
+)
+# query : update的查询条件，类似sql update查询内where后面的。
+# update : update的对象和一些更新的操作符（如$,$inc...）等，也可以理解为sql update查询内set后面的
+# upsert : 可选，这个参数的意思是，如果不存在update的记录，是否插入objNew,true为插入，默认是false，不插入。
+# multi : 可选，mongodb 默认是false,只更新找到的第一条记录，如果这个参数为true,就把按条件查出来多条记录全部更新。
+# writeConcern :可选，抛出异常的级别。
+
+>db.col.insert({
+  title: 'MongoDB 教程', 
+  description: 'MongoDB 是一个 Nosql 数据库',
+  by: '菜鸟教程',
+  url: 'http://www.runoob.com',
+  tags: ['mongodb', 'database', 'NoSQL'],
+  likes: 100
+})
+
+>db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })   # 输出信息
+
+> db.col.find().pretty()
+{
+  "_id" : ObjectId("56064f89ade2f21f36b03136"),
+  "title" : "MongoDB",
+  "description" : "MongoDB 是一个 Nosql 数据库",
+  "by" : "菜鸟教程",
+  "url" : "http://www.runoob.com",
+  "tags" : [
+    "mongodb",
+    "database",
+    "NoSQL"
+  ],
+  "likes" : 100
+}
+
+# 以上语句只会修改第一条发现的文档，如果你要修改多条相同的文档，则需要设置 multi 参数为 true。
+>db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}},{multi:true})
+
+# 4-1、更新文档
+# 当然 save 也可以直接更新，也就没有那么多选项，因为 ObjectId(id) 是唯一的
+
+# 5、删除文档，语法如下
+db.collection.remove(
+  <query>,
+  {
+    justOne: <boolean>,
+    writeConcern: <document>
+  }
+)
+# query 是必须项，
+# justOne : （可选）如果设为 true 或 1，则只删除一个文档，如果不设置该参数，或使用默认值 false，则删除所有匹配条件的文档。
+# writeConcern :（可选）抛出异常的级别。
+
+# 5-1、全部移除指定项
+# 下面两种效果一样，都是全部移除匹配的项
+db.errdb1.remove({a:'33'}, {justOne: false})
+db.errdb1.remove({a:'33'})
+
+# 5-2、移除所有项
+db.errdb1.remove({})
+
+# 6、查询文档，但是是以非结构化的方式来显示所有文档。因此不易读，语法如下：
+db.collection.find(query, projection)
+# query ：可选，使用查询操作符指定查询条件
+# projection ：可选，返回的数据里是否含有指定的字段。查询时返回文档中所有键值，只需省略该参数即可（默认省略）。
+# { field1: <value>, field2: <value> ... }
+# value，可以是：1 or true是含有，0或false表示不含，如下示例
+db.errdb1.find({},{a:0})
+# { "_id" : ObjectId("5eb909adc9d8726e8eb83ff0") }
+
+db.errdb1.find({},{a:1})
+# { "_id" : ObjectId("5eb909adc9d8726e8eb83ff0"), "a" : "33" }
+
+# 6-1、想通过结构化的形式展示数据，可以如下
+db.errdb1.find().pretty()
+
+# 6-2、有时候想 and 或者 or 来查找，其实就是交并补集方式
+db.errdb1.find({$or: [{a: '33'}, {b: '44'}]}) # 其实就是a为33和b为44的合集
+
+db.errdb1.find({c: '55', $or: [{a: '33'}, {b: '44'}]}) # 其实就是c必须为55，然后必须有a或者b
+# 类似sql中 where c = '55' AND (a = '33' OR b = '44')
+
+# 7、条件操作符、$type操作符，无非是根据数据大小或者类型来过滤
+
+# 8、分页 Limit，
+>db.COLLECTION_NAME.find().limit(NUMBER)
+
+# 8-1、Skip，不能每次都取前多多少项，还需要跳过之前的项，也就实现了分页
+>db.COLLECTION_NAME.find().limit(NUMBER).skip(NUMBER)
+
+# 9、sort排序
+# sort() 方法可以通过参数指定排序的字段，并使用 1 和 -1 来指定排序的方式，其中 1 为升序排列，而 -1 是用于降序排列。
+>db.COLLECTION_NAME.find().sort({KEY:1})
+
+# 10、索引
+# 索引通常能够极大的提高查询的效率，如果没有索引，MongoDB在读取数据时必须扫描集合中的每个文件并选取那些符合查询条件的记录。
+# 索引是特殊的数据结构，索引存储在一个易于遍历读取的数据集合中，索引是对数据库表中一列或多列的值进行排序的一种结构
+>db.COLLECTION_NAME.createIndex(keys, options)
+
+>db.COLLECTION_NAME.createIndex({open: 1, close: 1}, {background: true})
+
+# 建好索引之后，如何使用？其实一个集合里搜集了数据之后，再增加索引即可，然后搜索时，就可用对应字段进行查找
+# 比如，创建key为 item，stock，且升序的索引，
+db.products.createIndex( { "item": 1, "stock": 1 } )
+
+# 这个 index 引用的 document 首先会根据 item 排序，然后在 每个 item 中，又会根据 stock 排序，
+# 以下语句都满足该索引：
+db.products.find( { item: "Banana" } )
+db.products.find( { item: "Banana", stock: { $gt: 5 } } )
+
+# 1、查看集合索引
+db.col.getIndexes()
+
+# 2、查看集合索引大小
+db.col.totalIndexSize()
+
+# 3、删除集合所有索引
+db.col.dropIndexes()
+
+# 4、删除集合指定索引
+db.col.dropIndex("索引名称")
+
+参考：https://www.runoob.com/mongodb/mongodb-indexing.html
+
+# 11、聚合
+
+```
 
 
 创建一个新的集合，并插入一个文档，在 MongoDB 中，你不需要创建集合。当你插入一些文档时，MongoDB 会自动创建集合。
@@ -1526,7 +1959,7 @@ SQL | NoSql
 db.egg.insert({ type: 'eggDb' })
 # show dbs，就可以看到egg数据库
 
-# 给egg这个数据库增加用户，
+# 给egg这个数据库增加用户，必须切换到这个集合上，相当于给这个集合添加用户
 db.createUser(
   {
     user: "eggOwner", 
@@ -1535,7 +1968,7 @@ db.createUser(
   }
 )
 
-# 连接egg这个数据库
+# 连接egg这个数据库，登陆时直接登录指定的集合
 mongo egg -u eggOwner -p 123456
 
 # 查看数据库
@@ -1629,6 +2062,7 @@ show collections
 ```
 
 mongoDB其实是基于js的，也就是说，在mongo语句里，不但支持正常的语句，还支持js表达式
+
 ```bash
 # 插入日期
 db.egg.insert({ curDate: 2020-03-08 }) 
@@ -1644,7 +2078,7 @@ db.egg.insert({ randomNum: Math.random() })
 
 另外，我们熟悉json，其实还有bson，BSON是一种类json的一种二进制形式的存储格式，简称Binary JSON，它和JSON一样，支持内嵌的文档对象和数组对象，但是BSON有JSON没有的一些数据类型，如Date和BinData类型。BSON可以做为网络数据交换的一种存储形式，优点是灵活性高，但它的缺点是空间利用率不是很理想，
 
-{"hello":"world"} 这是一个BSON的例子，其中"hello"是key name，它一般是cstring类型，字节表示是cstring::= (byte*) "/x00" ,其中*表示零个或多个byte字节，/x00表示结束符;后面的"world"是value值，它的类型一般是string,double,array,binarydata等类型。
+{"hello":"world"} 这是一个BSON的例子，其中"hello"是key name，它一般是cstring类型，字节表示是cstring::= (byte*) "/x00" ,其中*表示零个或多个byte字��，/x00表示结束符;后面的"world"是value值，它的类型一般是string,double,array,binarydata等类型。
 
 MongoDB使用了BSON这种结构来存储数据和网络数据交换，当然也还是支持json的。
 
