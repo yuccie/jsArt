@@ -451,13 +451,200 @@ mysqladmin -u root -p drop <数据库名>
 mysql> use monitor;
 Database changed
 
-# 列出 MySQL 数据库管理系统的数据库列表。
+# 3-1、列出 MySQL 数据库管理系统的数据库列表。
 mysql> SHOW DATABASES;
 
-# 显示指定数据库的所有表，使用该命令前需要使用 use 命令来选择要操作的数据库。
-mysql> SHOW TABLES;
+# 4、数据类型
+# 三类：数值、日期/时间和字符串(字符)类型。
+
+# 5、创建表，通用语法如下
+CREATE TABLE table_name (column_name column_type);
+# table_name 为表名，需要用反引号包裹：``
+# column_name 为表字段名，需要用反引号包裹：``
+# column_type 为如何定义每个表字段，什么数据类型，值，排序等配置等
+
+CREATE TABLE IF NOT EXISTS `runoob_tbl`(
+  `runoob_id` INT UNSIGNED AUTO_INCREMENT,
+  `runoob_title` VARCHAR(100) NOT NULL,
+  `runoob_author` VARCHAR(40) NOT NULL,
+  `submission_date` DATE,
+  PRIMARY KEY ( `runoob_id` )
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+# 如果你不想字段为 NULL 可以设置字段的属性为 NOT NULL， 在操作数据库时如果输入该字段的数据为NULL ，就会报错。
+# AUTO_INCREMENT定义列为自增的属性，一般用于主键，数值会自动加1。
+# PRIMARY KEY关键字用于定义列为主键。 您可以使用多列来定义主键，列间以逗号分隔。
+# ENGINE 设置存储引擎，CHARSET 设置编码。
+
+# 5-1、命令行模式创建表
+上面方式需要一次写完，可能不太方便，其实还可以命令行模式，其实就是一行一行输入：
+
+CREATE TABLE runoob_tbl(
+  -> runoob_id INT NOT NULL AUTO_INCREMENT,
+  -> runoob_title VARCHAR(100) NOT NULL,
+  -> runoob_author VARCHAR(40) NOT NULL,
+  -> submission_date DATE,
+  -> PRIMARY KEY ( runoob_id )
+  -> )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+注意：MySQL命令终止符为分号 ; 。
+注意： -> 是换行符标识，不要复制，只需在后面输入命令即可。
+
+# 5-2、查看创建表里的字段，其实就是看看表里有哪些字段，字段的属性啥的。
+desc runoob_tbl;
+
+# 6、删除表
+drop table runoob_tbl;
+
+# 7、插入数据，之前是创建表时插入数据，怎么向已有表插入数据呢？
+INSERT INTO table_name ( field1, field2,...fieldN )
+                      VALUES
+                      ( value1, value2,...valueN );
+insert into runoob_tbl (date) values (now());
+# now()是mysql里获取日期的方法，不支持js的方法，mongodb支持。
+# 如果数据是字符型，必须使用单引号或者双引号，如："value"。
+# 7-1、插入数据后，如何查看具体的数据？
+select * from runoob_tbl;
+
+# 8、查询数据，语法如下：
+SELECT column_name,column_name FROM table_name,table_name [WHERE Clause] [LIMIT N][ OFFSET M]
+# 查询语句中你可以使用一个或者多个表，表之间使用逗号(,)分割，并使用WHERE语句来设定查询条件。
+# SELECT 命令可以读取一条或者多条记录。
+# 你可以使用星号（*）来代替其他字段，SELECT语句会返回表的所有字段数据
+# 你可以使用 WHERE 语句来包含任何条件。
+# 你可以使用 LIMIT 属性来设定返回的记录数。
+# 你可以通过OFFSET指定SELECT语句开始查询的数据偏移量。默认情况下偏移量为0。
+
+# 我们执行完 SELECT 语句后，释放游标内存是一个很好的习惯。？
+
+# 9、where语句，表示哪些条件
+SELECT field1, field2 FROM table_name1, table_name2 [WHERE condition1 [AND [OR]] condition2;
+select * from runoob_tbl where id=1;
+
+# 9-1、where语句在匹配字符串时，默认是不区分字母大小写，如果想区分，可以用binary如下
+select * from runoob_tbl where binary title="Test";
+
+# where：数据库中常用的是where关键字，用于在初始表中筛选查询。它是一个约束声明，用于约束数据，在返回结果集之前起作用。
+# group by:对select查询出来的结果集按照某个字段或者表达式进行分组，获得一组组的集合，然后从每组中取出一个指定字段或者表达式的值。
+# having：用于对where和group by查询出来的分组经行过滤，查出满足条件的分组结果。它是一个过滤声明，是在查询返回结果集以后对查询结果进行的过滤操作。
+# 执行顺序： select –>where –> group by–> having–>order by
+
+# 10、update更新
+UPDATE table_name SET field1=new-value1, field2=new-value2 [WHERE Clause];
+
+# 11、删除某条记录
+DELETE FROM table_name [WHERE Clause]
+
+# 12、like子句，其实就是通配符，比如在正则里*号，而like里是使用 % 号表示任意字符。
+SELECT field1,field2 FROM table_name WHERE field1 LIKE condition1 [AND [OR]] filed2 = 'somevalue';
+# 比如，找出所有runoob_author字段里包含COM的数据。
+SELECT * from runoob_tbl  WHERE runoob_author LIKE '%COM';
+
+# 13、UNION 操作符用于连接两个以上的 SELECT 语句的结果组合到一个结果集合中，
+# 其实相当于将不同数据库表里的数据，搜集到一块去。但是UNION 只会选取不同的值。请使用 UNION ALL 来选取重复的值！
+# 如下从两个表里查出所有含有country字段的数据，如果country有重复的值，只会出现一次。
+SELECT country FROM Websites
+UNION
+SELECT country FROM apps
+ORDER BY country;
+
+# 14、排序，
+SELECT field1, field2 FROM table_name1, table_name2
+ORDER BY field1 [ASC [DESC][默认 ASC]], [field2...] [ASC [DESC][默认 ASC]];
+# ASC 升序，DESC 降序
+SELECT * from runoob_tbl ORDER BY submission_date ASC;
+
+# 15、group by语句，可以对数据进行分组，比如100条数据里，A出现了多少次。
+# function是sql函数（count,sum,avg等），参数就是列名或者*号
+# operator是运算符，比如like，= 等
+SELECT column_name, function(column_name)
+FROM table_name
+WHERE column_name operator value
+GROUP BY column_name;
+
+# 如下，是使用 GROUP BY 语句 将数据表按名字进行分组，并统计每个人有多少条记录：
+SELECT name, COUNT(*) FROM employee_tbl GROUP BY name;
+# 其实这里COUNT(*) 既作为查出来的数据的字段，同时函数 COUNT(*) 的结果还是对应的值。
+# 如果想自定义字段，可以用as，如下：
+select name, count(*) as new_count from employee_tbl group by name;
+
+# 上方虽然分组是按name，但函数里的参数*代表的就是 name，而不是其他列名，即使改为其他列名也不会生效。
+# 如果分组想用name，但统计又想用其他字段，可以用WITH ROLLUP
+SELECT name, SUM(singin) as singin_count FROM employee_tbl GROUP BY name WITH ROLLUP;
+# 查出来的数据中，其中记录 NULL 表示所有人的登录次数。
+# 如果不想显示null，可以用 coalesce(a,b,c) 函数，如果a==null,则选择b；如果b==null,则选择c；如果a!=null,则选择a；如果a b c 都为null ，则返回为null（没意义）。
+SELECT coalesce(name, '总数'), SUM(singin) as singin_count FROM  employee_tbl GROUP BY name WITH ROLLUP;
+
+
+# 16、连表处理，其实就是如何连接不同的表，然后处理交并补集的数据而已。
+# 比如A表里的a，在表B里出现了几次等，大致分三类：
+# INNER JOIN（内连接,或等值连接）：获取两个表中字段匹配关系的记录。
+# LEFT JOIN（左连接）：获取左表所有记录，即使右表没有对应匹配的记录。
+# RIGHT JOIN（右连接）： 与 LEFT JOIN 相反，用于获取右表所有记录，即使左表没有对应匹配的记录。
+# 参考：https://www.runoob.com/mysql/mysql-join.html
+
+# 17、处理null值，
+# IS NULL: 当列的值是 NULL,此运算符返回 true。
+# IS NOT NULL: 当列的值不为 NULL, 运算符返回 true。
+# <=>: 比较操作符（不同于 = 运算符），当比较的的两个值相等或者都为 NULL 时返回 true。
+
+# 18、正则表达式，sql语句里可以用LIKE ...% 来进行模糊匹配，也可以使用正则
+# 参考：https://www.runoob.com/mysql/mysql-regexp.html
+
+# 19、MySQL 事务
+# MySQL 事务主要用于处理操作量大，复杂度高的数据。比如说，在人员管理系统中，你删除一个人员，你既需要删除人员的基本资料，
+# 也要删除和该人员相关的信息，如信箱，文章等等，这样，这些数据库操作语句就构成一个事务！
+# 1、在 MySQL 中只有使用了 Innodb 数据库引擎的数据库或表才支持事务。
+# 2、事务处理可以用来维护数据库的完整性，保证成批的 SQL 语句要么全部执行，要么全部不执行。
+# 3、事务用来管理 insert,update,delete 语句
+
+# 一般来说，事务是必须满足4个条件（ACID）：：原子性（Atomicity，或称不可分割性）、一致性（Consistency）、隔离性（Isolation，又称独立性）、持久性（Durability）。
+
+# 原子性：一个事务（transaction）中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。
+# 一致性：在事务开始之前和事务结束以后，数据库的完整性没有被破坏。这表示写入的资料必须完全符合所有的预设规则，这包含资料的精确度、串联性以及后续数据库可以自发性地完成预定的工作。
+# 隔离性：数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。事务隔离分为不同级别，包括读未提交（Read uncommitted）、读提交（read committed）、可重复读（repeatable read）和串行化（Serializable）。
+# 持久性：事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。
+
+# 在 MySQL 命令行的默认设置下，事务都是自动提交的，即执行 SQL 语句后就会马上执行 COMMIT 操作。因此要显式地开启一个事务务须使用命令 BEGIN 或 START TRANSACTION，或者执行命令 SET AUTOCOMMIT=0，用来禁止使用当前会话的自动提交。
+
+# 其实事务，可以理解为将一系列操作包装一下，然后整体执行而已。
+# 参考：https://www.runoob.com/mysql/mysql-transaction.html
+
+# 19、ALTER命令，改数据表名或者修改数据表字段时，就需要使用到MySQL ALTER命令。
+# 19-1，删除表runoob_tbl里 i 字段
+ ALTER TABLE runoob_tbl DROP i;
+# 19-2，添加表 i 字段，并定义数据类型，会自动添加到数据表字段的末尾。
+ ALTER TABLE runoob_tbl ADD i INT;
+# 19-2，添加表 i 字段，并定义数据类型(必须定义)，会自动添加到数据表字段的末尾。
+ ALTER TABLE runoob_tbl ADD i INT;
+# 19-3，添加表 i 字段，并定义数据类型，并指定新增字段的位置。
+# FIRST (设定位第一列)， AFTER 字段名（设定位于某个字段之后）
+ALTER TABLE runoob_tbl ADD i INT FIRST; # 设定第一列
+ALTER TABLE runoob_tbl ADD i INT AFTER c; # 放在c字段之后
+
+# 19-4，修改数据类型。使用MODIFY 或 CHANGE 子句 。
+ALTER TABLE runoob_tbl MODIFY c CHAR(10);
+# 使用 CHANGE 子句, 语法有很大的不同。 在 CHANGE 关键字之后，紧跟着的是你要修改的字段名，然后指定新字段名及类型
+ALTER TABLE runoob_tbl CHANGE i j BIGINT;
+
+# 19-5，默认值，指定是否包含值或者是否设置默认值。
+# 指定字段 j 为 NOT NULL 且默认值为100 。
+ALTER TABLE runoob_tbl MODIFY j BIGINT NOT NULL DEFAULT 100;
+# 如果你不设置默认值，MySQL会自动设置该字段默认为 NULL。
+
+# 19-6，修改字段默认值
+ALTER TABLE runoob_tbl ALTER i SET DEFAULT 1000;
+#  ALTER 命令及 DROP子句来删除字段的默认值
+ALTER TABLE runoob_tbl ALTER i DROP DEFAULT;
+
+# 19-7，修改表名
+ALTER TABLE runoob_tbl RENAME TO alter_tbl;
+
+# 20，索引
+# 参考：https://www.runoob.com/mysql/mysql-index.html
 
 # 显示数据表的属性，属性类型，主键信息 ，是否为 NULL，默认值等其他信息。
+# 注意 COLUMNS 就是对的，不用再改为其他具体的列字段。
 mysql> SHOW COLUMNS FROM runoob_tbl;
 
 # 显示数据表的详细索引信息，包括PRIMARY KEY（主键）。
