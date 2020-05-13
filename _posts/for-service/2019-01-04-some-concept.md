@@ -233,6 +233,19 @@ nginx -s reload
 
 ## rddis常用知识
 
+**Redis 与其他 key - value 缓存产品有以下三个特点：**
+
+- Redis支持数据的持久化，可以将内存中的数据保存在磁盘中，重启的时候可以再次加载进行使用。
+- Redis不仅仅支持简单的key-value类型的数据，同时还提供list，set，zset，hash等数据结构的存储。
+- Redis支持数据的备份，即master-slave模式的数据备份。
+
+**Redis 优势：**
+
+- 性能极高 – Redis能读的速度是110000次/s,写的速度是81000次/s 。
+- 丰富的数据类型 – Redis支持二进制案例的 Strings, Lists, Hashes, Sets 及 Ordered Sets 数据类型操作。
+- 原子 – Redis的所有操作都是原子性的，意思就是要么成功执行要么失败完全不执行。单个操作是原子性的。多个操作也支持事务，即原子性，通过MULTI和EXEC指令包起来。
+- 丰富的特性 – Redis还支持 publish/subscribe, 通知, key 过期等等特性。
+
 ```bash
 # 用homebrew安装后，提示如下：
 # 多数情况下，安装的第三方包的配置文件都在 /usr/local/etc/ 下
@@ -255,26 +268,38 @@ redis 127.0.0.1:6379>
 # 现在我们输入 PING 命令。会输出PONG，说明redis已经成功安装。
 ```
 
-**redis数据类型：**
-
-Redis支持五种数据类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
-
 **redis常用命令：**
+
+参考：https://www.runoob.com/redis/redis-tutorial.html
+
+Redis是一个字典结构的存储服务器，而实际上一个Redis实例提供了多个用来存储数据的字典，客户端可以指定将数据存储在哪个字典中。这与我们熟知的在一个关系数据库实例中可以创建多个数据库类似，所以可以将其中的每个字典都理解成一个独立的数据库。
+
+每个数据库对外都是一个从0开始的递增数字命名，Redis默认支持16个数据库，可以通过配置databases来修改这一数字。客户端与Redis建立连接后会自动选择0号数据库，不过可以随时使用SELECT命令更换数据库，如要选择1号数据库 `select 1`;
+
+ 然而这些以数字命名的数据库又与我们理解的数据库有所区别。首先Redis不支持自定义数据库的名字，每个数据库都以编号命名，开发者必须自己记录哪些数据库存储了哪些数据。另外Redis也不支持为每个数据库设置不同的访问密码，所以一个客户端要么可以访问全部数据库，要么连一个数据库也没有权限访问。最重要的一点是多个数据库之间并不是完全隔离的，比如FLUSHALL命令可以清空一个Redis实例中所有数据库中的数据。综上所述，这些数据库更像是一种命名空间，而不适宜存储不同应用程序的数据。比如可以使用0号数据库存储某个应用生产环境中的数据，使用1号数据库存储测试环境中的数据，但不适宜使用0号数据库存储A应用的数据而使用1号数据库B应用的数据，不同的应用应该使用不同的Redis实例存储数据。由于Redis非常轻量级，一个空Redis实例占用的内在只有1M左右，所以不用担心多个Redis实例会额外占用很多内存。
 
 - 命令一般都是大写，但用小写也可以，建议都用大写。
 - redis输入命令时，一般在控制台都有提示，很友好
 
 ```bash
+# redis里面也有很多的db，可以切换
+# 默认有16个（0-15），可以修改redis.conf下的databases数量
+select index
+
+# 1、通过 CONFIG 命令查看或设置配置项
+CONFIG GET 配置项名字
 # * 获取所有配置项
 CONFIG GET *
 
-# 可以通过修改 redis.conf 文件或使用 CONFIG set 命令来修改配置。
+# 1-1、可以通过修改 redis.conf 文件或使用 CONFIG set 命令来修改配置。
+CONFIG SET 配置项名字 newValue
 
 # 设置一个变量，并命名，在控制台输入时，会有命令的提示：
 # set key value [expiration EX seconds|PX milliseconds] [NX|XX]
 # 一个键最大能存储 512MB。
 set testRedisNmae 'redis名字'
 => OK
+
 # 获取设置的名字
 get testRedisNmae
 => redis\xe5\x90\x8d\xe5\xad\x97
@@ -283,11 +308,15 @@ get testRedisNmae
 redis-cli --raw
 
 # 删除设置的名字
-del testRedisNmae
+e testRedisNmae
 => 1
 
-# Hash（哈希）
-# 每个 hash 可以存储 232 -1 键值对（40多亿）。
+# 2、Redis支持五种数据类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
+
+# 2-1、String类型是二进制安全的。意思是 redis 的 string 可以包含任何数据。比如jpg图片或者序列化的对象。最大能存储 512MB。
+
+# 2-2、Hash（哈希）
+# 每个 hash 可以存储 2的32次方 -1 键值对（40多亿）。
 redis 127.0.0.1:6379> HMSET runoob field1 "Hello" field2 "World"
 "OK"
 redis 127.0.0.1:6379> HGET runoob field1
@@ -295,10 +324,9 @@ redis 127.0.0.1:6379> HGET runoob field1
 redis 127.0.0.1:6379> HGET runoob field2
 "World"
 
-
-# List (列表)
+# 2-3、List (列表)
 # Redis 列表是简单的字符串列表，按照插入顺序排序。你可以添加一个元素到列表的头部（左边）或者尾部（右边）。
-# 列表最多可存储 232 - 1 元素 (4294967295, 每个列表可存储40多亿)。
+# 列表最多可存储 2的32次方 -1元素 (4294967295, 每个列表可存储40多亿)。
 redis 127.0.0.1:6379> lpush runoob redis
 (integer) 1
 redis 127.0.0.1:6379> lpush runoob mongodb
@@ -310,7 +338,7 @@ redis 127.0.0.1:6379> lrange runoob 0 10 # liange key start stop
 2) "mongodb"
 3) "redis"
 
-# Set(集合)
+# 2-3、Set(集合)
 # Redis 的 Set 是 string 类型的无序集合。
 # 集合是通过哈希表实现的，所以添加，删除，查找的复杂度都是 O(1)。
 
@@ -328,8 +356,7 @@ smemebers mySet
 name
 name1
 
-
-# zset(sorted set：有序集合)
+# 2-4、zset(sorted set：有序集合)
 # Redis zset 和 set 一样也是string类型元素的集合,且不允许重复的成员。
 # 不同的是每个元素都会关联一个double类型的分数。redis正是通过分数来为集合中的成员进行从小到大的排序。
 
@@ -350,6 +377,16 @@ redis 127.0.0.1:6379> > ZRANGEBYSCORE runoob 0 1000
 1) "mongodb"
 2) "rabitmq"
 3) "redis"
+
+
+# 3、Redis 命令用于在 redis 服务上执行操作。要在 redis 服务上执行命令需要一个 redis 客户端
+# 启动redis客户端的命令：
+redis-cli
+
+# 3-1、连接远程redis服务
+# 如何设置账户和密码？
+redis-cli -h host -p port -a password
+
 ```
 
 ## mysql常用知识
