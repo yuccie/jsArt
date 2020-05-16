@@ -456,13 +456,23 @@ mysqladmin -u root password 'new_password'
 # 连接mysql，输入以下命令后，需要输入数据库的连接密码
 mysql -u root -p
 
-mysql -h 主机名 -u 用户名 -p
+mysql -h 主机名 -u 用户名 -p <数据库名>
 # -h : 指定客户端所要登录的 MySQL 主机名, 登录本机(localhost 或 127.0.0.1)该参数可以省略;
 # -u : 登录的用户名;
 # -p : 告诉服务器将会使用一个密码来登录, 如果所要登录的用户名密码为空, 可以忽略此选项。
+# 如果要在-p选项后的 line 命令上提供密码，则必须在没有中间空格的情况下提供密码(对于 example，如-ppassword，而不是-p password)。但是，不建议将密码放在命令 line 上，因为这样做会使其暴露给在您的计算机上登录的其他用户。
 
 # 如果直接运行mysql，一般会产生如下格式提示：
 ERROR 1045 (28000): Access denied for user 'mac'@'localhost' (using password: NO)
+
+# 查询版本号和当前日期
+SELECT VERSION(), CURRENT_DATE;
+# 执行mysql命令，会展示查询花了多长时间，它给你提供服务器性能的一个大致概念。因为他们表示时钟时间(不是 CPU 或机器时间)，并且因为他们受到诸如服务器负载和网络延时的影响，因此这些值是不精确的。
+# 可以把mysql当做一个简单的计数器，但需要select 开头，如下会得到25
+select (4+1)*5;
+# 查询用户及当前时间
+select user(), current_date;
+
 
 # 断开mysql连接
 mysql＞ quit
@@ -489,6 +499,8 @@ mysqladmin -u root -p drop <数据库名>
 # 3、切换数据库，
 mysql> use monitor;
 Database changed
+# 3-1、查看当前是哪个数据库
+mysql> select database();
 
 # 3-1、列出 MySQL 数据库管理系统的数据库列表。
 mysql> SHOW DATABASES;
@@ -549,7 +561,7 @@ select * from runoob_tbl;
 SELECT column_name,column_name FROM table_name,table_name [WHERE Clause] [LIMIT N][ OFFSET M]
 # 查询语句中你可以使用一个或者多个表，表之间使用逗号(,)分割，并使用WHERE语句来设定查询条件。
 # SELECT 命令可以读取一条或者多条记录。
-# 你可以使用星号（*）来代替其他字段，SELECT语句会返回表的所有字段数据
+# 你可以使用星号（*）来代替其他字段，表示“所有列”
 # 你可以使用 WHERE 语句来包含任何条件。
 # 你可以使用 LIMIT 属性来设定返回的记录数。
 # 你可以通过OFFSET指定SELECT语句开始查询的数据偏移量。默认情况下偏移量为0。
@@ -563,7 +575,7 @@ select * from runoob_tbl where id=1;
 # 9-1、where语句在匹配字符串时，默认是不区分字母大小写，如果想区分，可以用binary如下
 select * from runoob_tbl where binary title="Test";
 
-# where：数据库中常用的是where关键字，用于在初始表中筛选查询。它是一个约束声明，用于约束数据，在返回结果集之前起作用。
+# where：数据库中常用的是where关键字，用于在初始表中筛选查询。它是一个约束声明，用于约束数据，在返回结果集之前起作用。条件中String类型通常是 不区分大小写的(case-insensitive)
 # group by:对select查询出来的结果集按照某个字段或者表达式进行分组，获得一组组的集合，然后从每组中取出一个指定字段或者表达式的值。
 # having：用于对where和group by查询出来的分组经行过滤，查出满足条件的分组结果。它是一个过滤声明，是在查询返回结果集以后对查询结果进行的过滤操作。
 # 执行顺序： select –>where –> group by–> having–>order by
@@ -592,6 +604,9 @@ SELECT field1, field2 FROM table_name1, table_name2
 ORDER BY field1 [ASC [DESC][默认 ASC]], [field2...] [ASC [DESC][默认 ASC]];
 # ASC 升序，DESC 降序
 SELECT * from runoob_tbl ORDER BY submission_date ASC;
+# 与所有其他比较操作一样，排序通常以不区分大小写 (case-insensitive) 方式执行
+# 可以使用BINARY强制对列进行 区分大小写的(case-sensitive)排序
+SELECT * from runoob_tbl ORDER BY BINARY submission_date ASC;
 
 # 15、group by语句，可以对数据进行分组，比如100条数据里，A出现了多少次。
 # function是sql函数（count,sum,avg等），参数就是列名或者*号
