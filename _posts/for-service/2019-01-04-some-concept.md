@@ -260,6 +260,8 @@ Or, if you don't want/need a background service you can just run:
 ```bash
 # 启动redis
 redis-server /usr/local/etc/redis.conf
+# 或者
+redis-server
 
 # 新打开一个终端，查看 redis 是否启动？
 redis-cli
