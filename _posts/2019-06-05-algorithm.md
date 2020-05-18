@@ -1055,11 +1055,11 @@ binarySearch(arr, 1);
 - 谈论算法的速度时，我们说的是随着输入的增多，其运行时间将以什么样的速度增加。
 - O(logn)比O(n)快，当需要搜索的元素更多时，前者比后者快的越多
 
-### **选择排序**
+### **排序及搜索算法**
 
 我们可以将内存理解为超市里的储物柜，每个格子就是一块内存，如果想同时并且连续放置4个柜子，就是数组。。。如果想连续放置100个柜子，数组很明显不满足，因为很容易不连续。这时就需要链表。
 
-而同样，本来四个柜子可以装下，现在又多了一个东西，还需一个柜子。。。就需要重新找一个可以连续放下5个东西的柜子。反应在计算机内就是重新开辟一个新的空间，然后放置。。。因此每次都很慢，这时可以提前向计算机申请一个大点的内存空间，从而预留一些位置。但还需要权衡这些空间是否会用到，以免浪费内存，如果后续超过了还需要重新换位置。
+而同样，本来四个柜子可以装下，现在又多了一个东西，还需一个柜子。。。就需要重新找一个可以连续放下5个东西的柜子。反映在计算机内就是重新开辟一个新的空间，然后放置。。。因此每次都很慢，这时可以提前向计算机申请一个大点的内存空间，从而预留一些位置。但还需要权衡这些空间是否会用到，以免浪费内存，如果后续超过了还需要重新换位置。
 
 而链表的话，不必是连续的内存空间，就如寻宝游戏，你前往第一个地址，那里有一张纸条写着"下一个元素的地址为123"，因此你前往123，那里又有一张纸条，写着“下一个元素的地址为847”，因此在链表中插入元素很容易，只需将其放入内存，并将其地址存储到前一个元素中。
 
@@ -1069,12 +1069,92 @@ binarySearch(arr, 1);
 插入 | O(n) | O(1)
 删除 | O(n) | O(1)
 
+#### 冒泡排序
+
+```js
+// 每次循环，其实移动只是一个元素，因此需要双层循环
+function bubleSort(list) {
+  let len = list.length;
+  for (let i = 0; i< len; i++) {
+    for (j = 0; j < len -1; j++) {
+      console.log(1)
+      if (list[j] > list[j+1]) {
+        [list[j], list[j+1]] = [list[j+1], list[j]]
+      }
+    }
+  }
+  return list;
+}
+bubleSort([3,2,1]); // 1打印了6次，即：3*2 
+
+function bubleSort1(list) {
+  let len = list.length;
+  let flag = true;
+
+  for (let i = 0; i< len; i++) {
+    for (j = 0; j < len -1; j++) {
+      console.log(1)
+      if (list[j] > list[j+1]) {
+        flag = false;
+        [list[j], list[j+1]] = [list[j+1], list[j]]
+      }
+    }
+  }
+  // 如果没有交换，说明已经是拍好序的了，但也执行了6次有何意义呢？
+  if (flag) return list;
+
+  return list;
+}
+bubleSort1([3,2,1]);
+
+// 其实每次排序，最后面的数字都已经拍好序了，没必要再次比较
+// 因此 j < len - 1 - i
+function bubleSort2(list) {
+  let len = list.length;
+
+  for (let i = 0; i< len; i++) {
+    for (j = 0; j < len - 1 - i; j++) {
+      console.log(1)
+      if (list[j] > list[j+1]) {
+        [list[j], list[j+1]] = [list[j+1], list[j]]
+      }
+    }
+  }
+
+  return list;
+}
+bubleSort2([3,2,1]); // 打印3次1，虽然次数减少了，但复杂度依然是O(n^2)
+```
+
+#### 选择排序
+
 选择排序每一轮找出列表里的最大（或最小）值，放在列表循环的开始位置，比如第一轮放在索引为0的位置，第二轮则放在索引为1的位置。。。
 
 ```js
+// 1、每轮循环找出最小元素的索引
+// 2、每轮循环结束，将最小元素放在循环开始位置
 function selectSort(arr) {
-  // 1、每轮循环找出最小元素的索引
-  // 2、每轮循环结束，将最小元素放在循环开始位置
+  let len = arr.length;
+
+  for (let i = 0; i < len -1; i++) {
+    let minIdx = i;
+    for (let j = 0; j < len; j++) {
+      console.log(1);
+      if (arr[j] < arr[minIdx]) {
+        minIdx = j;
+      }
+    }
+    if (i !== minIdx) {
+      // 说明最小值变化了，把最小值放在初始位置上，即i
+      [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]]
+    }
+  }
+}
+selectSort([3,2,1]); // 6次
+
+// 上面的比较是n*(n-1)次，也就是3*2，其实比较过的值，没必要再次比较
+// 因此内层循环为 let j = i + 1
+function selectSort(arr) {
   let len = arr.length;
   let times = 0;
   // 务必注意，这里是len - 1，因为最后要给j留一个元素
@@ -1088,38 +1168,267 @@ function selectSort(arr) {
         minIdx = j;
       }
     }
-    // 一轮循环结束，将最小的放在循环开始处
+    // 不用判断，直接执行也行，如果没变，则无影响，如果变了，就应该调换
     [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]]
   }
-  console.log(`执行次数：${times}`);
+  console.log(`执行次数：${times}`); //  3次
   return arr;
 }
-let arr = Array(4).fill(0).map((item, idx) => idx);
+let arr = Array(3).fill(0).map((item, idx) => idx);
 selectSort(arr);
+
+// 上面的操作只是操作索引，还可以直接操作元素
+function selectSort(array) {
+  if (Object.prototype.toString.call(array).slice(8, -1) === 'Array') {
+    var len = array.length, temp;
+    for (var i = 0; i < len - 1; i++) {
+      var min = array[i];
+      for (var j = i + 1; j < len; j++) {
+        if (array[j] < min) {
+          [array[j], min] = [min, array[j]]
+        }
+      }
+      array[i] = min;
+    }
+    return array;
+  } else {
+    return 'array is not an Array!';
+  }
+}
 ```
 
-选择排序，每次都从剩余列表里找出最值的索引，最后放在开始或结束位置。而冒泡排序，是双层循环，每次比较相邻的两个值，然后交换位置
+冒泡排序，是双层循环，每次比较相邻的两个值，然后交换位置，而选择排序，每次都从剩余列表里找出最值的索引，最后放在开始或结束位置。
+
+冒泡和选择排序的时间复杂度都为O(n^2)
+
+#### 插入排序
+
+将一个序列分为两部分，已排序和未排序区间，已排序可以默认为第一个元素，核心就是取未排序区间中的元素，在已排序区间中找到合适位置插入即可。
+
+涉及元素的比较，及元素的移动(需要将插入点的元素往后移动一位，这样才能腾出空间给元素插入)
 
 ```js
-// 冒泡排序
-function bubleSort(arr) {
+function insertSort(arr) {
   let len = arr.length;
-  let times = 0;
+  if (len <= 1) return arr;
 
-  for (let i = 0; i < len - 1; i++) {
-    for (let j = 0; j < len - 1 - i; j++) {
-      if (arr[j] < arr[j+1]) {
-        times++;
-        [arr[j], arr[j+1]] = [arr[j+1], arr[j]]
+  // i=1，我们认为第一项(i=0)已排好序了
+  for (let i = 1; i < len; i++) {
+    let val = arr[i];
+    let j = i-1; // 定义在这里，因为for循环外要用
+    // 已排序的索引最大就是i-1，其实是倒着比，
+    // 如果比最后一个还大，就只需比一次
+    for (; j >= 0; j--) {
+      if (arr[j] > val) {
+        arr[j+1] = arr[j]
+      } else {
+        break;
       }
     }
+
+    // 等到内层循环完，也就移动完了，也就空出一个位置
+    // 最后执行完j--，所以这里是j+1
+    arr[j+1] = val
   }
-  console.log(`执行次数：${times}`);
   return arr;
 }
-let arr = Array(6).fill(0).map((item,idx) => idx)
-bubleSort(arr);
+insertSort([3,5,1]);
+// 步骤一、3已经排好序，从数组第二项5开始，3比5小，所以5待在原位
+// 步骤二、1比5小，所以5移到第三位了（arr[j+1] = arr[j]），然后1比3还小，所以3移动第二位了，第一位的值就可以改为1了
+
+
+function insertSort1(arr) {
+  let len = arr.length;
+  if (len <= 1) return arr;
+
+  // i=1，我们认为第一项(i=0)已排好序了
+  for (let i = 1; i < len; i++) {
+    let val = arr[i];
+    let j = i;
+
+    while (j > 0 && arr[j-1] > val) {
+      arr[j] = arr[j-1];
+      j--
+    }
+    // 最后一次j-1项被移走了，而后又j--，
+    // 因此其实就是这里的j
+    arr[j] = val
+  }
+  return arr;
+}
+insertSort1([3,5,1]);
+
+// 插入排序的空间复杂度为O(1)，最好情况的时间复杂度为O(n)，最坏情况则为O(n的平方)
 ```
+
+可以看出，对于冒泡，插入，选择排序三种算法，时间复杂度都是O(n的平方)比较高，适合小规模数据的排序。。。还有时间复杂度为O(nlogn)的排序算法，**归并排序和快速排序**，这两种比较适合大规模的数据排序。而且也很好的体现了**分治**的思想
+
+#### 归并排序
+
+js的sort方法用以排序数组，但是规范并没有要求用哪种排序算法，所以不同的浏览器使用的算法略有不同。chrome使用的是插入和快速排序，而firefox使用的是归并排序。
+
+具体实践情况参考：https://segmentfault.com/a/1190000010648740
+
+ 归并排序是一种分治算法。其思想是将原始数组切分成较小的数组，直到每个小数组只有一个位置，接着将小数组归并成较大的数组，直到最后只有一个排序完成的大数组。
+
+因此可以先把数组从中间分成前后两部分，然后再对前后两部分继续分开。。。直到不能分，并排序，最后将排好序的两部分合并在一起。
+
+```js
+function mergeSort(arr) {
+  let len = arr.length;
+  if (len <= 1) return arr;
+
+  let middle = Math.floor(len / 2);
+  let left = arr.slice(0, middle);
+  let right = arr.slice(middle);
+
+  return merge(mergeSort(left), mergeSort(right))
+}
+
+function merge(left, right) {
+  let result = [];
+
+  while(left.length && right.length) {
+    if (left[0] <= right[0]) {
+      // 把最小的依次放在result里面
+      // 每次操作，数组都会变化
+      result.push(left.shift());
+    } else {
+      result.push(right.shift());
+    }
+  }
+  //经过上面一次循环，只能左子列或右子列一个不为空，或者都为空
+  while (left.length){
+    // 不能使用concat，因为会死循环
+    result.push(left.shift());
+  }
+  while (right.length){
+    result.push(right.shift());
+  }
+  return result;
+}
+// 测试数据
+var nums=[6,10,1,9,4,8,2,7,3,5];
+mergeSort(nums); //
+```
+
+归并排序需要另外开辟一个空间，进行存储排好序的数组作为中间过渡状态。。。
+
+#### 快速排序
+
+快速排序也许是最常用的排序算法了，复杂度为O(nlogn)，且通常情况下它比同样O(nlogn)复杂度的其他排序算法性能要好。
+
+快速排序也使用分治的方法，将原始数组分为较小的数组，但与归并排序还略有不同。
+
+参考：[快速排序(阮一峰)][quickSortUrl(ruanyifeng)]  
+1. 在数据集中，选择一个元素作为基准(pivot)
+2. 所有小于"基准"的元素，都移到"基准"的左边；所有大于"基准"的元素，都移到"基准"的右边。
+3. 对"基准"左边和右边的两个子集，不断重复第一步和第二步，直到所有子集只剩下一个元素为止。
+
+```js
+var quickSort = function(arr) {
+　　if (arr.length <= 1) { return arr; }
+　　var pivotIndex = Math.floor(arr.length / 2);
+  // splice返回的是数组，因此[0]就可以取出具体的值
+　　var pivot = arr.splice(pivotIndex, 1)[0]; // 务必要注意，这里修改数组，数组的长度已经发生变化了
+　　var left = [];
+　　var right = [];
+    // 注意这里的数组长度是动态变化的，不能一开始就用变量缓存长度
+　　for (var i = 0; i < arr.length; i++){
+　　　　if (arr[i] < pivot) {
+　　　　　　left.push(arr[i]);
+　　　　} else {
+　　　　　　right.push(arr[i]);
+　　　　}
+　　}
+　　return quickSort(left).concat([pivot], quickSort(right));
+};
+quickSort([9,8,5,3,1]) // [1,3,5,8,9]
+
+// 用es6语法
+function quickSortRecursion (arr) {
+  if (!arr || arr.length < 2) return arr;
+  const pivot = arr.pop();
+  let left = arr.filter(item => item < pivot);
+  let right = arr.filter(item => item >= pivot);
+  return quickSortRecursion(left).concat([pivot], quickSortRecursion(right));
+}
+```
+
+但上面的方式占用内存比较多，因此还有下面的方式：
+
+```js
+function quickSort(arr, left, right) {
+  /*
+   * len为数组的长度;
+   * left为需要数组中参与排序的起始点；right为数组中参与排序的终止点;
+   * left如果有传数字那么就为left，没有传参则为0；
+   * right如果有传参那么就为right，没有传参则为len-1;
+   * 有传参可能会部分排序可能不会排序，没传参默认排序整个数组;
+   * partitionIndex为分组界限;
+   */
+  var len = arr.length,
+    partitionIndex,
+    left = typeof left !== 'number' ? 0 : left,
+    right = typeof right !== 'number' ? len - 1 : right;
+
+  // 如果需要排序的起始索引小于终止索引则执行排序;递归的终止条件；
+  if (left < right) {
+
+    // partition的返回值作为partitionIndex来分隔数组；
+    // 索引partitionIndex左边的元素均小于arr[partitionIndex]；
+    // 右边的元素均大于arr[partitionIndex]；
+    partitionIndex = partition(arr, left, right);
+
+    // 数组中小于arr[partitionIndex]的部分(索引left到partitionIndex-1)再次使用quickSort排序；
+    quickSort(arr, left, partitionIndex - 1);
+
+    // 数组中大于arr[partitionIndex]的部分(索引partitionIndex+1到right)再次使用quickSort排序；
+    quickSort(arr, partitionIndex + 1, right);
+  }
+  // 递归执行直到不满足left<right;返回本身；
+  return arr;
+}
+
+function partition(arr, left, right) {
+  /*
+   * 这部分是具体实现排序的部分；
+   * 将left赋值给pivot，作为参照物，因为left在最左边，只需要从左到右比较一遍即可判断整个数组；
+   * index索引是arr中待交换位置；
+   */
+  var pivot = left,
+    index = pivot + 1;
+  // for循环从参照物arr[pivot]下一个元素arr[pivot+1]开始一直比较到子数组结束arr[right]；
+  for (var i = index; i <= right; i++) {
+
+    // 循环中如果有任何小于参照物的，就将他交换到index的位置，然后index向右移动到下一个位置；
+    if (arr[i] < arr[pivot]) {
+      swap(arr, i, index);
+      index++;
+    }
+  }
+  /*
+   * 因为每次都是交换完后index移动到下一个位置，所以在循环结束时，index仍为待交换的位置；
+   * 此时索引pivot+1到index-1的元素都小于参照物arr[pivot]；
+   */
+
+  // 交换pivot和index-1索引的值之后index-1索引左边全都是小于arr[index-1]的元素；
+  swap(arr, pivot, index - 1);
+
+  // 返回index-1作为拆分子数组的分界线；
+  return index - 1;
+}
+/*
+* 普通的交换，将a[i]和a[j]的数值交换；
+*/
+function swap(arr, i, j) {
+  var temp = arr[i];
+  arr[i] = arr[j];
+  arr[j] = temp;
+}
+quickSort([9,8,5,3,1]) // [1,3,5,8,9]
+```
+
 
 ### **递归**
 
@@ -1222,6 +1531,13 @@ findMax([1,2,3]); // 6
 为什么能使用循环遍历的场合，非得用递归呢？因为在函数式编程里，没有循环，只有递归。
 
 ### **数组相关**
+
+>编写一个程序将数组扁平化去并除其中重复部分数据，最终得到一个升序且不重复的数组
+
+```js
+var arr = [ [1, 2, 2], [3, 4, 5, 5], [6, 7, 8, 9, [11, 12, [12, 13, [14] ] ] ], 10];
+Array.from(new Set(arr.flat(Infinity))).sort((a,b)=>a-b)
+```
 
 >业务中，有时会从后台获取一个很大的数组，然后要么渲染在页面，要么过滤后渲染到页面上，如何高效渲染呢？
 
@@ -1713,6 +2029,38 @@ function maxProfit4(prices) {
 // 内存消耗 :35.1 MB, 在所有 JavaScript 提交中击败了100.00%的用户
 maxProfit4([7,1,5,3,6,4]); // 5
 // 还可以动态规划方式
+```
+
+> 旋转数组：给定一个数组，将数组中的元素向右移动 k 个位置，其中 k 是非负数
+
+```js
+function rotate(arr, k) {
+  // 向右移动k位，其实就是截取slice(k, arr.length)
+  // 然后拼接到最开始
+  let left = arr.slice(-k);
+  let right = arr.slice(0, -k);
+  // 上面两行的arr指针还和外部的一致，但下面的就会生成一个新指针给arr
+  // 因此下面的操作不会影响到外面的数组
+  arr = left.concat(right)
+}
+rotate([1,2,3,4,5,6,7], 3);// 
+
+
+// 下面的操作，会与外面的arr始终保持同步
+function rotate1(arr, k) {
+  // 只有k < arr.length，k才不为0，且k为其本身
+  k = k % arr.length;
+  
+  let temp = [];
+  if (k) {
+    // slice省略参数2，即是到最后
+    temp = arr.slice(-k)
+  }
+  // 当k不为0，需要删除拷贝的那一部分，当k为0，说明移动太多了，导致数组为空
+  arr.splice(-k, k);
+  arr.unshift(...temp)
+}
+rotate1([1,2], 1);
 ```
 
 ### **栈结构**

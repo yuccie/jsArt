@@ -426,14 +426,38 @@ Or, if you don't want/need a background service you can just run:
 
 然后是mysql默认只允许localhost的连接。
 
+mysql -h 127.0.0.1 的时候，使用 TCP/IP 连接
+mysql -h localhost 的时候，是不使用 TCP/IP 连接的，而使用 Unix socket；此时，mysql server 则认为该 client 是来自 “localhost”
+
 连接数据库，用mysql -u root，因为刚开始是没有密码的
 
 后台运行mysql的话，可以brew services start mysql
 
 配置文件的话，一般路径在`/usr/local/etc/my.cnf`里。若想修改可以编辑该文件
 
-
 ***登录mysql***
+
+（切记删除了*.sock文件很严重）卸载masql: https://blog.csdn.net/love_parents/article/details/80938989
+修复*.sock文件：https://blog.csdn.net/hjf161105/article/details/78850658
+
+连接localhost通常通过一个Unix域套接字文件进行，一般是/tmp/mysql.sock。如果套接字文件被删除了，本地客户就不能连接。此时想卸载或者重新安装mysql往往也是不好使的。。。既然某个文件删除了，那让程序再生成一个，并让程序启动时指定新的配置文件即可。然后就可以重新登录了
+
+```bash
+# 之前的目录在 /tmp/mysql.sock里，
+# 此处重新指定一个目录，比如：/usr/local/var/mysql/mysql.sock
+# 然后需要配置 /usr/local/etc/my.cnf 如下：
+
+# Default Homebrew MySQL server config
+[client] # 这里客户端连接时用到的配置，
+socket =  /usr/local/var/mysql/mysql.sock
+
+[mysqld] # 这里服务端启动时用到的配置
+# Only allow connections from localhost
+bind-address = 127.0.0.1
+socket =  /usr/local/var/mysql/mysql.sock 
+```
+
+上面的 `[client]、[mysqld]`是mysql数据库关于配置的一种关键词，更详细配置参考：https://www.docs4dev.com/docs/zh/mysql/5.7/reference/postinstallation.html
 
 ```bash
 # mysqladmin 工具来获取服务器状态
@@ -441,16 +465,33 @@ mysqladmin --version
 => mysqladmin  Ver 8.0.16 for osx10.14 on x86_64 (Homebrew)
 
 # 启动mysql服务
-mysqld
 # 关闭mysql服务，如果没有命令，只能查进程号，然后杀进程
+mysqld
+# homebrew 可以启动和管理其安装的一些服务，brew services -h
+# 查看服务列表
+brew services list 
+# 启动mysql
+brew services start mysql
+# 关闭mysql
+brew services stop mysql
+
 
 # 新建一个终端，第一次安装时，没有密码，可以直接登录
 mysql -u root
 
-# Mysql安装成功后，默认的root用户密码为空，你可以使用以下命令来创建root用户的密码：
+# 设置密码：
+# 1、Mysql安装成功后，默认的root用户密码为空，你可以使用以下命令来创建root用户的密码：
 mysqladmin -u root password 'new_password'
 # 会提示如下，但是此时已经设置密码成功了，再用mysql -u root就登陆不上了。
 # mysqladmin: [Warning] Using a password on the command line interface can be insecure.
+# 如果root已经设置过密码，采用如下方法
+mysqladmin -u root password oldpass "newpass"
+# 2、还可以如下设置PASSWORD()是mysql中的一个函数，用于加密密码，还可用md5()，但有时候提示语法错误
+UPDATE user SET Password = PASSWORD('newpass') WHERE user = 'root';
+# 3、还可以如下
+set password for root@localhost = password('123');
+# 4、有时候上面几种都无法设置密码，还可如下修改密码：
+ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
 
 # 当配置完密码后，就需要如下
 # 连接mysql，输入以下命令后，需要输入数据库的连接密码
@@ -708,6 +749,8 @@ mysql> SHOW INDEX FROM runoob_tbl;
 mysql> SHOW TABLE STATUS  FROM RUNOOB;   # 显示数据库 RUNOOB 中所有表的信息
 mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%';     # 表名以runoob开头的表的信息
 mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%'\G;   # 加上 \G，查询结果按列打印
+
+
 ```
 
 参考：[设置密码强度][reSetMysqlPWPolicyUrl]
@@ -1709,6 +1752,13 @@ db.createUser(
     user: "admin", //用户名
     pwd: "123456", //密码
     roles: [ { role: "root", db: "admin" } ] 
+  }
+)
+db.createUser(
+  {
+    user: "monitorOwner",
+    pwd: "123456",
+    roles: [ { role: "dbOwner", db: "monitor" } ] 
   }
 )
 
