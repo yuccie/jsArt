@@ -584,6 +584,8 @@ CREATE TABLE runoob_tbl(
 
 # 5-2、查看创建表里的字段，其实就是看看表里有哪些字段，字段的属性啥的。
 desc runoob_tbl;
+# 5-3、查看有哪些表。
+show tables;
 
 # 6、删除表
 drop table runoob_tbl;
