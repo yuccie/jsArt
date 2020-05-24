@@ -655,6 +655,9 @@ module.exports = {
 [滴滴出行说devtool的几种模式][didiDevtoolUrl]<br/>
 [阮一峰-sourceMap详解][ruanyifeng-sourceMapUrl]<br/>
 
+控制台有时候报类似这样的错误：`DevTools failed to load SourceMap: Could not load content for...`，查看对应的源码，其实sourceMap是有的，但某些包就是报这些错误。如果控制台打印很多，会严重影响开发体验，可以关闭：控制台 -> setting -> sources -> 取消Enable Javascript Sources Maps勾选即可。当然也有人说浏览器的问题（[参考](https://bugs.chromium.org/p/chromium/issues/detail?id=1052872)）
+
+
 当然打包处理的代码有很多优点：
 
 1. 压缩混淆

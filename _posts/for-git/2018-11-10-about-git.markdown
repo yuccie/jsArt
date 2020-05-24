@@ -146,6 +146,14 @@ chmod 600 文件名
 # 提示：Enter passphrase for key xxx
 # 为了避免每次都提示输入，可以执行如下命令将私钥添加进钥匙串
 ssh-add -K ~/.ssh/对应私钥文件名
+# 但需要注意：ssh-add 这个命令不是用来永久性的记住你所使用的私钥的。实际上，它的作用只是把你指定的私钥添加到 ssh-agent 所管理的一个session 当中。而 ssh-agent 是一个用于存储私钥的临时性的 session 服务，也就是说当你重启之后，ssh-agent服务也就重置了。
+# 还有人说，秘钥重新生成走一遍流程就好，但也不一定。。。
+# 参考：https://help.github.com/cn/github/authenticating-to-github/working-with-ssh-key-passphrases
+
+# 还可以直接在 当前所用的shell里配置，就免得每次手动操作，比如当前我的shell是zsh
+# 修复每次关机重启都需要验证git登录信息,这里只是将每次的操作挪到终端自动执行而已.
+ssh-add -K ~/.ssh/yuccie1617@gmail.com
+参考：https://blog.csdn.net/superbfly/article/details/75287741
 ```
 
 使用密码登录，每次都需要输入密码，非常麻烦，好在`ssh`提供公钥登录，可以省去输入密码的步骤。所谓公钥登录，原理就是用户将自己的公钥存储在远程主机上，登录时，远程主机会向用户发送一段随机字符串，用户用自己的私钥加密后再发给远程主机，远程主机用事先存储用户的公钥解密，如果成功，则客户的是可信的，直接允许登录`shell`，不再要求密码。
