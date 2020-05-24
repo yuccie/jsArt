@@ -38,7 +38,12 @@
 // HTML5 语义化
 // CSS3 新特性
 
-
+function factorialize(num) {
+  if (num>0)
+  {return (num * factorialize(num - 1));}
+  else
+  return (1);
+}
 
 function Person(name) {
   this.name = name;
@@ -57,20 +62,7 @@ console.log(Person.prototype.constructor);
 console.log(Person.constructor);
 // Function
 
-rem  em
-1em 16px
-
-
-html.style.fontSize = 100(clientWidth / 750) px
-1rem = 100(clientWidth / 750) px
-
-transform: scale()
-
-div
-div
-
-vue - cli
-webapack
+// 
 
 
 // TODO

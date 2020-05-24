@@ -1139,7 +1139,6 @@ function selectSort(arr) {
   for (let i = 0; i < len -1; i++) {
     let minIdx = i;
     for (let j = 0; j < len; j++) {
-      console.log(1);
       if (arr[j] < arr[minIdx]) {
         minIdx = j;
       }
