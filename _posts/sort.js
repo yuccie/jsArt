@@ -73,6 +73,10 @@ switch (whichfn) {
     res = bucketSortPro(arr);
     // console.log(res);
     break;
+  case "heapSort":
+    res = heapSort(arr);
+    // console.log(res);
+    break;
   // case "lsdSort":
   //   lsdSort(arr);
   //   break;
@@ -459,14 +463,14 @@ function bucketSort(arr, num = 3) {
   let n = 0;
 
   // 如果用的桶数量太多，即每个桶里只有一个元素，则没有意义，此时修改桶数量
-  let bucketNum = Math.floor(len/num);
-  while(bucketNum < 2) {
-    num --;
-    bucketNum = Math.floor(len/num);
+  let bucketNum = Math.floor(len / num);
+  while (bucketNum < 2) {
+    num--;
+    bucketNum = Math.floor(len / num);
   }
 
   // 获取元素的最值，为后续计算步长准备
-  for (let i = 0; i< len; i++) {
+  for (let i = 0; i < len; i++) {
     min = min <= arr[i] ? min : arr[i];
     max = max >= arr[i] ? max : arr[i];
   }
@@ -482,12 +486,12 @@ function bucketSort(arr, num = 3) {
     if (buckets[idx]) {
       // 插入排序，排序每个桶里的数据
       let k = buckets[idx].length - 1;
-      while(k >= 0 && buckets[idx][k] > arr[j]) {
-        buckets[idx][k+1] = buckets[idx][k];
+      while (k >= 0 && buckets[idx][k] > arr[j]) {
+        buckets[idx][k + 1] = buckets[idx][k];
         // 移动元素
         k--;
       }
-      buckets[idx][k+1] = arr[j];
+      buckets[idx][k + 1] = arr[j];
     } else {
       // 空桶，需要初始化
       buckets[idx] = [];
@@ -497,7 +501,7 @@ function bucketSort(arr, num = 3) {
   // 
 
   // 因为每个桶里都已经是排好序的了，此时只需要遍历合并即可
-  while(n < num) {
+  while (n < num) {
     // 跳过没有值的桶
     if (buckets[n]) {
       res = res.concat(buckets[n]);
@@ -512,10 +516,63 @@ function bucketSort(arr, num = 3) {
 // 参考：https://www.jianshu.com/p/670085d43a0b
 // 参考：https://segmentfault.com/a/1190000015487916
 // 参考：https://blog.csdn.net/luanpeng825485697/article/details/78056421
-function heapSort() {
+// 参考：https://www.cnblogs.com/chengxiao/p/6129630.html
+// 参考：https://segmentfault.com/a/1190000016329895
 
+// 建最大堆
+var len; //定义成全局变量
+function buildHeap(arr) {
+  len = arr.length;
+  // 从堆的最后一个非叶子节点开始调整
+  for (var i = Math.floor(arr.length / 2); i >= 0; i--) {
+    adjustHeap(arr, i)  //调整堆
+  }
 }
 
+function adjustHeap(arr, i) {
+  var left = 2 * i + 1;   // 左节点位置
+  let right = 2 * i + 2;  //右节点位置
+  let largest = i;        // 最大值位置
+
+  //如果左节点存在并且左节点大于 当前最大节点，交换位置
+  if (left < len && arr[left] > arr[largest]) {
+    largest = left
+  }
+  if (right < len && arr[right] > arr[largest]) {
+    largest = right;
+  }
+  //如果发现修改了，则交换位置
+  if (largest !== i) {
+    swap(arr, i, largest);
+    adjustHeap(arr, largest)
+  }
+
+}
+//交换位置
+function swap(arr, i, j) {
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+}
+
+// 堆排序算法
+function heapSort(arr) {
+  buildHeap(arr)  //建堆
+  for (let i = arr.length - 1; i > 0; i--) {
+    swap(arr, 0, i);  //堆顶一定是最大元素，将堆顶和尾部元素交换，最大元素就保存在尾部，并且不参与后面的调整
+    len--; //  去掉这个是从大到小排序
+    adjustHeap(arr, 0) ///将最大的元素进行调整，将最大的元素调整到堆顶
+  }
+  return arr
+
+}
+// var array = [11, 43, 24, 76, 89, 43, 65]
+// heapSort(array)
+// console.log(array) //打印结果 [ 11, 24, 43, 43, 65, 76, 89 ]
+
+
+
+// 基数排序
+// 参考：https://segmentfault.com/a/1190000021342923
+// 参考：https://segmentfault.com/a/1190000012923917，司徒正美
 function lsdSort(arr) {
   // 找出最大元素
   let max_num = Math.max(...arr),
