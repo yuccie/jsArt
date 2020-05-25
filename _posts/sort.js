@@ -1,60 +1,77 @@
 let whichfn = process.argv[2];
 // 控制台拿到的参数是字符串
 let n;
-if (n) {
-  n = + process.argv[3]
+if (process.argv[3]) {
+  n = +process.argv[3];
 }
 
 // 辅助生成数组函数
 function genArray(n = 5000) {
   return Array(n)
     .fill(0)
-    .map((item) => Math.random());
+    .map((item) => Math.floor(Math.random() * 100));
 }
 
 // 默认5000项
 let arr = genArray(n);
-
+let res = [];
 console.time("运行时间为");
 switch (whichfn) {
   case "bubbleSort":
-    bubbleSort(arr);
+    res = bubbleSort(arr);
+    // console.log(res);
     break;
   case "bubbleSortPro":
-    bubbleSortPro(arr);
+    res = bubbleSortPro(arr);
+    // console.log(res);
     break;
   case "selectSort":
-    selectSort(arr);
+    res = selectSort(arr);
+    // console.log(res);
     break;
   case "selectSortPro":
-    selectSortPro(arr);
+    res = selectSortPro(arr);
+    // console.log(res);
     break;
   case "selectSort":
-    selectSort(arr);
+    res = selectSort(arr);
+    // console.log(res);
     break;
   case "insertSort":
-    insertSort(arr);
+    res = insertSort(arr);
+    // console.log(res);
     break;
   case "insertSortPro":
-    insertSortPro(arr);
+    res = insertSortPro(arr);
+    // console.log(res);
     break;
   case "shellSort":
-    shellSort(arr);
+    res = shellSort(arr);
+    // console.log(res);
     break;
   case "mergeSort":
-    mergeSort(arr);
+    res = mergeSort(arr);
+    // console.log(res);
     break;
   case "quickSort":
-    quickSort(arr);
+    res = quickSort(arr);
+    // console.log(res);
     break;
   case "quickSortPro":
-    quickSortPro(arr);
+    res = quickSortPro(arr);
+    // console.log(res);
     break;
   case "countSort":
-    countSort(arr);
+    res = countSort(arr);
+    // console.log(res);
     break;
   case "bucketSort":
-    bucketSort(arr);
+    res = bucketSort(arr);
+    // console.log(res);
+    break;
+  case "bucketSortPro":
+    res = bucketSortPro(arr);
+    // console.log(res);
     break;
   // case "lsdSort":
   //   lsdSort(arr);
@@ -77,7 +94,7 @@ function bubbleSort(arr) {
       }
     }
   }
-  // console.log(arr);
+  return arr;
 }
 
 // 冒泡排序
@@ -96,11 +113,10 @@ function bubbleSortPro(arr) {
       }
     }
     if (flag) {
-      // console.log(arr);
-      return false;
+      return arr;
     }
   }
-  // console.log(arr);
+  return arr;
 }
 
 // 选择排序
@@ -121,7 +137,7 @@ function selectSort(arr) {
     // 如果minIdx没变，则无影响，如果变了，则更换最小值位置
     [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
   }
-  // console.log(arr);
+  return arr;
 }
 
 function selectSortPro(arr) {
@@ -142,7 +158,7 @@ function selectSortPro(arr) {
     // 将新的最小值赋值给 假设的最小值，即 arr[i]
     arr[i] = min;
   }
-  // console.log(arr);
+  return arr;
 }
 
 // 插入排序
@@ -171,7 +187,7 @@ function insertSort(arr) {
     // 最后执行完j--，所以这里是j+1
     arr[j + 1] = temp;
   }
-  // console.log(arr);
+  return arr;
 }
 
 // 插入排序，可以想象打扑克牌，来一张新牌，我们会在已排好的牌里找到位置，
@@ -206,31 +222,72 @@ function insertSortPro(arr) {
     // 插入新元素
     arr[left] = temp;
   }
-  // console.log(arr);
+  return arr;
 }
 
 // 希尔排序
+// function shellSort(arr) {
+//   // 外层循环逐步缩小增量 gap 的值
+//   for (let gap = 5; gap > 0; gap = Math.floor(gap / 2)) {
+//     // 中层和内层是插入排序
+//     // 普通插入排序从第1个元素开始，这里分组了，要看每一组的第1个元素
+//     // 共分成了 gap 组，第一组的第1个元素索引为 gap
+//     // 第一组元素索引为 0, 0+gap, 0+2*gap，...，第二组元素索引为 1, 1+gap, 2+2*gap，...
+//     for (let i = gap; i < arr.length; i++) {
+//       let current_ele = arr[i];
+//       // 普通插入排序时，j 每次减少1，即与前面的每个元素比较
+//       // 这里 j 每次减少 gap，只会与当前元素相隔 n*(gap-1) 的元素比较，也就是只会与同组的元素比较
+//       let ordered_index = i - gap;
+//       while (ordered_index >= 0 && arr[ordered_index] > current_ele) {
+//         arr[ordered_index + gap] = arr[ordered_index];
+//         ordered_index -= gap;
+//       }
+//       arr[ordered_index + gap] = current_ele;
+//     }
+//   }
+//   console.log(arr);
+//   // return arr
+// }
+// function shellSort(arr) {
+//   // 1. 定义gap，也就是分的组数，例如gap为5，数组length为10，则分五组。
+//   // 10个人分5组，也就是[arr[0], arr[5]]、[arr[1], arr[6]]...分别为一组
+//   // 分成几组，其实就是间隔几个
+//   for (let gap = 5; gap > 0; gap = Math.floor(gap/2)) {
+
+//     // 可以想象成，现在遍历的是分组后的数组，虽然数组位置没变，但是要想象成已经分组了。
+//     for (let i = gap; i < arr.length; i++) {
+//       // i = gap，其实就是遍历分好组的数组的第一组。
+//       let curItem = arr[i];
+//       let prevIdx = i - gap; // 每一组最开始的位置
+
+//       // 比较同一个组内的元素，如果前面的比当前的还大，就将其向后移动
+//       while(prevIdx >= 0 && arr[prevIdx] > curItem) {
+//         arr[prevIdx + gap] = arr[prevIdx];
+//         prevIdx -= gap;
+//       }
+//       // 移动元素后，将新元素插入
+//       arr[prevIdx + gap] = curItem;
+//     }
+//   }
+//   return arr;
+// }
+
 function shellSort(arr) {
-  // 外层循环逐步缩小增量 gap 的值
-  for (let gap = 5; gap > 0; gap = Math.floor(gap / 2)) {
-    // 中层和内层是插入排序
-    // 普通插入排序从第1个元素开始，这里分组了，要看每一组的第1个元素
-    // 共分成了 gap 组，第一组的第1个元素索引为 gap
-    // 第一组元素索引为 0, 0+gap, 0+2*gap，...，第二组元素索引为 1, 1+gap, 2+2*gap，...
+  for (let gap = 2; gap > 0; gap = Math.floor(gap / 2)) {
+    // 分几组，其实就是间隔几个元素
     for (let i = gap; i < arr.length; i++) {
-      let current_ele = arr[i];
-      // 普通插入排序时，j 每次减少1，即与前面的每个元素比较
-      // 这里 j 每次减少 gap，只会与当前元素相隔 n*(gap-1) 的元素比较，也就是只会与同组的元素比较
-      let ordered_index = i - gap;
-      while (ordered_index >= 0 && arr[ordered_index] > current_ele) {
-        arr[ordered_index + gap] = arr[ordered_index];
-        ordered_index -= gap;
+      let temp = arr[i]; // 这里的temp就是待排序的元素，这里缓存下，以备后面比较时用
+      let prevIdx = i - gap; // 同一组内，前一个元素的索引
+
+      while (prevIdx >= 0 && arr[prevIdx] > temp) {
+        arr[prevIdx + gap] = arr[prevIdx];
+        // 从分好组的最右侧开始匹配，每次的元素索引，其实就是prevIdx - gap
+        prevIdx -= gap;
       }
-      arr[ordered_index + gap] = current_ele;
+      arr[prevIdx + gap] = temp;
     }
   }
-  console.log(arr);
-  // return arr
+  return arr;
 }
 
 // 归并排序
@@ -283,13 +340,13 @@ function quickSortPro(arr) {
   if (arr.length <= 1) {
     return arr;
   }
-  var pivotIndex = Math.floor(arr.length / 2);
+  let pivotIndex = Math.floor(arr.length / 2);
   // splice返回的是数组，因此[0]就可以取出具体的值
-  var pivot = arr.splice(pivotIndex, 1)[0]; // 务必要注意，这里修改数组，数组的长度已经发生变化了
-  var left = [];
-  var right = [];
+  let pivot = arr.splice(pivotIndex, 1)[0]; // 务必要注意，这里修改数组，数组的长度已经发生变化了
+  let left = [];
+  let right = [];
   // 注意这里的数组长度是动态变化的，不能一开始就用变量缓存长度
-  for (var i = 0; i < arr.length; i++) {
+  for (let i = 0; i < arr.length; i++) {
     if (arr[i] < pivot) {
       left.push(arr[i]);
     } else {
@@ -299,58 +356,164 @@ function quickSortPro(arr) {
   return quickSortPro(left).concat([pivot], quickSortPro(right));
 }
 
+// function quickSort(arr) {
+//   if (arr.length <= 1) return arr;
+
+//   // 取第1个元素为基准值
+//   let pivot = arr[0];
+//   // 分割为左小右大两个数组，以及包含元素本身的中间数组
+//   let left = [];
+//   let middle = [pivot];
+//   let right = [];
+
+//   for (let index = 1; index < arr.length; index++) {
+//     // 如果有与本身一样大的元素，放入 middle 数组，解决重复元素的问题
+//     if (arr[index] === pivot) {
+//       middle.push(arr[index]);
+//     } else if (arr[index] < pivot) {
+//       left.push(arr[index]);
+//     } else {
+//       right.push(arr[index]);
+//     }
+//   }
+//   // 递归并连接
+//   return quickSort(left).concat(middle, quickSort(right));
+// }
+
 // 计数排序
+// 有使用限制：针对有限非负整数集
 function countSort(arr) {
-  let count_arr = [],
-    result_arr = [];
-  // 统计出现次数
+  let res = [];
+  let countArr = [];
+  // 数组内对应元素出现的次数
   for (let i = 0; i < arr.length; i++) {
-    count_arr[arr[i]] = count_arr[arr[i]] ? count_arr[arr[i]] + 1 : 1;
+    let key = arr[i];
+    // 注意这里是前++
+    countArr[key] = countArr[key] ? ++countArr[key] : 1;
   }
-  // 遍历统计数组，放入结果数组
-  for (let i = 0; i < count_arr.length; i++) {
-    while (count_arr[i] > 0) {
-      result_arr.push(i);
-      count_arr[i]--;
+
+  // 遍历计数数组，将元素放在结果数组中
+  for (let i = 0; i < countArr.length; i++) {
+    while (countArr[i] > 0) {
+      res.push(i);
+      countArr[i]--;
     }
   }
-  return result_arr;
+  return res;
 }
 
 // 桶排序
-function bucketSort(arr, num = 50) {
-  let buckets = [],
-    min = Math.min(...arr),
-    max = Math.max(...arr);
+function bucketSortPro(arr, num = 3) {
+  let buckets = [];
+  let min = Math.min(...arr);
+  let max = Math.max(...arr);
+
   // 初始化 num 个桶
   for (let i = 0; i < num; i++) buckets[i] = [];
+
   // (最大值-最小值)/桶数，得到每个桶最小最大值的差，即区间
   // 比如 range 为10, 0号桶区间为0-10，1号桶10-20，...
   let range = (max - min + 1) / num;
+
   for (let i = 0; i < arr.length; i++) {
     // (元素-最小值)/区间，取整数部分，就是应该放入的桶的索引
-    let bucket_index = Math.floor((arr[i] - min) / range),
-      bucket = buckets[bucket_index];
+    let idx = Math.floor((arr[i] - min) / range);
+    let bucket = buckets[idx];
+
     // 空桶直接放入
-    if (bucket.length) {
+    if (!bucket.length) {
       bucket.push(arr[i]);
-    }
-    // 非空，插入排序
-    else {
-      let i = bucket.length - 1;
-      while (i >= 0 && bucket[i] > arr[i]) {
-        bucket[i + 1] = bucket[i];
-        i--;
+    } else {
+      // 非空，插入排序
+      let j = bucket.length - 1;
+      while (j >= 0 && bucket[j] > arr[i]) {
+        bucket[j + 1] = bucket[j];
+        j--;
       }
-      bucket[i + 1] = arr[i];
+      bucket[j + 1] = arr[i];
     }
   }
+
   // 合并所有桶
   let result = [];
-  buckets.forEach((bucket) => {
-    result = result.concat(bucket);
+  buckets.forEach(bucket => {
+    if (bucket.length) {
+      result = result.concat(bucket);
+    }
   });
   return result;
+}
+// 运行时间为: 9.174ms
+
+function bucketSort(arr, num = 3) {
+  // 计数排序，是用一个空数组把值作为下标找到其位置，再把出现的次数给存起来。但局限于非负整数
+  // 桶排序，就是其升级版，可以将计数排序中每个索引当成每个桶。
+  // 还可以借助成绩来记忆，100分，用10、20、30、...100等10个桶分别来装，则步长就是10
+  let len = arr.length;
+  if (len < 2) return arr;
+
+  let buckets = []; // 桶
+  let res = []; // 结果数组
+  let min = (max = arr[0]); // 最值
+  let space;
+  let n = 0;
+
+  // 如果用的桶数量太多，即每个桶里只有一个元素，则没有意义，此时修改桶数量
+  let bucketNum = Math.floor(len/num);
+  while(bucketNum < 2) {
+    num --;
+    bucketNum = Math.floor(len/num);
+  }
+
+  // 获取元素的最值，为后续计算步长准备
+  for (let i = 0; i< len; i++) {
+    min = min <= arr[i] ? min : arr[i];
+    max = max >= arr[i] ? max : arr[i];
+  }
+
+  // 步长，1只是保险值
+  space = (max - min + 1) / num;
+
+  // 遍历数组，将每个阶段的数据分别放在对应的桶里
+  for (let j = 0; j < len; j++) {
+    // idx就是对应桶的编号
+    let idx = Math.floor((arr[j] - min) / space);
+
+    if (buckets[idx]) {
+      // 插入排序，排序每个桶里的数据
+      let k = buckets[idx].length - 1;
+      while(k >= 0 && buckets[idx][k] > arr[j]) {
+        buckets[idx][k+1] = buckets[idx][k];
+        // 移动元素
+        k--;
+      }
+      buckets[idx][k+1] = arr[j];
+    } else {
+      // 空桶，需要初始化
+      buckets[idx] = [];
+      buckets[idx].push(arr[j]);
+    }
+  }
+  // 
+
+  // 因为每个桶里都已经是排好序的了，此时只需要遍历合并即可
+  while(n < num) {
+    // 跳过没有值的桶
+    if (buckets[n]) {
+      res = res.concat(buckets[n]);
+    }
+    n++;
+  }
+  return res;
+}
+// 运行时间为: 12.074ms
+
+// 堆排序
+// 参考：https://www.jianshu.com/p/670085d43a0b
+// 参考：https://segmentfault.com/a/1190000015487916
+// 参考：https://blog.csdn.net/luanpeng825485697/article/details/78056421
+function heapSort() {
+
 }
 
 function lsdSort(arr) {
