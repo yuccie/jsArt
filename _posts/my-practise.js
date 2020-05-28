@@ -1,3 +1,172 @@
+// 桶排序
+function bucketSort(arr, num = 3) {
+  let min = Math.min(...arr);
+  let max = Math.max(...arr);
+  
+  // 步长 = 总跨度 / 份数
+  let space = (max - min + 1) / num;
+
+  // 初始化桶
+  let buckets = Array.from({ length: num }, () => []);
+
+  // 遍历数组，将数据分别放到对应的桶里
+  for (let i = 0; i < arr.length; i++) {
+    let idx = Math.floor((arr[i] - min) / space);
+    let bucket = buckets[idx];
+
+    if (!bucket.length) {
+      bucket.push(arr[i]);
+    } else {
+      let j = bucket.length - 1;
+      while(j >= 0 && bucket[j] > arr[i]) {
+        bucket[j+1] = bucket[j];
+        j--;
+      }
+      bucket[j+1] = arr[i]
+    }
+  }
+  let result = [];
+  buckets.forEach((bucket) => {
+    if (bucket.length) {
+      result = result.concat(bucket);
+    }
+  });
+  return result;
+}
+bucketSort([10, 200, 13, 12, 7, 88, 91, 24]);
+
+
+// 基数排序
+function LSDSort(arr) {
+  const max = Math.max(...arr);
+  // 初始化一系列桶
+  const buckets = Array.from({ length: 10 }, () => []);
+
+  let m = 1;
+  while(m <= max) {
+    arr.forEach(num => {
+      const digit = ~~(num%(m*10)/m);
+      buckets[digit].push(num);
+    })
+
+    let idx = 0;
+    buckets.forEach(bucket => {
+      while(bucket.length) {
+        arr[idx++] = bucket.shift();
+      }
+    })
+
+    m *= 10;
+  }
+}
+LSDSort([10, 200, 13, 12, 7, 88, 91, 24]);
+
+function MSDSort(arr) {
+  let maxNum = Math.max(...arr);
+  let radix = String(maxNum).length;
+  return msdRadixSort(arr, radix);
+}
+function msdRadixSort(arr, radix) {
+  let buckets = Array.from({length: 10}, () => []);
+
+  arr.forEach(num => {
+    const digit = Math.floor((num / Math.pow(10, radix-1)) % 10);
+    buckets[digit].push(num);
+  })
+
+  let res = [];
+  for (let i = 0; i < buckets.length; i++) {
+    let el = buckets[i];
+    if (el.length ===1) {
+      res = res.concat(el)
+    } else if (el.length && radix === 1) {
+      res = res.concat(el);
+    } else if (el.length && radix !== 1){
+      res = res.concat(msdRadixSort(el, radix - 1));
+    }
+  }
+  return res;
+}
+MSDSort([10, 200, 13, 12, 7,7, 88, 91, 24]);
+
+// 堆排序
+var len;
+function buildHeap(arr) {
+  len = arr.length;
+  let i = Math.floor(len/2 -1);
+  for(; i >= 0; i--) {
+    // i 每次都是顶堆的位置
+    adjustHeap(arr, i);
+  }
+}
+
+function adjustHeap(arr, i) {
+  // 左右子节点索引
+  let left = 2 * i + 1;
+  let right = 2 * i + 2;
+  let largest = i; // 缓存最大顶堆位置，假如i就是最大
+
+  // 左子节点存在且大于顶堆节点，则交换位置
+  if (left < len && arr[left] > arr[largest]) {
+    largest = left;
+  }
+  // 右子节点存在且大于顶堆节点，则交换位置
+  if (right < len && arr[right] > arr[largest]) {
+    largest = right;
+  }
+
+  // 如果顶堆值发生变化，则交换，并重新调整堆
+  if (largest !== i) {
+    swap(arr, i, largest);
+    // 重新调整堆, largest此时是假设的顶堆位置
+    adjustHeap(arr, largest);
+  }
+}
+
+function swap(arr, i, j) {
+  [arr[i], arr[j]] = [arr[j], arr[i]]
+}
+// 堆排序
+function heapSort(arr) {
+  // 建堆
+  buildHeap(arr);
+  for (let i = arr.length - 1; i > 0; i--) {
+    debugger
+    //堆顶一定是最大元素，将堆顶和尾部元素交换，最大元素就保存在尾部
+    swap(arr, 0, i);
+    // 最大元素不参与后面的调整
+    len--;
+    // 重新调整堆，此时0位置就是假设的顶堆位置
+    adjustHeap(arr, 0);
+  }
+  return arr;
+}
+heapSort([9,8,7,6])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 问题：
 // 技术掌握深度不够 理论和项目经历还行 编程尚可
 // 对技术的理解和使用不够灵活，没有遇到过的问题想不到解决方案。代码能力不符合预期。
@@ -39,10 +208,12 @@
 // CSS3 新特性
 
 function factorialize(num) {
-  if (num>0)
-  {return (num * factorialize(num - 1));}
-  else
-  return (1);
+  if (num > 0){
+    console.log(1);
+    return num * factorialize(num - 1);
+  } else {
+    return (1);
+  }
 }
 
 function Person(name) {

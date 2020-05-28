@@ -201,7 +201,7 @@ location /proxy/ {
 - Access-Control-Request-Method: 将要进行跨域访问的请求方法，要与响应头中的Access-Control-Allow-Methods相匹配才能进行跨域访问；
 - Access-Control-Request-Headers: 自定义的头部，所有用setRequestHeader方法设置的头部都将会以逗号隔开的形式包含在这个头中，要与响应头中的Access-Control-Allow-Headers相匹配才能进行跨域访问
 
-~~有时候，用postman就可以调通接口，但用浏览器就调不同？原因在于：postman都是绝对地址，另外就是一些header信息，也很少，所以不会触发后台的拦截机制。~~ postman之所以请求接口没有跨域，是因为跨域只存在于浏览器。。。
+有时候，用postman就可以调通接口，但用浏览器就调不同？原因在于：跨域只存在于浏览器，而postman可以理解为一个服务调用接口。。。
 
 ***nginx修改配置***<br/>
 nginx配置文件修改后，需要重启，一般重启前会执行以下相关命令
@@ -464,6 +464,7 @@ socket =  /usr/local/var/mysql/mysql.sock
 mysqladmin --version
 => mysqladmin  Ver 8.0.16 for osx10.14 on x86_64 (Homebrew)
 
+# 一般关闭前端服务只需要ctrl + c，如果是后端则需要找到进程号，然后杀死进程。
 # 启动mysql服务
 # 关闭mysql服务，如果没有命令，只能查进程号，然后杀进程
 mysqld
@@ -548,6 +549,7 @@ mysql> SHOW DATABASES;
 
 # 4、数据类型
 # 三类：数值、日期/时间和字符串(字符)类型。
+# mysql中，想要存储13位的时间挫，如果类型设为int会出现溢出。应该设为bigint或其他格式
 
 # 5、创建表，通用语法如下
 CREATE TABLE table_name (column_name column_type);
