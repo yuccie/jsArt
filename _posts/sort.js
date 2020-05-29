@@ -104,9 +104,9 @@ function bubbleSort(arr) {
   var len = arr.length;
   for (var i = 0; i < len; i++) {
     for (var j = 0; j < len - 1; j++) {
-      compareTimes++
+      compareTimes++;
       if (arr[j] > arr[j + 1]) {
-        copyTimes++
+        copyTimes++;
         [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]];
       }
     }
@@ -127,9 +127,9 @@ function bubbleSortPro(arr) {
     let flag = true;
 
     for (var j = 0; j < len - 1 - i; j++) {
-      compareTimes++
+      compareTimes++;
       if (arr[j] > arr[j + 1]) {
-        copyTimes++
+        copyTimes++;
         flag = false;
         [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]];
       }
@@ -156,16 +156,16 @@ function selectSortPro(arr) {
 
     // 每次从最小索引后一项开始比较
     for (let j = i + 1; j < len; j++) {
-      compareTimes++
+      compareTimes++;
       if (arr[j] < arr[minIdx]) {
-        copyTimes++
+        copyTimes++;
         minIdx = j;
       }
     }
     // 内层循环结束，minIdx会得到新的最小索引值
     // 如果minIdx没变，则无影响，如果变了，则更换最小值位置
     [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
-    copyTimes++
+    copyTimes++;
   }
   console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
   return arr;
@@ -182,16 +182,16 @@ function selectSort(arr) {
 
     // 循环一次，可以从 i+1 开始找到新的最小值。
     for (let j = i + 1; j < len; j++) {
-      compareTimes++
+      compareTimes++;
       if (arr[j] < min) {
-        copyTimes++
+        copyTimes++;
         [arr[j], min] = [min, arr[j]];
       }
     }
 
     // 将新的最小值赋值给 假设的最小值，即 arr[i]
     arr[i] = min;
-    copyTimes++
+    copyTimes++;
   }
   console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
   return arr;
@@ -214,9 +214,9 @@ function insertSort(arr) {
     // 如果新来的元素比已排序数组最后一个小，则将已排序数组最大值后移一位
     // 如果新来的元素比已排序数组最后一个大，则直接放在最后即可
     for (; j >= 0; j--) {
-      compareTimes++
+      compareTimes++;
       if (arr[j] > temp) {
-        copyTimes++
+        copyTimes++;
         arr[j + 1] = arr[j];
       } else {
         break;
@@ -226,7 +226,7 @@ function insertSort(arr) {
     // 等到内层循环完，也就移动完了，也就空出一个位置，或者直接放在最后
     // 最后执行完j--，所以这里是j+1
     arr[j + 1] = temp;
-    copyTimes++
+    copyTimes++;
   }
   console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
   return arr;
@@ -551,8 +551,6 @@ function bucketSort(arr, num = 3) {
 }
 // 运行时间为: 12.074ms
 
-
-
 // 基数排序
 // 参考：https://segmentfault.com/a/1190000021342923
 // 参考：https://segmentfault.com/a/1190000012923917，司徒正美
@@ -605,18 +603,18 @@ function MSDSort(arr) {
 }
 function msdRadixSort(arr, radix) {
   // 定义桶，每次遍历都会生成新的桶
-  let buckets = Array.from({ length: 10}, () => []);
+  let buckets = Array.from({ length: 10 }, () => []);
 
   // 遍历数组，按照各位的数值分到不同的桶里。
-  arr.forEach(num => {
-    const digit = Math.floor((num / Math.pow(10, radix-1)) % 10);
+  arr.forEach((num) => {
+    const digit = Math.floor((num / Math.pow(10, radix - 1)) % 10);
     // 根据各位的数字，放在对应索引里的桶里。（可以想象成桶索引为：0~9）
     buckets[digit].push(num);
   });
 
   let res = [];
 
-  for(let i = 0; i < buckets.length; i++) {
+  for (let i = 0; i < buckets.length; i++) {
     let el = buckets[i];
 
     // 因为从高位开始分组，因此小的数值肯定都在前面
@@ -626,15 +624,13 @@ function msdRadixSort(arr, radix) {
       // 已经比较到个位了，如果元素个数还大于1，说明是重复的情况
       res = res.concat(el);
     } else if (el.length && radix !== 1) {
-      res = res.concat(msdRadixSort(el, radix-1));
+      res = res.concat(msdRadixSort(el, radix - 1));
     }
   }
   return res;
 }
 // 运行时间为: 3.955ms
-MSDSort([10, 200, 13, 12, 7,7, 88, 91, 24]);
-
-
+MSDSort([10, 200, 13, 12, 7, 7, 88, 91, 24]);
 
 // 堆排序
 // 参考：https://www.jianshu.com/p/670085d43a0b
@@ -650,7 +646,7 @@ var len; // 定义成全局变量
 function buildHeap(arr) {
   len = arr.length;
   // 从堆的最后一个非叶子节点开始调整
-  let i = Math.floor(len/2 -1);
+  let i = Math.floor(len / 2 - 1);
   for (; i >= 0; i--) {
     adjustHeap(arr, i); //调整堆
   }
@@ -684,12 +680,12 @@ function heapSort(arr) {
   buildHeap(arr); //建堆
   for (let i = arr.length - 1; i > 0; i--) {
     //堆顶一定是最大元素，将堆顶和尾部元素交换，最大元素就保存在尾部
-    swap(arr, 0, i); 
+    swap(arr, 0, i);
     // 最大元素不参与后面的调整
     len--;
     // 交换之后需要重新调整堆，将最大的元素进行调整，将最大的元素调整到堆顶
-    adjustHeap(arr, 0); 
+    adjustHeap(arr, 0);
   }
   return arr;
 }
-heapSort([9,8,7,6])
+heapSort([9, 8, 7, 6]);

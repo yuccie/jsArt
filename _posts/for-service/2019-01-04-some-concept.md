@@ -470,7 +470,7 @@ mysqladmin --version
 mysqld
 # homebrew 可以启动和管理其安装的一些服务，brew services -h
 # 查看服务列表
-brew services list 
+brew services list
 # 启动mysql
 brew services start mysql
 # 关闭mysql
@@ -601,6 +601,14 @@ insert into runoob_tbl (date) values (now());
 # 如果数据是字符型，必须使用单引号或者双引号，如："value"。
 # 7-1、插入数据后，如何查看具体的数据？
 select * from runoob_tbl;
+# 7-2、可以设置表的别名FROM <表名1> <别名1>, <表名2> <别名2>
+select * from runoob_tbl r;
+SELECT
+  s.id sid,
+  s.name,
+  c.name cname
+FROM students s, classes c
+WHERE s.gender = 'M' AND c.id = 1;
 
 # 8、查询数据，语法如下：
 SELECT column_name,column_name FROM table_name,table_name [WHERE Clause] [LIMIT N][ OFFSET M]
@@ -676,11 +684,17 @@ SELECT coalesce(name, '总数'), SUM(singin) as singin_count FROM  employee_tbl 
 
 
 # 16、连表处理，其实就是如何连接不同的表，然后处理交并补集的数据而已。
+# 16-1、多表处理，其实就是从多张表同时查询数据。
+SELECT * FROM <表1> <表2>
+# 当然为了表的简短，还可以添加别名，如下只给表1添加了别名
+SELECT * FROM <表1> <表1别名> <表2>
+
 # 比如A表里的a，在表B里出现了几次等，大致分三类：
 # INNER JOIN（内连接,或等值连接）：获取两个表中字段匹配关系的记录。
 # LEFT JOIN（左连接）：获取左表所有记录，即使右表没有对应匹配的记录。
 # RIGHT JOIN（右连接）： 与 LEFT JOIN 相反，用于获取右表所有记录，即使左表没有对应匹配的记录。
 # 参考：https://www.runoob.com/mysql/mysql-join.html
+# 参考：https://www.liaoxuefeng.com/wiki/1177760294764384/1179610888796448（廖雪峰）
 
 # 17、处理null值，
 # IS NULL: 当列的值是 NULL,此运算符返回 true。
@@ -753,13 +767,41 @@ mysql> SHOW INDEX FROM runoob_tbl;
 mysql> SHOW TABLE STATUS  FROM RUNOOB;   # 显示数据库 RUNOOB 中所有表的信息
 mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%';     # 表名以runoob开头的表的信息
 mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%'\G;   # 加上 \G，查询结果按列打印
-
-
 ```
 
 参考：[设置密码强度][reSetMysqlPWPolicyUrl]
 参考：[找到mysql默认的配置文件][findMysqlConfFileUrl]
 参考：[mysql没有默认的配置文件，需要自己建][findMysqlConfFileUrl1]
+
+mysql常用语句：
+[参考1](http://c.biancheng.net/view/7226.html)
+
+```bash
+# 日期相关
+date(日期类型数据)
+# 返回日期或日期/时间表达式的日期部分
+
+# 从日期减去指定的时间间隔
+date_sub(date,interval expr type)
+# date 参数是合法的日期表达式。expr 参数是您希望添加的时间间隔。
+# type 参数（）常用：day、week、month、quarter|、year
+# 3、查询最近7天的数据（包括今天一共7天）
+select * from order_1
+where date_sub(curdate(),interval 7 day) < date(order_time);
+
+# count(*)，count(1)，count(列名)区别
+# count(*)包括了所有的列，相当于行数，在统计结果的时候，不会忽略列值为NULL  
+# count(1)包括了忽略所有列，用1代表代码行，在统计结果的时候，不会忽略列值为NULL  
+# count(列名)只包括列名那一列，在统计结果的时候，会忽略列值为空（这里的空不是只空字符串或者0，而是表示null）的计数，即某个字段值为NULL时，不统计。
+
+# 执行效率上：  
+# 列名为主键，count(列名)会比count(1)快  
+# 列名不为主键，count(1)会比count(列名)快  
+# 如果表多个列并且没有主键，则 count（1） 的执行效率优于 count（*）  
+# 如果有主键，则 select count（主键）的执行效率是最优的  
+# 如果表只有一个字段，则 select count（*）最优。
+
+```
 
 ### mysql、redis、mongodb对比
 
@@ -1196,12 +1238,14 @@ ctx.cookies.get('userName', {
 ```
 
 这里需要几个问题：
+
 - 由于浏览器和其他客户端实现的不确定性，为了保证 Cookie 可以写入成功，建议 value 通过 base64 编码或者其他形式 encode 之后再写入。(其实默认情况下设置中文就会报错，此时可以添加加密配置便可解决)
 - 由于浏览器对 Cookie 有长度限制限制，所以尽量不要设置太长的 Cookie。一般来说不要超过 4093 bytes（单个不超过4k）。当设置的 Cookie value 大于这个值时，框架会打印一条警告日志。
 - 如果设置的时候指定为 signed，获取时未指定，则不会在获取时对取到的值做验签，导致可能被客户端篡改。
 - 如果设置的时候指定为 encrypt，获取时未指定，则无法获取到真实的值，而是加密过后的密文。
 
 那加密和加签名用到的秘钥在哪里配置的呢？答案就是 config/config.default.js 里的 config.keys。
+
 ```js
 config.keys = 'key1, key2'
 // 加密和加签时只会使用第一个秘钥。

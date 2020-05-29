@@ -2971,7 +2971,7 @@ str2.substring(3, 7); // 'lo w' ，同上
 str2.substr(3, 7); // 'lo worl'，从3开始，共7个字符
 ```
 
-当`slice()、substring()、substr()`参数里有负数时，行为就不尽相同了，其实`slice()`方法会将传入的负数与字符串的长度相加。`substr()`方法将负的第一参数加上字符串的长度，而将负的第二个参数转换为 0。`substring()`则将所有负数都转换为 0。其实也可以理解为，`substring()`不支持复数，因为复数都会变为0。
+当`slice()、substring()、substr()`参数里有负数时，行为就不尽相同了，其实`slice()`方法会将传入的负数与字符串的长度相加。`substr()`方法将负的第一参数加上字符串的长度，而将负的第二个参数转换为 0。`substring()`则将所有负数都转换为 0。其实也可以理解为，`substring()`不支持复数，因为负数都会变为0。
 
 ```js
 var str3 = "hello";
@@ -2983,6 +2983,15 @@ str3.slice(-2, -1); // 'l', 等价于slice(3, 4)
 str3.substr(-2, -1); // '', 等价于substr(3, 0)
 str3.substring(-2, -1); // '', 等价于slice(0, 0)
 ```
+
+对于substring的参数，还有如下规定：
+
+- 如果 indexStart 等于 indexEnd，substring 返回一个空字符串。
+- 如果省略 indexEnd，substring 提取字符一直到字符串末尾。
+- 如果任一参数小于 0 或为 NaN，则被当作 0。
+- 如果任一参数大于 stringName.length，则被当作 stringName.length。
+- 如果 indexStart 大于 indexEnd，则 substring 的执行效果就像两个参数调换了一样。见下面的例子。
+示例
 
 `3. 字符串位置方法`  
 有两个从字符串中查找子字符串的方法：`indexOf()、lastIndexOf()`，都是从一个字符串搜索给定的子字符串，然后返回子字符串的位置，没有找到则返回-1，前者是从字符串的开头向后搜索子字符串，而后者反之。都可选第二个参数，表示索引开始的位置。
