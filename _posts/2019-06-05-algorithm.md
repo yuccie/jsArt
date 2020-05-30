@@ -9,6 +9,7 @@ date: Wed Jun 05 2019 23:26:32 GMT+0800 (中国标准时间)
 ### **参考资料**
 
 [小白一路走来，连续刷题三年，谈谈我的算法学习经验(掘金)][haotostudyalgorithmurl(juejin)]、[漫画算法][comicalgorithmurl]
+[如何刷leetcode](https://www.zhihu.com/question/280279208/answer/824585814)
 
 ### **基本概念**
 

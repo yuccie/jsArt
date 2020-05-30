@@ -1,4 +1,23 @@
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 问题：
 // 技术掌握深度不够 理论和项目经历还行 编程尚可
 // 对技术的理解和使用不够灵活，没有遇到过的问题想不到解决方案。代码能力不符合预期。
@@ -40,10 +59,12 @@
 // CSS3 新特性
 
 function factorialize(num) {
-  if (num>0)
-  {return (num * factorialize(num - 1));}
-  else
-  return (1);
+  if (num > 0){
+    console.log(1);
+    return num * factorialize(num - 1);
+  } else {
+    return (1);
+  }
 }
 
 function Person(name) {
@@ -128,16 +149,12 @@ console.log('8');
 
 // 1 2 3 6 8 4 7 5
 
-
-
-render: function (createElement) {
-  return createElement(
-    'h' + this.level,   // 标签名称
-    this.$slots.default // 子节点数组
-  )
-}
-
-
+// render: function (createElement) {
+//   return createElement(
+//     'h' + this.level,   // 标签名称
+//     this.$slots.default // 子节点数组
+//   )
+// }
 [new Set(Array.from(10))].sort()
 
 
