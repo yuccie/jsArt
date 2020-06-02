@@ -1581,6 +1581,8 @@ function twoNumSum(arr, target) {
     if (map[temp] === void 0) {
       map[item] = item;
     } else {
+      // 如果是forEach则无法退出，意味着无法收到返回值。
+      // 因此需要用for循环
       return [map[temp], item]
     }
   }
