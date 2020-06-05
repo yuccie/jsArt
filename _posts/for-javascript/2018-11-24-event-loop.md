@@ -653,12 +653,13 @@ const p2 = new Promise((resolve, reject) => {
   .catch(e => e);
 
 Promise.all([p1, p2])
-  .then(result => console.log(result))
+  .then(result => console.log('result', result))
   .catch(e => console.log(e));
-// ["hello", Error: 报错了]
+// result ["hello", Error: 报错了]
 ```
 
 注意：
+
 - Promise 的定义方式使得它只能被决议一次。如果出于某种原因，Promise 创建代码试图调用 resolve(..) 或 reject(..) 多次，或者试图两者都调用，那么这个 Promise 将只会接受第一次决议，并默默地忽略任何后续调用。
 - 如果使用多个参数调用 resovle(..) 或者 reject(..)，第一个参数之后的所有参数都会被默默忽略。
 

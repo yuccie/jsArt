@@ -1000,6 +1000,7 @@ const data = await ctx.curl(api);
 - 将数据放在模板里，通过调用工具函数来处理，效果更好些，类似vue中的过滤器或单独方法
 
 在egg里如果想增加工具函数，可以使用extend扩展，这个extend可以扩展几个指定的对象。。。其实就是说，你想扩展，只能在这几个对象上增加方法或属性：
+
 - Application
 - Context
 - Request

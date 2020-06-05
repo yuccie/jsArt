@@ -86,6 +86,14 @@ switch (whichfn) {
     res = LSDSort(arr);
     // console.log(res);
     break;
+  case "printNum":
+    res = printNum(10000);
+    // console.log(res);
+    break;
+  case "printNumPro":
+    res = printNumPro();
+    // console.log(res);
+    break;
   // case "lsdSort":
   //   lsdSort(arr);
   //   break;
@@ -96,6 +104,42 @@ switch (whichfn) {
     console.log("未定义函数");
 }
 console.timeEnd("运行时间为");
+
+// 打印 1~n 范围内的对称数，比如11，121，1221等等
+function printNum(n) {
+  // 对称数
+  function isDuiChen(num) {
+    let len = String(num).length;
+    if (len < 2) return false;
+    let nums = String(num).split("");
+    // 不管奇数还是偶数，长度除以2，就是循环的次数
+    let flag = true;
+    for (let i = 0; i < Math.floor(len / 2); i++) {
+      if (nums[i] !== nums[len - 1 - i]) {
+        flag = false;
+        return;
+      }
+    }
+    return true;
+  }
+  for (let i = 1; i <= n; i++) {
+    if (isDuiChen(i)) {
+      console.log(i);
+    }
+  }
+}
+printNum(20);
+
+// 上面的代码虽然啰嗦，但是效率高，因为都是单纯的运算。
+// 而下面的代码
+function printNumPro() {
+  [...Array(10000).keys()].filter((x) => {
+    return (
+      x.toString().length > 1 &&
+      x === Number(x.toString().split("").reverse().join(""))
+    );
+  });
+}
 
 // 冒泡排序
 function bubbleSort(arr) {
