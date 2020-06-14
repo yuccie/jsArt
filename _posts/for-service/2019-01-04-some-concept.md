@@ -938,12 +938,12 @@ module.exports = appInfo => {
 ctx.render('home', {msg, list})
 
 // 在模板里就可以直接使用传过来的数据，当然需要遵循模板引擎的语法，如下：
-<p>这是传过来的消息 <%=msg%> </p>
-<ul>
-    <% for(let i = 0; i < list.length; i++) {%>
-    <li><%=list[i]%></li>
-    <%}%>
-</ul>
+// <p>这是传过来的消息 <%=msg%> </p>
+// <ul>
+//     <% for(let i = 0; i < list.length; i++) {%>
+//     <li><%=list[i]%></li>
+//     <%}%>
+// </ul>
 
 // ejs如果要解析html，语法为 <%- htmlData %>，即=改为-
 ```
