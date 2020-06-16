@@ -143,8 +143,8 @@ function printNumPro() {
 
 // 冒泡排序
 function bubbleSort(arr) {
-  let compareTimes = 0;
-  let copyTimes = 0;
+  // 比较次数、赋值次数
+  let compareTimes = copyTimes = 0;
   var len = arr.length;
   for (var i = 0; i < len; i++) {
     for (var j = 0; j < len - 1; j++) {
@@ -155,7 +155,7 @@ function bubbleSort(arr) {
       }
     }
   }
-  console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+  console.log(`比较次数：${compareTimes}，赋值次数：${copyTimes}`);
   return arr;
 }
 
@@ -163,8 +163,7 @@ function bubbleSort(arr) {
 // 优化一：添加falg，若已经有序，则无需再排序
 // 优化二：内层循环每次少一次，因为最后项已经排序好
 function bubbleSortPro(arr) {
-  let compareTimes = 0;
-  let copyTimes = 0;
+  let compareTimes = copyTimes = 0;
   var len = arr.length;
 
   for (var i = 0; i < len; i++) {
@@ -179,11 +178,11 @@ function bubbleSortPro(arr) {
       }
     }
     if (flag) {
-      console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+      console.log(`比较次数：${compareTimes}，赋值次数：${copyTimes}`);
       return arr;
     }
   }
-  console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+  console.log(`比较次数：${compareTimes}，赋值次数：${copyTimes}`);
   return arr;
 }
 

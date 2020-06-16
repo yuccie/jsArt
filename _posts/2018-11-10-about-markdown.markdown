@@ -17,6 +17,17 @@ date: Sat Nov 10 2018 15:16:33 GMT+0800
 3. [markdownlint规则(官方)](https://github.com/DavidAnson/markdownlint/blob/v0.13.0/doc/Rules.md#md022)
 
 
+使用img标签 
+`<img src="./xxx.png" width = "300" height = "200" alt="图片名称" align=center />`
+
+附：如果需要居中的话只要在外面包围div标签即可
+```html
+<div  align="center">    
+  <img src="./xxx.png" width = "300" height = "200" alt="图片名称"/>
+</div>
+```
+
+
 #### md 问题
 1. 在编辑里即使tab为两个空格的缩进，生成的网页也是4个空格，如何改？
   - 在md里，四个空格和tab的效果一样，意味着代码块需要用空格来写?。。。
