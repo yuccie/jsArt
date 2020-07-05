@@ -590,7 +590,7 @@ Promise.prototype.finally = function(callback) {
 从上面的实现可以看出，finally 方法总是返回原来的值，其实下面代码的意思是说，使用 finally 后，可以只写一个回调，因为不管是 resolve 还是 reject，都会执行 finally 里的回调，而且回调不接收任何参数。
 
 ```js
-// resolve 的值是 undefined
+// resolve 的值是 2
 // 会打印 success 2
 Promise.resolve(2).then(
   val => {
@@ -681,11 +681,12 @@ let p = new Promise((resolve, reject) => {
 p.then(() => {
   console.log("Promise2");
 });
+
 console.log('end')
 // 输出 Promise1，end，Promise2，setTimeout1
 ```
 
-Promise 参数中的 Promise1 是同步执行的 其次是因为 Promise 的 then()是 microtasks，会在同步任务执行完后会去清空 microtasks queues，因此先还得再打印 end， 最后清空完微任务再去宏任务队列取值
+Promise 参数中的 Promise1 是同步执行的 ，然后打印 end，其次是因为 Promise 的 then()是 microtasks，会在同步任务执行完后会去清空 microtasks queues， 最后清空完微任务再去宏任务队列取值
 
 再来看看这个
 
@@ -746,6 +747,7 @@ node 环境执行过程：
 
 ```js
 var p = Promise.resolve();
+
 p.then(function() {
   p.then(function() {
     console.log("C");
@@ -756,6 +758,7 @@ p.then(function() {
   });
   console.log("A");
 });
+
 p.then(function() {
   console.log("B");
 });
@@ -1191,6 +1194,36 @@ console.log('end');
   Promise.resolve().then(() => console.log(7))
 </script>
 ```
+
+```js
+console.log(1);
+
+async function async1(){
+  console.log(2);
+  await console.log(3);
+  console.log(4);
+}
+
+setTimeout(function(){
+  console.log(5)
+},0)
+
+async1();
+
+new Promise(function(resolve){
+  console.log(6);
+  resolve();
+  // 调用 resolve 或 reject 并不会终结后面函数体的执行
+  console.log(9);
+}).then(function(){
+  console.log(7);
+});
+
+console.log(8);
+// error： 1、2、3、4、6、8、7、5
+// ok：1、2、3、6、9、8、4、7、5
+```
+
 
 #### 7、迭代器 Iterator,Iterable 和 Gennerator
 

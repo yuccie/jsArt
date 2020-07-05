@@ -65,6 +65,17 @@ ping github.com
 # 因此到这里就可以基本锁定（本身网络没问题，github也没问题），dns解析有异常，因此可以增加hosts配置如下：
 192.30.255.112  github.com git 
 185.31.16.184   github.global.ssl.fastly.net 
+
+# 上面方式会变化，可以如下操作，
+# 获取Github相关网站的最新ip
+# 访问https://www.ipaddress.com，拉下来，找到页面中下方的“IP Address Tools”
+# 分别输入github.global.ssl.fastly.net和github.com，查询ip地址
+
+140.82.114.3	github.com
+199.232.69.194	github.global.ssl.fastly.net
+
+# 配置完。可以看下下载速度。。。825k/s。。。之前都是15-20k/s，可见效果飞一样
+# Receiving objects:  30% (16799/55994), 9.66 MiB | 825.00 KiB/s   
 ```
 
 #### 本地配置多git账户

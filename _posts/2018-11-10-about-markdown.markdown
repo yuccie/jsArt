@@ -9,6 +9,7 @@ date: Sat Nov 10 2018 15:16:33 GMT+0800
 [md常用语法参考](https://www.jianshu.com/p/45faddb1526d)
 [md高阶教程参考](http://www.iamxiarui.com/?p=1096#5)
 [md语法](https://coding.net/help/doc/project/markdown.html#i-9)
+[md语法1](https://www.appinn.com/markdown/)
 
 在编辑器里可以在`setting.json`里增加`markdownlint.config`字段，进而配置对应的规则，还可以在项目肯目录增加`.markdownlint.json`文件进而配置项目规则。相关文档还可阅读`markdownlint`插件介绍
 

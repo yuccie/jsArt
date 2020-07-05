@@ -944,6 +944,26 @@ function getWeekdaysInMonth(year, month) {
 getWeekdaysInMonth(2020, 5);
 // ["2020/5/1", "2020/5/4", "2020/5/5", "2020/5/6", "2020/5/7", "2020/5/8", "2020/5/11", "2020/5/12", "2020/5/13", "2020/5/14", "2020/5/15", "2020/5/18", "2020/5/19", "2020/5/20", "2020/5/21", "2020/5/22", "2020/5/25", "2020/5/26", "2020/5/27", "2020/5/28", "2020/5/29"]
 
+
+
+// 知道今天，需要得出当前周的数据
+var todayDate = "2020-06-25";
+var curDate = new Date(todayDate);
+var curTimesStamp = curDate.getTime();
+var curDay = curDate.getDay();
+var dates = [];
+for (var i = 0; i < 7; i++) {
+  dates.push(
+    new Date(curTimesStamp + 86400000 * (i - ((curDay + 6) % 7)))
+      .toLocaleDateString()
+      .replace(/\//g, "-")
+      .replace(/-(\d{1})-/g, "-0$1-")
+      .replace(/-(\d{1})$/g, "-0$1")
+  );
+}
+console.log(dates);
+// ["2020-06-22", "2020-06-23", "2020-06-24", "2020-06-25", "2020-06-26", "2020-06-27", "2020-06-28"]
+
 ```
 
 ### **动态规划**
