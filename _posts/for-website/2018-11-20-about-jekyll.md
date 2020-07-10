@@ -25,6 +25,27 @@ date: Tue Nov 20 2018 10:17:51 GMT+0800 (中国标准时间)
   - RubyGems (which you can check by running gem -v)
   - GCC and Make (in case your system doesn’t have them installed, which you can check by running gcc -v,g++ -v and make -v in your system’s command line interface)
 
+```
+By default, binaries installed by gem will be placed into:
+  /usr/local/lib/ruby/gems/2.6.0/bin
+
+You may want to add this to your PATH.
+
+ruby is keg-only, which means it was not symlinked into /usr/local,
+because macOS already provides this software and installing another version in
+parallel can cause all kinds of trouble.
+
+If you need to have ruby first in your PATH run:
+  echo 'export PATH="/usr/local/opt/ruby/bin:$PATH"' >> ~/.zshrc
+
+For compilers to find ruby you may need to set:
+  export LDFLAGS="-L/usr/local/opt/ruby/lib"
+  export CPPFLAGS="-I/usr/local/opt/ruby/include"
+
+For pkg-config to find ruby you may need to set:
+  export PKG_CONFIG_PATH="/usr/local/opt/ruby/lib/pkgconfig"
+```
+
 2. 
 
 #### 安装jekyll遇到的问题

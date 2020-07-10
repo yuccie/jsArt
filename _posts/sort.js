@@ -142,29 +142,28 @@ function printNumPro() {
 }
 
 // 冒泡排序
-function bubbleSort(arr) {
-  let compareTimes = 0;
-  let copyTimes = 0;
-  var len = arr.length;
-  for (var i = 0; i < len; i++) {
-    for (var j = 0; j < len - 1; j++) {
-      compareTimes++;
-      if (arr[j] > arr[j + 1]) {
-        copyTimes++;
-        [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]];
-      }
-    }
-  }
-  console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
-  return arr;
-}
+// function bubbleSort(arr) {
+//   // 比较次数、赋值次数
+//   let compareTimes = copyTimes = 0;
+//   var len = arr.length;
+//   for (var i = 0; i < len; i++) {
+//     for (var j = 0; j < len - 1; j++) {
+//       compareTimes++;
+//       if (arr[j] > arr[j + 1]) {
+//         copyTimes++;
+//         [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]];
+//       }
+//     }
+//   }
+//   console.log(`比较次数：${compareTimes}，赋值次数：${copyTimes}`);
+//   return arr;
+// }
 
 // 冒泡排序
 // 优化一：添加falg，若已经有序，则无需再排序
 // 优化二：内层循环每次少一次，因为最后项已经排序好
 function bubbleSortPro(arr) {
-  let compareTimes = 0;
-  let copyTimes = 0;
+  let compareTimes = copyTimes = 0;
   var len = arr.length;
 
   for (var i = 0; i < len; i++) {
@@ -179,11 +178,32 @@ function bubbleSortPro(arr) {
       }
     }
     if (flag) {
-      console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+      console.log(`比较次数：${compareTimes}，赋值次数：${copyTimes}`);
       return arr;
     }
   }
-  console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+  console.log(`比较次数：${compareTimes}，赋值次数：${copyTimes}`);
+  return arr;
+}
+
+
+function bubbleSort(arr) {
+  let len = arr.length;
+  let count = 0;
+  for (let i = 0; i < len; i++) {
+    // 每轮循环初始化一个flag，
+    let flag = false;
+    for (let j = i + 1; j < len; j++) {
+      count++;
+      if (arr[i] > arr[j]) {
+        flag = true;
+        [arr[i], arr[j]] = [arr[j], arr[i]]
+      }
+    }
+    // 如果一轮循环结束，没有交换，说明已经排序
+    if (!flag) break;
+  }
+  console.log(`count: ${count}`);
   return arr;
 }
 
@@ -216,66 +236,94 @@ function selectSortPro(arr) {
 }
 
 function selectSort(arr) {
+  // 选择排序，每次从剩下的元素中找到最小值，放入数组
+  // 冒泡排序的内层循环，每次是相邻两元素比较
   let len = arr.length;
-  let compareTimes = 0;
-  let copyTimes = 0;
+  let count = 0;
 
-  for (let i = 0; i < len - 1; i++) {
-    // 假设arr[i]是最小值，再拷贝一份给min
+  for(let i = 0; i < len; i++) {
+    // 假设为最小
     let min = arr[i];
 
-    // 循环一次，可以从 i+1 开始找到新的最小值。
     for (let j = i + 1; j < len; j++) {
-      compareTimes++;
-      if (arr[j] < min) {
-        copyTimes++;
-        [arr[j], min] = [min, arr[j]];
+      count++;
+      if (min > arr[j]) {
+        [min, arr[j]] = [arr[j], min]
       }
+      // 切记这里不能用三元表达式的赋值，因为值需要交换
+      // min > arr[j] ? min = arr[j] : ''
     }
-
-    // 将新的最小值赋值给 假设的最小值，即 arr[i]
     arr[i] = min;
-    copyTimes++;
   }
-  console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+  console.log(`count: ${count}`, arr);
   return arr;
 }
 
 // 插入排序
+// function insertSort(arr) {
+//   let len = arr.length;
+//   let compareTimes = 0;
+//   let copyTimes = 0;
+//   if (len <= 1) return arr;
+
+//   // i=1，我们认为第一项(i=0)已排好序了
+//   for (let i = 1; i < len; i++) {
+//     let temp = arr[i];
+
+//     // 定义在这里，因为for循环外要用
+//     let j = i - 1;
+//     // 已排序数组的最大索引就是i-1，其实就是倒着比，
+//     // 如果新来的元素比已排序数组最后一个小，则将已排序数组最大值后移一位
+//     // 如果新来的元素比已排序数组最后一个大，则直接放在最后即可
+//     for (; j >= 0; j--) {
+//       compareTimes++;
+//       if (arr[j] > temp) {
+//         copyTimes++;
+//         arr[j + 1] = arr[j];
+//       } else {
+//         break;
+//       }
+//     }
+
+//     // 等到内层循环完，也就移动完了，也就空出一个位置，或者直接放在最后
+//     // 最后执行完j--，所以这里是j+1
+//     arr[j + 1] = temp;
+//     copyTimes++;
+//   }
+//   console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+//   return arr;
+// }
+
 function insertSort(arr) {
-  let len = arr.length;
-  let compareTimes = 0;
-  let copyTimes = 0;
-  if (len <= 1) return arr;
+  const len = arr.length;
+  let count = 0;
 
-  // i=1，我们认为第一项(i=0)已排好序了
   for (let i = 1; i < len; i++) {
+    // 外层是待插入的值
     let temp = arr[i];
-
-    // 定义在这里，因为for循环外要用
     let j = i - 1;
-    // 已排序数组的最大索引就是i-1，其实就是倒着比，
-    // 如果新来的元素比已排序数组最后一个小，则将已排序数组最大值后移一位
-    // 如果新来的元素比已排序数组最后一个大，则直接放在最后即可
-    for (; j >= 0; j--) {
-      compareTimes++;
-      if (arr[j] > temp) {
-        copyTimes++;
-        arr[j + 1] = arr[j];
+
+    // 倒序，如果比最后一个还大，则直接插入
+    for (; j > -1 ; j--) {
+      count++
+      if (temp < arr[j]) {
+        // 如果比最后一个值小，则需要将元素向后挪动
+        arr[j+1] = arr[j];
       } else {
+        // 务必要用break，因为此时需要直接在尾部插入
+        // 不能再执行 j-- 了
         break;
       }
+      // 所以用三元表达式不行
+      // arr[j] > temp ? arr[j+1] = arr[j]: ''
     }
 
-    // 等到内层循环完，也就移动完了，也就空出一个位置，或者直接放在最后
-    // 最后执行完j--，所以这里是j+1
-    arr[j + 1] = temp;
-    copyTimes++;
+    // 内层循环完后，会空出一个位置，
+    arr[j+1] = temp;
   }
-  console.log(`比较次数：${compareTimes}，复制次数：${copyTimes}`);
+  console.log(`count:${count}`, arr);
   return arr;
 }
-
 // 插入排序，可以想象打扑克牌，来一张新牌，我们会在已排好的牌里找到位置，
 // 先移动后面几张牌腾出个空，然后将新牌放在空里。
 
@@ -422,25 +470,59 @@ function mergeSort(arr) {
 
 // 快速排序优化版
 // 优化一：原生api效率更高
+// function quickSortPro(arr) {
+//   if (arr.length <= 1) {
+//     return arr;
+//   }
+//   let pivotIndex = Math.floor(arr.length / 2);
+//   // splice返回的是数组，因此[0]就可以取出具体的值
+//   let pivot = arr.splice(pivotIndex, 1)[0]; // 务必要注意，这里修改数组，数组的长度已经发生变化了
+//   let left = [];
+//   let right = [];
+//   // 注意这里的数组长度是动态变化的，不能一开始就用变量缓存长度
+//   for (let i = 0; i < arr.length; i++) {
+//     if (arr[i] < pivot) {
+//       left.push(arr[i]);
+//     } else {
+//       right.push(arr[i]);
+//     }
+//   }
+//   return quickSortPro(left).concat([pivot], quickSortPro(right));
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function quickSortPro(arr) {
-  if (arr.length <= 1) {
-    return arr;
-  }
-  let pivotIndex = Math.floor(arr.length / 2);
-  // splice返回的是数组，因此[0]就可以取出具体的值
-  let pivot = arr.splice(pivotIndex, 1)[0]; // 务必要注意，这里修改数组，数组的长度已经发生变化了
+  // 快速排序，利用递归，所以必须有递归终止条件
+  if (arr.length < 2) return arr;
+
+  let pivotIdx = Math.floor(arr.length/2);
+  let pivot = arr.splice(pivotIdx, 1); // 数组已经改变，且返回该值
   let left = [];
   let right = [];
-  // 注意这里的数组长度是动态变化的，不能一开始就用变量缓存长度
+
   for (let i = 0; i < arr.length; i++) {
     if (arr[i] < pivot) {
       left.push(arr[i]);
     } else {
-      right.push(arr[i]);
+      right.push(arr[i])
     }
   }
-  return quickSortPro(left).concat([pivot], quickSortPro(right));
+
+  return quickSortPro(left).concat([pivot], quickSortPro(right))
 }
+
 
 function quickSort(arr) {
   if (arr.length <= 1) return arr;

@@ -1776,6 +1776,11 @@ WARNING: This server is bound to localhost
    server with --bind_ip 127.0.0.1 to disable this warning.
 ```
 
+上面的提示需要配置`/usr/local/etc/mongod.conf`，[配置参考](https://mongodb.net.cn/manual/reference/configuration-options/)
+[英文文档](https://docs.mongodb.com/manual/reference/configuration-options/)
+
+dbpath的默认配置：`/usr/local/var/mongodb`
+
 #### Mongodb数据库的启动与连接
 
 ```bash
@@ -1793,9 +1798,10 @@ mongo
 show dbs
 
 # 2、创建超级管理员，先切换，再创建
-# 2.1 切换数据库（超级管理员必须在admin里建）
+# 2.1 切换数据库
 use admin
 # 2.2 创建管理员, 删除是dropUser
+# （超级管理员必须在admin里建）,必须切换到admin数据库里
 db.createUser(
   {
     user: "admin", //用户名
@@ -1803,6 +1809,7 @@ db.createUser(
     roles: [ { role: "root", db: "admin" } ] 
   }
 )
+# 建其他数据库的用户，当然也需要切换到monitor数据库
 db.createUser(
   {
     user: "monitorOwner",
