@@ -493,6 +493,16 @@ function mergeSort(arr) {
 
 
 
+function quickSort(arr) {
+  if (!arr || arr.length < 2) return arr;
+
+  const pivot = arr.pop();
+  let left = arr.filter(num => num < pivot);
+  let right = arr.filter(num => num >= pivot);
+  return quickSort(left).concat([pivot], quickSort(right))
+}
+
+
 
 
 

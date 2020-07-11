@@ -6,12 +6,12 @@ date: Wed Jun 05 2019 23:26:32 GMT+0800 (中国标准时间)
 
 > 突然发现身边好多大神，就属自己最菜。。。
 
-### **参考资料**
+## **参考资料**
 
 [小白一路走来，连续刷题三年，谈谈我的算法学习经验(掘金)][haotostudyalgorithmurl(juejin)]、[漫画算法][comicalgorithmurl]
 [如何刷leetcode](https://www.zhihu.com/question/280279208/answer/824585814)
 
-### **基本概念**
+## **基本概念**
 
 - 如果不熟悉复杂度分析，如何做容量规划？
 - 如果不清楚B+树, 又如何能够真正理解innodb的索引，并对查询过程了如指掌 ？
@@ -39,7 +39,7 @@ date: Wed Jun 05 2019 23:26:32 GMT+0800 (中国标准时间)
 
 #### 刷题步骤
 
-1. 算法的复杂度分析。
+1. 算法的复杂度分析。  
 2. 排序算法，以及他们的区别和优化。
 3. 数组中的双指针、滑动窗口思想。
 4. 利用 Map 和 Set 处理查找表问题。
@@ -47,6 +47,318 @@ date: Wed Jun 05 2019 23:26:32 GMT+0800 (中国标准时间)
 6. 利用递归和迭代法解决二叉树问题。
 7. 栈、队列、DFS、BFS。
 8. 回溯法、贪心算法、动态规划。
+
+## 算法(极客时间)
+
+- 开始，排序算法
+- 第一周(7/18之前)，数组、链表、跳表；栈、队列（优先于双端）
+- 第二周(7/25之前)，哈希表，映射，集合；树、二叉树、二叉搜索树；堆、二叉堆和图
+- 第三周(7/25之前)，递归、分治和回溯；
+- 第四周(7/25之前)，深度、广度优先搜索；贪心算法与二分查找；
+- 第五周(7/25之前)，动态规划
+- 第六周(7/25之前)，并查集、字典树、红黑树和AVL树
+- 第七周(7/25之前)，位运算、布隆过滤器和 LRU Cache；
+- 第八周(7/25之前)，字符串算法
+
+### 前言
+
+- 用白板写出解决问题的能力，不考虑语言、框架什么的
+- 算法和数据结构是有趣且实用的。
+- 区块链采用的数据结构就是链表，但现在也有其他新的结构。每个区块内部采用二叉树记录交易信息
+
+### 如何有效学习算法与数据结构
+
+学习算法和数据结构**不是去记忆，而是理解和训练**。
+
+- 一万个小时
+- 切碎知识点(将知识点挂在一颗树上，然后系统的记忆。不然记不住)
+- 刻意练习（如果练习的很不舒服，那就对了，也就是刻意练习）
+- 反馈（feedback），主动找高手题解，被动反馈（codereview等）
+
+
+切题四件套：
+
+- 明确题意，看数据边界
+- 找出所有解决方法（分析复杂度，找到最优）
+- coding
+- 加上一些测试的样例
+
+### 时间、空间复杂度
+
+数学上的证明比较复杂，这里就略过，只需要知道基本的计算方式，然后记住常用的复杂度即可。
+
+- O(1)，常数级，只要值是有限即是
+- O(n)，线性级，一层循环
+- O(n^2)，双层循环
+- O(logn)，2^k = n，所以 k = logn;
+- O(k^n)，循环一个数的n次方次，我们经常循环n次，这里循环 k^n次即可
+- O(n!)，循环一个数的阶层次，我们经常循环n次，这里循环 n!次即可
+
+```js
+// O(n)复杂度
+function total(n) {
+  var sum = 0;
+  for (var i = 1; i <= n; i++) {
+    sum += i;
+  }
+  return sum;
+}
+
+// O(1)
+function total(n) {
+  var sum = n*(n+1)/2
+  return sum;
+}
+
+// 斐波那契数组 1、1、2、3、5、8、13、21...
+// 思考复杂度是多少？
+function fibo(n) {
+  if (n < 2) return 1;
+  return fibo(n-1) + fibo(n-2);
+}
+```
+
+观察下图，可以看出，当执行f(6)时，需要执行f(5)、f(4)，当执行f(5)时又需要执行f(4)、f(3)，另一个分支计算f(4)时，又需要执行f(3)、f(2)...依次类推，运算的次数大概就是 2^n次，也就是指数级的复杂度。
+![斐波那契循环次数](/jsArt/assets/images/algorithm/fib.png)
+
+任何一个分治或递归的函数，都可以算出他的复杂度。怎么算，就是通过[主定理](https://zh.wikipedia.org/wiki/%E4%B8%BB%E5%AE%9A%E7%90%86)
+
+### leetcode进行算法练习
+
+- 三分学习，7分练习。
+- 坚持、刻意练习
+- 练习弱点，缺陷的题
+- 不舒服、不爽、枯燥，这是很正常，因为跳出了舒适区
+- 解题步骤，必须是切题四件套
+
+```js
+// 两数之和
+// 方式1、双层循环，O(n^2)
+// 方式2、查询一个数是否在数组中存在，可以利用hash或map，复杂度O(n)
+function twoSum(arr, target) {
+  let map = {};
+  for (let i = 0; i < arr.length; i++) {
+    // 遍历arr[i]，然后判断target - arr[i]是否在数组中即可
+    let temp = target - arr[i];
+    if (map[temp] !== undefined) {
+      // 这里map[temp]是先记录的，肯定小于i，所以放前面
+      return [map[temp], i]
+    } else {
+      // 如果target - arr[i]不在数组中，继续记录arr[i]
+      map[arr[i]] = i;
+    }
+  }
+  return '没找到'
+}
+```
+
+### 数组与链表
+
+两种都是线性数据结构，
+
+- 数组，内存连续，查询O(1)，删除和插入O(n)
+- 链表，内存可以不连续，删除和插入O(1)，查询O(n)，**主要应用场景**：删除和插入操作多、不知道元素的个数
+
+长度为n的数组，删除第i个元素，要移动后面 n-i 个元素；在第i个元素之前插入，需要移动包括i在内的 n-i+1 个元素。
+
+- 单链表（linkedList）、双链表（doublyLinkedList）
+- 在链表中，tail属性用来保存对列表最后一项的引用，而head属性保存列表第一项的引用
+
+如下图，除了next指针用来连接链表的元素，还有head和tail用来记录头指针和尾指针。其实就是告诉你聊表的头在哪，尾在哪
+
+![链表指针图指向](/jsArt/assets/images/algorithm/linkedList.png)
+
+
+双向链表无非是又多一个prev指针，同时在查询时，不但可以向后，还可以向前查询
+
+![双链表指针图指向](/jsArt/assets/images/algorithm/doubleLinkedList.png)
+
+习题训练：
+
+<font color="red">题：反转链表</font>
+```js
+// https://leetcode-cn.com/explore/?utm_source=LCUS&utm_medium=banner_redirect&utm_campaign=transfer2china
+// 定义一个函数，输入一个链表的头节点，反转该链表并输出反转后链表的头节点。
+// 1->2->3->4->5->null
+// 5->4->3->2->1->null
+// 注意这里看似输入的是数组，但不可能在控制台，因为这是链表结构
+function reverseList(head) {
+  // 这里头结点head可以理解为第一个节点，第一个节点上有next属性
+  let prev = null;
+  let cur = head;
+
+  // 当cur节点指向null了，就不再循环
+  while(cur) {
+    // 暂存当前节点的next指向
+    let oldNext = cur.next;
+    // 重新制定当前节点的指向
+    cur.next = prev;
+
+    // 把当前节点作为新一轮的next指向
+    prev = cur;
+    // 将暂存的旧next指向当做当前节点
+    cur = oldNext;
+  }
+
+  // 循环完之后，prev指向的就是头结点
+  return prev;
+}
+
+// 我的思路1：遍历链表，记录每个节点的指针引用，放到一个数组中，然后再次遍历链表，倒序赋值节点的next指针。👇1不行
+var reverseList1 = function(head) {
+  // head理解为第一个节点，理论上头结点只有head,tail？
+  // 直接从函数里拿到的是const类型？是let类型，可以修改
+  // 这里赋值的目的，是因为每次处理的不同，看起来直观
+  let cur = Object.assign({}, head);
+  let arr = [];
+  while(cur) {
+    arr.unshift(cur.next);
+    cur = cur.next
+  }
+
+  cur = Object.assign({}, head); // 引用类型
+  let idx = 0;
+  while(cur) {
+    let oldNext = cur.next
+    cur.next = arr[idx];
+    cur = oldNext;
+  }
+  return arr;
+};
+
+// 上面代码两个错误：
+// 1、理论上数组中确实保存的是cur.next，但应该是cur.val
+// 2、打印head确实是引用类型，但cur = head;这里就可以直接赋值。。。
+var reverseList2 = function(head) {
+  let cur = head;
+  let arr = [];
+  while(cur) {
+    arr.push(cur.val);
+    cur = cur.next
+  }
+
+  cur = head;
+  let idx = 0;
+  while(cur) {
+    cur.val = arr.pop();
+    cur = cur.next;
+  }
+  return head;
+};
+reverseList2([1,2,3,4,5])
+```
+
+<font color="red">题24. 两两交换链表中的节点</font>
+>给定一个链表，两两交换其中相邻的节点，并返回交换后的链表。
+你不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。
+>
+> 例如：给定 1->2->3->4, 你应该返回 2->1->4->3.
+```js
+// 我的思路1：怎么获取总长度？然后根据2*i来处理？
+var swapPairs = function(head) {
+  let nodeArr = [];
+  let cur = head;
+  // 遍历链表，将值存放到数组，获取长度
+  while(cur) {
+    nodeArr.push(cur.val);
+    cur = cur.next;
+  };
+
+  // 数组长度偶数和奇数处理
+  let len = nodeArr.length;
+  if (len % 2 === 0) {
+    // 循环一次，向后移动2项，再次循环
+    for (let i = 0; i < len; i=i+2) {
+      [nodeArr[i], nodeArr[i+1]] = [nodeArr[i+1], nodeArr[i]]
+    }
+  } else {
+    // 最后一项不用交换
+    for (let i = 0; i < len - 1; i=i+2) {
+      [nodeArr[i], nodeArr[i+1]] = [nodeArr[i+1], nodeArr[i]]
+    }
+  }
+
+  // 初始化链表
+  let newHead = new ListNode();
+  let cur = newHead;
+  for (let i = 0;i < len; i++) {
+    cur.next = new ListNode(nodeArr[i]);
+    cur = cur.next;
+  }
+  return newHead.next;
+}
+
+// 其他思路
+var swapPairs = function(head) {
+  // 如果头结点为空或只有一个子节点，直接返回
+  if (!head || head.next === null) return head;
+  // 初始化第一、第二个节点
+  let [firstNode, secondNode] = [head, head.next];
+  // 交换后，第一个节点的next应该指向第三个节点，而第三个节点是secondNode.next
+  firstNode.next = swapPairs(secondNode.next);
+  // 第二个节点的next应该指向第一个节点
+  secondNode.next = firstNode;
+
+  // 翻转完成后，secondNode变为了当前这段链表的头节点，可以返回给上一层的递归，作为上一层翻转时，firstNode.next的指向。
+  return secondNode
+};
+
+// 更简洁写法
+var swapPairs2 = function(head) {
+  if (!head || !head.next) return head;
+  let [fst, snd] = [head, head.next];
+  [fst.next, snd.next] = [swapPairs(snd.next), fst];
+  return snd;
+}
+```
+
+总结：
+- 链表的节点可以通过node.next.next...无限寻址
+- 递归需要学习
+
+<font color="red">题141. 环形链表</font>
+>给定一个链表，判断链表中是否有环。
+```js
+// 思路一：规定一个时间段，比如0.5s，一直执行判断head.next.next...是否为null，为null则没有环，当然这就是一条胡同走到黑的解法
+// 思路二：利用set数据结构，每访问一个节点，就将该节点的next用set存储下来，如果没有重复的则没有环。
+// 思路三：利用快慢指针，想象成两个人，一人每次走两步，一人每次走一步，如果没有环的话，两个人肯定不会相遇。否则就会相遇
+
+/**
+ * @param {ListNode} head
+ * @return {boolean}
+ */
+// 利用set数据结构
+var hasCycle = function(head) {
+  // 利用set数据结构，set结构的key可以为对象
+  let mySet = new Set();
+  let cur = head;
+  while(cur) {
+    if (mySet.has(cur.next)) return true;
+    mySet.add(cur.next);
+    cur = cur.next;
+  }
+  return false
+  // 整体时间复杂度：遍历O(n)，从set里取值为O(1) => O(n*1)
+  // 整体空间复杂度：遍历O(n)
+};
+
+// 利用快慢指针
+var hasCycle = function(head) {
+  let fast = slow = head;
+
+  while(fast && fast.next && fast.next.next) {
+    slow = slow.next;
+    fast = fast.next.next;
+
+    if (slow === fast) {
+      return true;
+    }
+  }
+  return false
+};
+```
+
+## javascript 数据结构与算法
 
 #### 数据结构绪论
 
@@ -249,7 +561,7 @@ console.timeEnd(); // 0.12890625ms
 
 **二叉树搜索树**的查询、插入、删除都是O(logn)的复杂度，而不是O(n)，不像数组插入是O(n)，查询是O(1)等，当总体来说O(logn)的复杂度比O(n)快的还是很多的
 
-### **性能相关**
+## **性能相关**
 
 ```js
 // 检测某些逻辑循环n次，消耗的时间
@@ -263,9 +575,9 @@ function getTimePerformance(fn, n) {
 ```
 
 
-### **正则相关**
+## **正则相关**
 
-#### 基本知识点
+### 基本知识点
 
 参考：[regExp对象(阮一峰)][howRexExpWorkUrlRuanYiFeng]、[通俗的正则][commonRegexUrl]、[正则表达式全集][allRegexUnitUrl]、[mdn正则表达式][mdnRegexUrl]
 
@@ -877,9 +1189,9 @@ toLine2('aBcDfe');
 
 ```
 
-### **日期相关**
+## **日期相关**
 
-#### Date对象基本知识点
+### Date对象基本知识点
 
 有关时间对象 `Date` 的方法和描述：
 
@@ -934,7 +1246,7 @@ toLocaleDateString() | 根据本地时间格式，把 Date 对象的日期部分
 UTC() | 根据世界时返回 1970 年 1 月 1 日 到指定日期的毫秒数。
 valueOf() | 返回 Date 对象的原始值。
 
-#### setDate() 方法
+### setDate() 方法
 
 `setDate()`方法用来设定日期对象中本地时间的日，也就是每个月中的几号，传入参数是一个1~31的整数。若是传入的值超出当月份的正常范围，setDate（）方法也会依据超出的数值进行计算
 
@@ -1019,7 +1331,7 @@ console.log(dates);
 
 ```
 
-### **动态规划**
+## **动态规划**
 
 淘宝的“双十一”购物节有各种促销活动，比如“满 200 元减 50 元”。假设你女朋友的购物车中有 n 个（n>100）想买的商品，她希望从里面选几个，在凑够满减条件的前提下，让选出来的商品价格总和最大程度地接近满减条件（200 元），这样就可以极大限度地“薅羊毛”。作为程序员的你，能不能编个代码来帮她搞定呢？
 
@@ -1053,7 +1365,7 @@ console.timeEnd(); // 0.063720703125ms
 
 动态规划学习路线动态规划比较适合用来求解最优问题，比如求最大值、最小值等等
 
-### **二分法**
+## **二分法**
 
 对于一个有序的列表（比如1-100），如果要查找1这个数的位置，二分查找：50 -> 25 -> 13 -> 7 -> 4 -> 2 -> 1通过七次就可以找到，如果挨个找，比如倒序就需要100次。
 
