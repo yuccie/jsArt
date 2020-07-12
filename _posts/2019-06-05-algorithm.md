@@ -10,6 +10,7 @@ date: Wed Jun 05 2019 23:26:32 GMT+0800 (中国标准时间)
 
 [小白一路走来，连续刷题三年，谈谈我的算法学习经验(掘金)][haotostudyalgorithmurl(juejin)]、[漫画算法][comicalgorithmurl]
 [如何刷leetcode](https://www.zhihu.com/question/280279208/answer/824585814)
+[常见算法复杂度](https://www.bigocheatsheet.com/)
 
 ## **基本概念**
 
@@ -357,6 +358,63 @@ var hasCycle = function(head) {
   return false
 };
 ```
+
+### 堆栈和队列
+
+- 堆栈（stack），先进后出
+- 队列（queue），排队，先进先出
+
+注意：堆栈和堆不一样，堆的英文为 heap
+
+<font color="red">题20：有效的括号</font>
+>给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串，判断字符串是否有效。
+>
+>有效字符串需满足：
+>
+>左括号必须用相同类型的右括号闭合。
+>左括号必须以正确的顺序闭合。
+>
+>注意空字符串可被认为是有效字符串。
+
+```js
+var isValid = function(s) {
+  let stack = [];
+  // 注意这里是右括号作为key
+  let map = {
+    ')': '(',
+    ']': '[',
+    '}': '{',
+  }
+  for (let item of s) {
+    // 如果map里没有，则说明是左侧符号
+    if (!map[item]) {
+      stack.push(item);
+    } else {
+      if (stack.pop() !== map[item]) {
+        return false;
+      }
+    }
+  }
+  // if (stack.length) {
+  //   return false;
+  // } else {
+  //   return true;
+  // }
+  return !stack.length
+};
+
+var isValid = function(s) {
+  // 正则匹配字符串，遇到成对的符号就替换成''
+  let len = 0;
+  // 需要一个终止条件，就是长度经过一轮替换，如果没有变化，说明已经到头了
+  while(len !== s.length) {
+    len = s.length;
+    s = s.replace('()', '').replace('{}', '').replace('[]', '');
+  }
+  return !s.length;
+}
+```
+
 
 ## javascript 数据结构与算法
 
