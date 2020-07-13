@@ -650,6 +650,17 @@ module.exports = {
   devtool: 'inline-source-map'
 }
 ```
+
+几种source-map的区别：
+
+- eval，其实就是将要打包的模块封装到eval里，并在末尾追加注释//@ sourceURL，因此文件很大
+- source-map，生成一个单独的sourceMap文件，在bundle文件末尾有类似注释//# sourceMappingURL=bundle.js.map，指向sourceMap
+- hidden-source-map, 和 source-map 一样，但不会在 bundle 末尾追加注释.
+- inline-source-map，生成一个 DataUrl 形式的 SourceMap 文件，直接追加在bundle文件末尾，//# sourceMappingURL=data:application/json;charset=utf-8;base64,xxx
+- eval-source-map，每个 module 会通过 eval() 来执行，并且生成一个 DataUrl 形式的 SourceMap .
+- cheap-source-map，生成一个没有列信息（column-mappings）的 SourceMaps 单独文件，不包含 loader 的 sourcemap（譬如 babel 的 sourcemap）
+- cheap-module-source-map，生成一个没有列信息（column-mappings）的 SourceMaps 文件，同时 loader 的 sourcemap 也被简化为只包含对应行的。
+
 >避免在生产中使用 inline-*** 和 eval-***，因为它们可以增加 bundle 大小，并降低整体性能。
 更多请参考：<br/>
 [滴滴出行说devtool的几种模式][didiDevtoolUrl]<br/>

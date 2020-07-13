@@ -4,9 +4,16 @@ title: 浏览器工作原理
 date: Wed Nov 14 2018 13:42:14 GMT+0800
 ---
 
-### 常见的一些问题及相关参考链接
+## 源码阅读
 
-### 一些点
+### vue-router
+
+#### 常见工具函数
+
+```js
+const isDef = v => v !== undefined;
+const inBrowser = typeof window !== 'undefined'
+```
 
 #### 使用unicode或者html显示特殊符号
 
@@ -22,6 +29,8 @@ function blue (str) {
   return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
 }
 ```
+
+## 其他
 
 ### 正则
 

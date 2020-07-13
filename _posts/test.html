@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>遍历 DOM 树</h1>
+    <p style="color: green;">Tip: 可以在遍历的回调函数中任意定制需求</p>
+    <div>
+      <ul>
+        <li>123</li>
+        <li>456</li>
+        <li>789</li>
+      </ul>
+      <div>
+        <div>
+          <span>haha</span>
+        </div>
+      </div>
+    </div>
+    <div id="demo_node">
+      <ul>
+        <li>123</li>
+      </ul>
+      <p>hello</p>
+      <h2>world</h2>
+      <div>
+        <p>dsa</p>
+        <h3>
+          <span>dsads</span>
+        </h3>
+      </div>
+      <!-- <img src="./404.png" alt=""> -->
+    </div>
+
+    <script>
+      function Foo() {
+        // 只是函数名上挂在的属性？
+        Foo.a = function () {
+          console.log(1);
+        };
+        // 实例可以直接继承的属性
+        this.a = function () {
+          console.log(2);
+        };
+      }
+      // 原型上的属性
+      Foo.prototype.a = function () {
+        console.log(3);
+      };
+      // 直接挂在构造函数上的是静态属性
+      Foo.a = function () {
+        console.log(4);
+      };
+      // 访问的是静态熟悉感
+      Foo.a();
+      let obj = new Foo();
+      obj.a();
+      Foo.a();
+      // window.onerror = (err) => {
+      //   console.log("window.onerror", err);
+      //   return true;
+      // };
+      // window.addEventListener(
+      //   "error",
+      //   (msg, url, row, col, error) => {
+      //     console.log("我感知不到 promise 错误");
+      //     console.log(msg, url, row, col, error);
+      //     // return true;
+      //   },
+      //   true
+      // );
+      // window.addEventListener('unhandledrejection', (e) => {
+      //   e.preventDefault();
+      //   console.log(e.reason, 'ddd');
+      //   return true;
+      // });
+
+      // setTimeout(()=> {
+      //   console.log(aa)
+      // });
+      Promise.reject("promise error");
+      // new Promise((resolve, reject) => {
+      //   reject('promise error');
+      // });
+      // new Promise((resolve) => {
+      //   resolve();
+      // }).then(() => {
+      //   throw 'promise error'
+      // });
+
+      function bubleSort(arr) {
+        let arrLen = arr.length;
+
+        if (arrLen <= 1) return arr;
+
+        for (let i = 0; i < arrLen - 1; i++) {
+          for (let j = 0; j < arrLen - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+              [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]];
+              flag = false;
+            }
+          }
+          if (flag) break;
+        }
+        return arr;
+      }
+
+      function bubleSort(arr) {
+        let arrLen = arr.length;
+
+        if (arrLen <= 1) return arr;
+
+        for (let i = 0; i < arrLen - 1; i++) {
+          let flag = true;
+          for (let j = 0; j < arrLen - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+              [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]];
+              flag = false;
+            }
+          }
+          if (flag) break;
+        }
+        return arr;
+      }
+    </script>
+  </body>
+</html>
