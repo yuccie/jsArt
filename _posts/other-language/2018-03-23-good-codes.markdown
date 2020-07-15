@@ -124,6 +124,7 @@ function _parseInt (string, radix) {
   </style>
 </head>
 <body>
+<!-- 所谓命名空间，通常是 一个能代表企业或个人的字符串，用于修饰限定标签的名字。在 XML 文档中，通过把“xmlns=" 命名空间的名字 "”作为标签的一个属性记 述，就可以为标签设定命名空间。 -->
   <svg width="400px" height="300px" version="1.1" viewBox="0 0 581 327" xmlns="http://www.w3.org/2000/svg">
     <g fill="none" transform="translate(300,250)" stroke-width="1" fill-rule="evenodd">
       <defs>
