@@ -25,6 +25,23 @@ btn.addEventListener('click',function(){
   input.setAttribute('value','这是要复制的内容')
   input.select()
 })
+
+// vue
+const text = this.$refs.log.innerText;
+const input = document.createElement('input');
+input.setAttribute('readonly', 'readonly');
+input.setAttribute('value', text);
+document.body.appendChild(input);
+input.focus();
+input.setSelectionRange(0, 9999);
+
+if (document.execCommand('copy')) {
+  document.execCommand('copy');
+  this.$message({ type: "success", message: "补货记录复制成功" });
+}
+
+document.body.removeChild(input);
+
 ```
 
 原生方法在ios会自动拉起键盘(因为focus了)，另外input.select()在ios下并没有选中全部内容，因此还需要`input.setSelectionRange(0, input.value.length)`

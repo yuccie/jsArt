@@ -415,6 +415,156 @@ var isValid = function(s) {
 }
 ```
 
+<font color="red">题225. 用队列实现栈</font>
+
+<font color="red">题232. 用栈实现队列</font>
+>使用栈实现队列的下列操作：
+>push(x) -- 将一个元素放入队列的尾部。
+>pop() -- 从队列首部移除元素。
+>peek() -- 返回队列首部的元素。
+>empty() -- 返回队列是否为空。
+
+```js
+var MyQueue = function() {
+    // 定义两个数组，相当于用两个数组来回倒腾数据，有种负负得正的感觉
+    this.stack1 = [];
+    this.stack2 = [];
+};
+
+/**
+ * Push element x to the back of queue. 
+ * @param {number} x
+ * @return {void}
+ */
+MyQueue.prototype.push = function(x) {
+    // 向队列里添加元素，只需push进stack1即可
+    this.stack1.push(x);
+};
+
+/**
+ * Removes the element from in front of queue and returns that element.
+ * @return {number}
+ */
+MyQueue.prototype.pop = function() {
+    // 从队列首部移除元素，也就是最开始的元素
+    // 所以要将stack1里的元素拿到stack2里，然后删除最后一个
+    if (this.stack1.length) {
+        for (let item of this.stack1) {
+            this.stack2.unshift(item);
+        }
+        // 移动完，需要清空stack1
+        this.stack1 = [];
+    }
+    return this.stack2.pop();
+};
+
+/**
+ * Get the front element.
+ * @return {number}
+ */
+MyQueue.prototype.peek = function() {
+    // 返回队列首部的元素
+    if (this.stack1.length) {
+        for (let item of this.stack1) {
+            this.stack2.unshift(item);
+        }
+        // 移动完，需要清空stack1
+        this.stack1 = [];
+    }
+    return this.stack2[this.stack2.length - 1];
+};
+
+/**
+ * Returns whether the queue is empty.
+ * @return {boolean}
+ */
+MyQueue.prototype.empty = function() {
+    return !this.stack1.length && !this.stack2.length
+};
+
+/**
+ * Your MyQueue object will be instantiated and called as such:
+ * var obj = new MyQueue()
+ * obj.push(x)
+ * var param_2 = obj.pop()
+ * var param_3 = obj.peek()
+ * var param_4 = obj.empty()
+ */
+```
+
+### 优先队列
+
+两种实现方式：
+- 堆（二叉堆、多项式堆、斐波那契堆等等）
+- 二叉搜索树
+
+小顶堆，父节点小于子节点
+大顶堆，父节点大于子节点
+
+<font color="red">题703：实时判断数据流中第K大元素</font>
+
+```js
+// 我的思路，排序，取第k个元素的大小
+// 思路：小顶堆
+function swap(arr, idx1, idx2) {
+  [arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]]
+}
+
+// 
+function KthLargest(k, nums) {
+  // 小顶堆特点：父节点大于左右子节点
+  this.minHeap = [null];
+  this.k = k;
+  nums.forEach(num => this.add(num))
+}
+
+KthLargest.prototype.add = (num) => {
+  // 小顶堆未满
+  if (this.minHeap.length <= this.k) {
+    this.minHeap.push(num);
+    // 调整堆的顺序
+    this.up(this.minHeap.length - 1)
+  } else {
+    // 如果比堆顶元素大，则替换，并调整顺序
+    if (num > this.minHeap[1]) {
+       this.minHeap[1] = num;
+       this.down(1);
+    }
+    // 否则丢弃
+  }
+  // 最后返回堆顶元素？
+  return this.minHeap[1];
+}
+
+KthLargest.prototype.up = idx => {
+  // 父节点索引
+  let parent = Math.floor(idx / 2);
+  if (parent >= 1 && this.minHeap[parent] > this.minHeap[idx]) {
+    swap(this.minHeap, parent, idx);
+    // 递归上浮
+    this.up(parent);
+  }
+}
+
+KthLargest.prototype.down = idx => {
+  let to = idx;
+    // 和左子元素比较
+    let left = idx * 2;
+    if (left < this.minHeap.length && this.minHeap[left] < this.minHeap[to]) {
+        to = left;
+    }
+    // 和右子元素比较
+    let right = idx * 2 + 1;
+    if (right < this.minHeap.length && this.minHeap[right] < this.minHeap[to]) {
+        to = right;
+    }
+    if (to !== idx) {
+      swap(this.minHeap, to, idx);
+      // 递归下沉
+      this.down(to);
+    }
+}
+```
 
 ## javascript 数据结构与算法
 
