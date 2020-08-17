@@ -435,6 +435,13 @@ mysql -h localhost 的时候，是不使用 TCP/IP 连接的，而使用 Unix so
 
 配置文件的话，一般路径在`/usr/local/etc/my.cnf`里。若想修改可以编辑该文件
 
+***安装皮卡丘web安全***
+1. 安装mac版的[xampp](https://www.apachefriends.org/zh_cn/download.html)
+2. 将皮卡丘源码下载下来，放在xampp的服务器目录里：/Applications/XAMPP/xamppfiles/htdocs，启动appache服务器，就可以直接：127.0.0.1/源码目录 访问了
+3. 需要连接mysql数据库，运行数据库之前先把之前起的mysql服务停止掉，否则端口冲突; ps aux | grep mysqld 找到进程，杀死
+
+
+
 ***登录mysql***
 
 （切记删除了*.sock文件很严重）卸载masql: https://blog.csdn.net/love_parents/article/details/80938989
@@ -455,6 +462,9 @@ socket =  /usr/local/var/mysql/mysql.sock
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 socket =  /usr/local/var/mysql/mysql.sock 
+
+# 当然也可以直接指定配置文件登录
+mysql -uroot -p --socket=/data/mysqldb/mysqld.sock
 ```
 
 上面的 `[client]、[mysqld]`是mysql数据库关于配置的一种关键词，更详细配置参考：https://www.docs4dev.com/docs/zh/mysql/5.7/reference/postinstallation.html
