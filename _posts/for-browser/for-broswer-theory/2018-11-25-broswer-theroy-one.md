@@ -457,14 +457,14 @@ outer = null
 
 ```js
 var bar = {
-    myName:"time.geekbang.com",
-    printName: function () {
-        console.log(myName)
-    }
+  myName:"time.geekbang.com",
+  printName: function () {
+    console.log(myName)
+  }
 }
 function foo() {
-    let myName = "极客时间"
-    return bar.printName
+  let myName = "极客时间"
+  return bar.printName
 }
 let myName = "极客邦"
 let _printName = foo()
@@ -572,9 +572,9 @@ a.prototype; // undefined
 2、箭头函数的this指向在定义的时候继承自外层第一个普通函数的this。
 
 ```js
-let a;
-let barObj = { msg: 'barObj' };
-let fooObj = { msg: 'fooObj' };
+var a;
+var barObj = { msg: 'barObj' };
+var fooObj = { msg: 'fooObj' };
 
 function foo() {
   a();
@@ -699,7 +699,7 @@ function Bar() {
 }
 ```
 
-8、箭头函数不支持重命名函数参数,普通函数的函数参数支持重命名
+8、箭头函数不支持重复名字的函数参数
 
 ```js
 function func1(a, a) {
@@ -4379,3 +4379,13 @@ TLS 设计的初衷是在可靠的传输协议(如 TCP)之上运行。可是，�
 TLS 协议的目标是为在它之上运行的应用提供三个基本服务:加密、身份验证和数 据完整性
 
 握手过程中，TLS 协议还允许通信两端互相验明正身。在浏览器中，验证机制允许 客户端验证服务器就是它想联系的那个(比如，银行)，而不是通过名字或 IP 地址伪 装的目标。这个验证首先需要建立“认证机构信任链”(Chain of Trust and Certificate Authorities)。此外，服务器也可以选择验证客户端的身份。比如，公司的代理服务器 可以验证所有雇员，每位雇员都应该有公司签发的独一无二的认证证书。
+
+## http权威指南
+
+### URL编码机制
+
+使用了一种编码机制，用来在url中表示各种不安全的字符。我们在url里输入一些未编码的字符串，感觉也没问题啊。。。其实这对某些传输协议来说并没有什么问题，但如果向其他应用程序发送任意url之前，最好转换，这样url就是在各个应用程序之间共享的规范形式，不容易出现问题。
+
+### HTTP报文
+
+报文行都以一个或多个字符组成的行终止符作为结束，包括一个回车符（ASCII码13）和一个换行符（ASCII码10），可以写作：CRLF。但并不是所有的实现都同时发送回车和换行符。
