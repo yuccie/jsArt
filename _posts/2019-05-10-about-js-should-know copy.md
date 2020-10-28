@@ -1431,6 +1431,15 @@ isFinite(overflowMinVal); // false
 isFinite(666); // true
 ```
 
+isFinite(value) 将其参数转换为数字，如果是常规数字，则返回 true，而不是 NaN/Infinity/-Infinity，有时 isFinite 被用于验证字符串值是否为常规数字：
+
+```js
+alert( isFinite("15") ); // true
+alert( isFinite("str") ); // false，因为是一个特殊的值：NaN
+alert( isFinite("") ); // true
+alert( isFinite(Infinity) ); // false，因为是一个特殊的值：Infinity
+```
+
 #### **NaN**
 
 NaN，即非数值（not a number），是一个特殊的数值，用来表示**一个本来要返回数值的操作数未返回数值的情况（这样在程序运行中就不会抛出错误了）**，它有两个特点：
