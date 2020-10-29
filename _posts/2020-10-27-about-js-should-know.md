@@ -728,6 +728,266 @@ f();
 让我们强调一下：**await 字面的意思就是让 JavaScript 引擎等待直到 promise settle，然后以 promise 的结果继续执行**。这个行为不会耗费任何 CPU 资源，因为引擎可以同时处理其他任务：执行其他脚本，处理事件等。
 
 
+## Document
+
+### 浏览器环境，规格
+
+JavaScript 语言最初是为 Web 浏览器创建的。此后，它已经发展成为一种具有多种用途和平台的语言。
+
+平台可以是一个浏览器，一个 Web 服务器，或其他 主机（host），甚至可以是一个“智能”咖啡机，如果它能运行 JavaScript 的话。它们每个都提供了特定于平台的功能。JavaScript 规范将其称为 主机环境。
+
+主机环境提供了自己的对象和语言核心以外的函数。Web 浏览器提供了一种控制网页的方法。Node.JS 提供了服务器端功能，等等。
+
+
+有一个叫做 window 的“根”对象。它有两个角色：
+
+- 首先，它是 JavaScript 代码的全局对象，如 全局对象 一章所述。
+- 其次，它代表“浏览器窗口”，并提供了控制它的方法。
+
+文档对象模型（Document Object Model），简称 DOM，将**所有页面内容表示为可以修改的对象**。
+
+另外也有一份针对 CSS 规则和样式表的、单独的规范 CSS Object Model (CSSOM)，这份规范解释了如何将 CSS 表示为对象，以及如何读写这些对象。
+
+浏览器对象模型（Browser Object Model），简称 BOM，**表示由浏览器（主机环境）提供的用于处理文档（document）之外的所有内容的其他对象**。
+
+- navigator **对象提供了有关浏览器和操作系统的背景信息**。navigator 有许多属性，但是最广为人知的两个属性是：navigator.userAgent — 关于当前浏览器，navigator.platform — 关于平台（可以帮助区分 Windows/Linux/Mac 等）。
+- location 对象允许我们读取当前 URL，并且可以将浏览器重定向到新的 URL。
+
+
+**自动修正**
+
+如果浏览器遇到格式不正确的 HTML，它会在形成 DOM 时自动更正它。
+
+例如，顶级标签总是 <html>。即使它不存在于文档中 — 它也会出现在 DOM 中，因为浏览器会创建它。对于 <body> 也是一样。
+
+例如，如果一个 HTML 文件中只有一个单词 “Hello”，浏览器则会把它包装到 <html> 和 <body> 中，并且会添加所需的 <head>。说白了，就是会自动帮你创建一些标签。
+
+可以动态查看dom情况：http://software.hixie.ch/utilities/js/live-dom-viewer/#
+
+```html
+<p>Hello
+<li>Mom
+<li>and
+<li>Dad
+
+<!-- 表格是一个有趣的“特殊的例子”。按照 DOM 规范，它们必须具有 <tbody>，但 HTML 文本却（官方的）忽略了它。然后浏览器在创建 DOM 时，自动地创建了 <tbody>。 -->
+<table id="table"><tr><td>1</td></tr></table>
+```
+
+### 遍历DOM
+
+- <html> = document.documentElement
+- <body> = document.body
+- <head> = document.head
+
+document.body 的值可能是 null，脚本无法访问在运行时不存在的元素，页面从上向下渲染，上边的肯定获取不了下方还未创建的元素：
+
+```html
+<html>
+
+<head>
+  <script>
+    alert( "From HEAD: " + document.body ); // null，这里目前还没有 <body>
+  </script>
+</head>
+
+<body>
+
+  <script>
+    alert( "From BODY: " + document.body ); // HTMLBodyElement，现在存在了
+  </script>
+
+</body>
+</html>
+```
+
+firstChild 和 lastChild 属性是访问第一个和最后一个子元素的快捷方式。
+这里还有一个特别的函数 elem.hasChildNodes() 用于检查节点是否有子节点。
+
+```js
+
+// <body> 的父节点是 <html>
+alert( document.body.parentNode === document.documentElement ); // true
+
+// <head> 的后一个是 <body>
+alert( document.head.nextSibling ); // HTMLBodyElement
+
+// <body> 的前一个是 <head>
+alert( document.body.previousSibling ); // HTMLHeadElement
+```
+
+- children — 仅那些作为元素节点的子代的节点。
+- firstElementChild，lastElementChild — 第一个和最后一个子元素。
+- previousElementSibling，nextElementSibling — 兄弟元素。
+- parentElement — 父元素。
+
+```js
+alert( document.documentElement.parentNode ); // document
+alert( document.documentElement.parentElement ); // null
+// 因为根节点 document.documentElement（<html>）的父节点是 document。但 document 不是一个元素节点，所以 parentNode 返回了 document，但 parentElement 返回的是 null。
+```
+
+### 搜索：getElement*，querySelector*
+
+```js
+<div id="elem">
+  <div id="elem-content">Element</div>
+</div>
+
+<script>
+  // elem 是对带有 id="elem" 的 DOM 元素的引用
+  elem.style.background = 'red';
+
+  // id="elem-content" 内有连字符，所以它不能成为一个变量
+  // ...但是我们可以通过使用方括号 window['elem-content'] 来访问它
+</script>
+```
+
+如果有多个元素都带有同一个 id，那么使用它的方法的行为是不可预测的，例如 document.getElementById 可能会随机返回其中一个元素。因此，请遵守规则，保持 id 的唯一性。
+
+只有 document.getElementById，没有 anyElem.getElementById，getElementById 方法只能被在 document 对象上调用。它会在整个文档中查找给定的 id。
+
+CSS 选择器的伪类，例如 :hover 和 :active 也都是被支持的。例如，document.querySelectorAll(':hover') 将会返回鼠标指针现在已经结束的元素的集合（按嵌套顺序：从最外层 <html> 到嵌套最多的元素）。
+
+elem.matches(css) 不会查找任何内容，它只会检查 elem 是否与给定的 CSS 选择器匹配。它返回 true 或 false。
+```html
+<a href="http://example.com/file.zip">...</a>
+<a href="http://ya.ru">...</a>
+
+<script>
+  // 不一定是 document.body.children，还可以是任何集合
+  for (let elem of document.body.children) {
+    if (elem.matches('a[href$="zip"]')) {
+      alert("The archive reference: " + elem.href );
+    }
+  }
+</script>
+```
+
+elem.closest(css) 方法会查找与 CSS 选择器匹配的最近的祖先。elem 自己也会被搜索。
+
+```html
+<h1>Contents</h1>
+
+<div class="contents">
+  <ul class="book">
+    <li class="chapter">Chapter 1</li>
+    <li class="chapter">Chapter 1</li>
+  </ul>
+</div>
+
+<script>
+  let chapter = document.querySelector('.chapter'); // LI
+
+  alert(chapter.closest('.book')); // UL
+  alert(chapter.closest('.contents')); // DIV
+
+  alert(chapter.closest('h1')); // null（因为 h1 不是祖先）
+</script>
+```
+
+所有的 "getElementsBy*" 方法都会返回一个 实时的（live） 集合。这样的集合始终反映的是文档的当前状态，并且在文档发生更改时会“自动更新”。
+
+```js
+<div>First div</div>
+
+<script>
+  let divs = document.getElementsByTagName('div');
+  alert(divs.length); // 1
+</script>
+
+<div>Second div</div>
+
+<script>
+  alert(divs.length); // 2
+</script>
+```
+
+相反，querySelectorAll 返回的是一个 静态的 集合。就像元素的固定数组。
+
+```html
+<div>First div</div>
+
+<script>
+  let divs = document.querySelectorAll('div');
+  alert(divs.length); // 1
+</script>
+
+<div>Second div</div>
+
+<script>
+  alert(divs.length); // 1
+</script>
+```
+
+### 节点属性 type，tag 和 content
+
+不同的 DOM 节点可能有不同的属性，但是所有这些标签对应的 DOM 节点之间也存在共有的属性和方法，每个 DOM 节点都属于相应的内建类。
+
+层次结构（hierarchy）的根节点是 EventTarget，Node 继承自它，其他 DOM 节点继承自 Node。
+
+EventTarget -》 Node -》。。。
+
+- EventTarget — 是根的“抽象（abstract）”类。该类的对象从未被创建。它作为一个基础，以便让所有 DOM 节点都支持所谓的“事件（event）”，我们会在之后学习它。
+- Node — 也是一个“抽象”类，充当 DOM 节点的基础。它提供了树的核心功能：parentNode，nextSibling，childNodes 等（它们都是 getter）。Node 类的对象从未被创建。但是有一些继承自它的具体的节点类，例如：文本节点的 Text，元素节点的 Element，以及更多异域（exotic）类，例如注释节点的 Comment。
+- Element — 是 DOM 元素的基本类。它提供了元素级的导航（navigation），例如 nextElementSibling，children，以及像 getElementsByTagName 和 querySelector 这样的搜索方法。浏览器中不仅有 HTML，还会有 XML 和 SVG。Element 类充当更多特定类的基本类：SVGElement，XMLElement 和 HTMLElement。
+- HTMLElement — 最终是所有 HTML 元素的基本类。各种 HTML 元素均继承自它：
+  - HTMLInputElement — \<input> 元素的类，
+  - HTMLBodyElement — <body> 元素的类，
+  - HTMLAnchorElement — <a> 元素的类，
+  - ……等，每个标签都有自己的类，这些类可以提供特定的属性和方法。
+
+例如，我们考虑一下 <input> 元素的 DOM 对象。它属于 HTMLInputElement 类。
+它获取属性和方法，并将其作为下列类（按继承顺序列出）的叠加：
+
+- HTMLInputElement — 该类提供特定于输入的属性，
+- HTMLElement — 它提供了通用（common）的 HTML 元素方法（以及 getter 和 setter）
+- Element — 提供通用（generic）元素方法，
+- Node — 提供通用 DOM 节点属性，
+- EventTarget — 为事件（包括事件本身）提供支持，
+- ……最后，它继承自 Object，因为像 hasOwnProperty 这样的“普通对象”方法也是可用的。
+
+```js
+alert( document.body.constructor.name ); // HTMLBodyElement
+alert( document.body ); // [object HTMLBodyElement]
+alert( document.body instanceof HTMLBodyElement ); // true
+alert( document.body instanceof HTMLElement ); // true
+alert( document.body instanceof Element ); // true
+alert( document.body instanceof Node ); // true
+alert( document.body instanceof EventTarget ); // true
+
+console.log(elem) // 显示元素的 DOM 树。
+console.dir(elem) // 将元素显示为 DOM 对象，非常适合探索其属性。
+```
+
+在规范中，**DOM 类不是使用 JavaScript 来描述的，而是一种特殊的 接口描述语言（Interface description language），简写为 IDL**，它通常很容易理解。
+
+```js
+// 定义 HTMLInputElement
+// 冒号 ":" 表示 HTMLInputElement 继承自 HTMLElement
+interface HTMLInputElement: HTMLElement {
+  // 接下来是 <input> 元素的属性和方法
+
+  // "DOMString" 表示属性的值是字符串
+  attribute DOMString accept;
+  attribute DOMString alt;
+  attribute DOMString autocomplete;
+  attribute DOMString value;
+
+  // 布尔值属性（true/false）
+  attribute boolean autofocus;
+  ...
+  // 现在方法："void" 表示方法没有返回值
+  void select();
+  ...
+}
+```
+
+nodeType 属性提供了另一种“过时的”用来获取 DOM 节点类型的方法。
+
+
+
+
 [nullandundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html "阮一峰"
 [ieee_754url]: https://zh.wikipedia.org/wiki/IEEE_754 "维基百科"
 [minusoperatorurl]: http://www.wenjiangs.com/article/javascript-string-number.html "减号运算符"
