@@ -1095,7 +1095,229 @@ interface HTMLInputElement: HTMLElement {
 
 nodeType 属性提供了另一种“过时的”用来获取 DOM 节点类型的方法。
 
+### 特性和属性（Attributes and properties）
 
+当浏览器加载页面时，它会“读取”（或者称之为：“解析”）HTML 并从中生成 DOM 对象。**对于元素节点，大多数标准的 HTML 特性（attributes）会自动变成 DOM 对象的属性（properties）**。（译注：attribute 和 property 两词意思相近，为作区分，全文将 attribute 译为“特性”，property 译为“属性”，请读者注意区分。）
+
+例如，如果标签是 `<body id="page">`，那么 DOM 对象就会有 body.id="page"。
+
+**但特性—属性映射并不是一一对应的**！在本章，我们将带领你一起分清楚这两个概念，了解如何使用它们，了解它们何时相同何时不同。
+
+**一：DOM属性**，DOM 节点是常规的 JavaScript 对象，因此可以添加我们自己的属性，例如，让我们在 document.body 中创建一个新的属性：
+
+```js
+document.body.myData = {
+  name: 'Caesar',
+  title: 'Imperator'
+};
+
+alert(document.body.myData.title); // Imperator
+```
+
+我们还可以修改内建属性的原型，例如修改 Element.prototype 为所有元素添加一个新方法：
+
+```js
+Element.prototype.sayHi = function() {
+  alert(`Hello, I'm ${this.tagName}`);
+};
+
+document.documentElement.sayHi(); // Hello, I'm HTML
+document.body.sayHi(); // Hello, I'm BODY
+```
+
+所以，**DOM 属性和方法的行为就像常规的 Javascript 对象一样**：
+
+- 它们可以有很多值。
+- 它们是大小写敏感的（要写成 elem.nodeType，而不是 elem.NoDeTyPe）。
+
+**二、HTML 特性：**
+
+在 HTML 中，标签可能拥有特性（attributes）。当浏览器解析 HTML 文本，并根据标签创建 DOM 对象时，浏览器会辨别 标准的 特性并以此创建 DOM 属性。
+
+所以，当一个元素有 id 或其他 标准的 特性，那么就会生成对应的 DOM 属性。但是非 标准的 特性则不会。
+
+```js
+<body id="test" something="non-standard">
+  <script>
+    alert(document.body.id); // test
+    // 非标准的特性没有获得对应的属性
+    alert(document.body.something); // undefined
+  </script>
+</body>
+```
+
+当然作为html的特性，我们可以通过以下方式访问：
+
+- elem.hasAttribute(name) — 检查特性是否存在。
+- elem.getAttribute(name) — 获取这个特性值。
+- elem.setAttribute(name, value) — 设置这个特性值。
+- elem.removeAttribute(name) — 移除这个特性。
+- 获取特性的name是大小写不敏感的，href 和 Href一样
+  
+**三、属性—特性同步：**
+
+当一个**标准的特性被改变，对应的属性也会自动更新，（除了几个特例）反之亦然**。
+
+```html
+<input>
+
+<script>
+  let input = document.querySelector('input');
+
+  // 特性 => 属性
+  input.setAttribute('id', 'id');
+  alert(input.id); // id（被更新了）
+
+  // 属性 => 特性
+  input.id = 'newId';
+  alert(input.getAttribute('id')); // newId（被更新了）
+</script>
+```
+
+但这里也有些例外，例如 input.value 只能从特性同步到属性，反过来则不行：
+
+```html
+<input>
+
+<script>
+  let input = document.querySelector('input');
+
+  // 特性 => 属性
+  input.setAttribute('value', 'text');
+  alert(input.value); // text
+
+  // 这个操作无效，属性 => 特性
+  input.value = 'newValue';
+  alert(input.getAttribute('value')); // text（没有被更新！）
+</script>
+```
+
+这个“功能”在实际中会派上用场，因为用户行为可能会导致 value 的更改，然后在这些操作之后，如果我们想从 HTML 中恢复“原始”值，那么该值就在特性中。
+
+**DOM 属性是多类型的：**
+
+DOM 属性不总是字符串类型的。例如，input.checked 属性（对于 checkbox 的）是布尔型的。
+
+```html
+<input id="input" type="checkbox" checked> checkbox
+
+<script>
+  alert(input.getAttribute('checked')); // 特性值是：空字符串
+  alert(input.checked); // 属性值是：true
+</script>
+```
+
+还有其他的例子。style 特性是字符串类型的，但 style 属性是一个对象：
+
+```html
+<div id="div" style="color:red;font-size:120%">Hello</div>
+
+<script>
+  // 字符串
+  alert(div.getAttribute('style')); // color:red;font-size:120%
+
+  // 对象
+  alert(div.style); // [object CSSStyleDeclaration]
+  alert(div.style.color); // red
+</script>
+```
+
+尽管大多数 DOM 属性都是字符串类型的。
+
+有一种非常少见的情况，即使一个 DOM 属性是字符串类型的，但它可能和 HTML 特性也是不同的。例如，href DOM 属性一直是一个 完整的 URL，即使该特性包含一个相对路径或者包含一个 #hash。
+
+```html
+<a id="a" href="#hello">link</a>
+<script>
+  // 特性
+  alert(a.getAttribute('href')); // #hello
+
+  // 属性
+  alert(a.href ); // http://site.com/page#hello 形式的完整 URL
+</script>
+```
+
+**非标准的特性，dataset：**
+
+html的特性，我们可以自定义，但是自定义的特性也存在问题。如果我们出于我们的目的使用了非标准的特性，之后它被引入到了标准中并有了其自己的用途，该怎么办？HTML 语言是在不断发展的，并且更多的特性出现在了标准中，以满足开发者的需求。在这种情况下，自定义的属性可能会产生意料不到的影响。
+
+为了避免冲突，存在 data-* 特性。
+
+所有以 **“data-” 开头的特性均被保留供程序员使用。它们可在 dataset 属性中使用**。
+
+```html
+<!-- 像 data-order-state 这样的多词特性可以以驼峰式进行调用：dataset.orderState。 -->
+<style>
+  .order[data-order-state="new"] {
+    color: green;
+  }
+
+  .order[data-order-state="pending"] {
+    color: blue;
+  }
+
+  .order[data-order-state="canceled"] {
+    color: red;
+  }
+</style>
+
+<div id="order" class="order" data-order-state="new">
+  A new order.
+</div>
+
+<script>
+  // 读取
+  alert(order.dataset.orderState); // new
+
+  // 修改
+  order.dataset.orderState = "pending"; // (*)
+</script>
+```
+
+在大多数情况下，**最好使用 DOM 属性。仅当 DOM 属性无法满足开发需求，并且我们真的需要特性时，才使用特性**，例如：
+
+我们需要一个非标准的特性。但是如果它以 data- 开头，那么我们应该使用 dataset。
+我们想要读取 HTML 中“所写的”值。对应的 DOM 属性可能不同，例如 href 属性一直是一个 完整的 URL，但是我们想要的是“原始的”值。
+
+### 修改文档（document）
+
+- node.append(...nodes or strings) —— 在 node 末尾 插入节点或字符串，
+- node.prepend(...nodes or strings) —— 在 node 开头 插入节点或字符串，
+- node.before(...nodes or strings) —— 在 node 前面 插入节点或字符串，
+- node.after(...nodes or strings) —— 在 node 后面 插入节点或字符串，
+- node.replaceWith(...nodes or strings) —— 将 node 替换为给定的节点或字符串。
+
+```html
+<div id="div"></div>
+<script>
+  div.before('<p>Hello</p>', document.createElement('hr'));
+</script>
+```
+
+请注意：这里的文字都被“作为文本”插入，而不是“作为 HTML 代码”。因此像 <、> 这样的符号都会被作转义处理来保证正确显示。
+
+```html
+&lt;p&gt;Hello&lt;/p&gt;
+<hr>
+<div id="div"></div>
+```
+
+换句话说，字符串被以一种安全的方式插入到页面中，就像 elem.textContent 所做的一样。
+
+所以，这些方法只能用来插入 DOM 节点或文本片段。
+
+但如果我们想要将内容“作为 HTML 代码插入”，让内容中的所有标签和其他东西都像使用 elem.innerHTML 所表现的效果一样，那应该怎么办呢？
+
+insertAdjacentHTML/Text/Element：
+
+为此，我们可以使用另一个非常通用的方法：elem.insertAdjacentHTML(where, html)。
+
+该方法的第一个参数是代码字（code word），指定相对于 elem 的插入位置。必须为以下之一：
+
+- "beforebegin" — 将 html 插入到 elem 前插入，
+- "afterbegin" — 将 html 插入到 elem 开头，
+- "beforeend" — 将 html 插入到 elem 末尾，
+- "afterend" — 将 html 插入到 elem 后。
 
 
 [nullandundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html "阮一峰"
