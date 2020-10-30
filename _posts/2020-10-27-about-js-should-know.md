@@ -13,7 +13,7 @@ date: Fri May 10 2019 17:25:55 GMT+0800 (中国标准时间)
 ## **数据类型**
 
 ---
-***数字类型***
+### 数字类型
 
 1. JavaScript 中的常规数字以 64 位的格式 IEEE-754 存储，也被称为“双精度浮点数”。
 2. BigInt 数字，用于表示任意长度的整数。有时会需要它们，因为常规数字不能超过 2^53 或小于 -2^53。
@@ -32,7 +32,7 @@ let num = 1.23456;
 alert( Math.floor(num * 100) / 100 ); // 1.23456 -> 123.456 -> 123 -> 1.23
 ```
 
-***不精确的计算***
+### 不精确的计算
 
 在内部，数字是以 64 位格式 IEEE-754 表示的，所以正好有 64 位可以存储一个数字：其中 52 位被用于存储这些数字，其中 11 位用于存储小数点的位置（对于整数，它们为零），而 1 位用于符号。
 
@@ -128,7 +128,7 @@ alert( Math.round(6.35 * 10) / 10); // 6.35 -> 63.5 -> 64(rounded) -> 6.4
 ```
 
 ---
-***字符串***
+### 字符串
 
 在 JavaScript 中，文本数据被以字符串形式存储，单个字符没有单独的类型。字符串的内部格式始终是 UTF-16，它不依赖于页面编码。
 
@@ -175,7 +175,117 @@ while (true) {
 }
 ```
 
+### JSON、toJSON方法
 
+假设我们有一个复杂的对象，我们希望将其转换为字符串，以通过网络发送，或者只是为了在日志中输出它。
+
+```js
+let user = {
+  name: "John",
+  age: 30,
+
+  toString() {
+    return `{name: "${this.name}", age: ${this.age}}`;
+  }
+};
+
+alert(user); // {name: "John", age: 30}
+```
+
+但在开发过程中，会新增一些属性，旧的属性会被重命名和删除。每次更新这种 toString 都会非常痛苦。我们可以尝试遍历其中的属性，但是如果对象很复杂，并且在属性中嵌套了对象呢？
+
+JSON（JavaScript Object Notation）是表示值和对象的通用格式。在 RFC 4627 标准中有对其的描述。**最初它是为 JavaScript 而创建的，但许多其他编程语言也有用于处理它的库**。
+
+- JSON.stringify(value, replacer, spaces)  将对象转换为 JSON。
+- SON.parse(str, [reviver]) 将 JSON 转换回对象。
+
+JSON 支持以下数据类型：
+
+- Objects { ... }
+- Arrays [ ... ]
+- Primitives：
+- strings，
+- numbers，
+- boolean values true/false，
+- null。
+
+**JSON 是语言无关的纯数据规范，因此一些特定于 JavaScript 的对象属性会被 JSON.stringify 跳过**。
+
+- 函数属性（方法）。
+- Symbol 类型的属性。
+- 存储 undefined 的属性。
+
+```js
+let user = {
+  sayHi() { // 被忽略
+    alert("Hello");
+  },
+  [Symbol("id")]: 123, // 被忽略
+  something: undefined // 被忽略
+};
+
+alert( JSON.stringify(user) ); // {}（空对象）
+
+// 属性列表应用于了整个对象结构。所以 participants 是空的，因为 name 不在列表中。
+let room = {
+  number: 23
+};
+
+let meetup = {
+  title: "Conference",
+  participants: [{name: "John"}, {name: "Alice"}],
+  place: room // meetup 引用了 room
+};
+
+room.occupiedBy = meetup; // room 引用了 meetup
+
+alert( JSON.stringify(meetup, ['title', 'participants']) );
+// {"title":"Conference","participants":[{},{}]}
+```
+
+像 toString 进行字符串转换，对象**也可以提供 toJSON 方法来进行 JSON 转换**。如果可用，JSON.stringify 会自动调用它。
+
+```js
+let room = {
+  number: 23
+};
+
+let meetup = {
+  title: "Conference",
+  date: new Date(Date.UTC(2017, 0, 1)),
+  room
+};
+
+alert( JSON.stringify(meetup) );
+/*
+  {
+    "title":"Conference",
+    "date":"2017-01-01T00:00:00.000Z",  // (1)
+    "room": {"number":23}               // (2)
+  }
+*/
+```
+在这儿我们可以看到 date (1) 变成了一个字符串。这是因为所有日期都有一个内置的 toJSON 方法来返回这种类型的字符串。
+
+```js
+let room = {
+  number: 23,
+  toJSON() {
+    return this.number;
+  }
+};
+
+let meetup = {
+  title: "Conference",
+  room
+};
+
+alert( JSON.stringify(room) ); // 23
+```
+
+## 杂项
+
+### Proxy 和 Reflect
 
 
 
