@@ -1414,17 +1414,1077 @@ document.write(html)
     }
   };
 
-  function () createTreeText{
-    
+  // 利用字符串方式创建dom
+  // 字符创方式，就不要涉及创建元素的方法
+  function createTreeText(obj) {
+    let li = '';
+    let ul;
+    for (let key in obj) {
+      li += `<li>${key}${createTreeText(obj[key])}</li>`
+    }
+    li && (ul = `<ul>${li}</ul>`);
+    return ul || ''
   }
+
+  // 利用dom方式创建元素
+  // 如果是dom的话，就要考虑每个标签都是元素
+  function createTreeDom(obj) {
+    if (!Object.keys(obj).length) return;
+
+    let ul = document.createElement('ul');
+
+    for (let key in obj) {
+      let li = document.createElement('li')
+      li.innerHTML = key;
+
+      let childrenUl = createTreeDom(obj[key]);
+      if (childrenUl) {
+        li.append(childrenUl)
+      }
+      ul.append(li)
+    }
+    return ul;
+  }
+
+  function createTree(container, obj) {
+    // container.innerHTML = createTreeText(obj);
+    container.append(createTreeDom(obj));
+  }
+  createTree(container, data);
 </script>
+```
+
+```js
+// 编写代码，将后代元素个数显示在父元素上，没有后代元素的不显示
+// Animals [9]
+//   Mammals [4]
+//     Cows
+//     Donkeys
+//     Dogs
+//     Tigers
+
+function showSonsNum(container) {
+  // 伪数组可以直接迭代，虽然没有数组的方法
+  let lis = document.getElementsByTagName('li');
+
+  for (let li of lis) {
+    // 获取所有子元素都是li的长度
+    let nums = li.getElementsByTagName('li').length;
+    if (!nums) return;
+
+    // 直接就可以拼接到现有的结构上
+    li.firstChild.data += nums
+  }
+}
 ```
 
 
 
+```html
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+
+    td,
+    th {
+      border: 1px solid black;
+      padding: 3px;
+      text-align: center;
+    }
+
+    th {
+      font-weight: bold;
+      background-color: #E6E6E6;
+    }
+  </style>
+</head>
+
+<body>
 
 
+  <div id="calendar"></div>
 
+  <script>
+    // 1、使用 <th> 创建带有星期名的表头。
+    // 2、创建日期对象 d = new Date(year, month-1)。它是 month 的第一天（考虑到 JavaScript 中的月份从 0 开始，而不是从 1 开始）。
+    // 3、直到月份的第一天 d.getDay()，前面的几个单元格是空的。让我们用 <td></td> 填充它们。
+    // 4、天数增长 d：d.setDate(d.getDate()+1)。如果 d.getMonth() 还没到下一个月，那么就将新的单元格 <td> 添加到日历中。如果那天是星期日，就添加一个新行 “</tr><tr>”。
+    // 5、如果该月结束，但表格的行尚未填满，就用空的 <td> 补齐。
+    function createCalendar(elem, year, month) {
+
+      let mon = month - 1; // months in JS are 0..11, not 1..12
+      let d = new Date(year, mon);
+
+      let table = '<table><tr><th>MO</th><th>TU</th><th>WE</th><th>TH</th><th>FR</th><th>SA</th><th>SU</th></tr><tr>';
+
+      // spaces for the first row
+      // from Monday till the first day of the month
+      // * * * 1  2  3  4
+      for (let i = 0; i < getDay(d); i++) {
+        table += '<td></td>';
+      }
+
+      // <td> with actual dates
+      while (d.getMonth() == mon) {
+        table += '<td>' + d.getDate() + '</td>';
+
+        if (getDay(d) % 7 == 6) { // sunday, last day of week - newline
+          table += '</tr><tr>';
+        }
+
+        d.setDate(d.getDate() + 1);
+      }
+
+      // add spaces after last days of month for the last row
+      // 29 30 31 * * * *
+      if (getDay(d) != 0) {
+        for (let i = getDay(d); i < 7; i++) {
+          table += '<td></td>';
+        }
+      }
+
+      // close the table
+      table += '</tr></table>';
+
+      elem.innerHTML = table;
+    }
+
+    function getDay(date) { // get day number from 0 (monday) to 6 (sunday)
+      let day = date.getDay();
+      if (day == 0) day = 7; // make Sunday (0) the last day
+      return day - 1;
+    }
+
+    createCalendar(calendar, 2020, 10);
+  </script>
+
+</body>
+</html>
+```
+
+给表格根据某一列排序:
+
+
+- 从 <tbody> 获取所有 <tr>。
+- 然后将它们按第一个 <td>（name 字段）中的内容进行比较。
+- 然后使用 .append(...sortedRows) 按正确的顺序插入节点。
+
+**我们不必删除行元素，只需要“重新插入”，它们就会自动离开原来的位置。**
+
+P.S. 在我们的例子中，表格中有一个明确的 <tbody>，但即使 HTML 中的表格没有 <tbody>，DOM 结构也总是具有它。
+```html
+<table>
+<thead>
+  <tr>
+    <th>Name</th><th>Surname</th><th>Age</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>John</td><td>Smith</td><td>10</td>
+  </tr>
+  <tr>
+    <td>Pete</td><td>Brown</td><td>15</td>
+  </tr>
+  <tr>
+    <td>Ann</td><td>Lee</td><td>5</td>
+  </tr>
+  <tr>
+    <td>...</td><td>...</td><td>...</td>
+  </tr>
+</tbody>
+</table>
+
+<!-- 原生绑定事件，务必加() -->
+<button onclick="start()">start</button>
+
+<script>
+  function start() {
+    console.log('table', table);
+    let sortRows = Array.from(table.tBodies[0].rows).sort((rowA, rowB) => rowA.cells[0].innerHTML.localeCompare(rowB.cells[0].innerHTML))
+    // 但是如果增加其他内容，则是叠加
+    table.tBodies[0].append(...sortRows)
+  }
+</script>
+```
+
+### 样式和类
+
+通常有两种设置元素样式的方式：
+
+- 在 CSS 中创建一个类，并添加它：<div class="...">
+- 将属性直接写入 style：<div style="...">。
+
+在很旧以前，JavaScript 中有一个限制：像 "class" 这样的保留字不能用作对象的属性。这一限制现在已经不存在了，但当时就不能存在像 elem.class 这样的 "class" 属性。
+
+```html
+<body class="main page">
+  <script>
+    alert(document.body.className); // main page
+  </script>
+</body>
+```
+
+如果我们对 elem.className 进行赋值，它将替换类中的整个字符串。这里还有另一个属性：elem.classList。它具有 add/remove/toggle 单个类的方法。
+
+- elem.classList.add/remove(class) — 添加/移除类。
+- elem.classList.toggle(class) — 如果类不存在就添加类，存在就移除它。
+- elem.classList.contains(class) — 检查给定类，返回 true/false。
+
+**元素样式：**
+
+对于多词（multi-word）属性，使用驼峰式 camelCase：
+
+```js
+background-color  => elem.style.backgroundColor
+z-index           => elem.style.zIndex
+border-left-width => elem.style.borderLeftWidth
+
+// 前缀属性，对于有前缀的还可以这样
+button.style.MozBorderRadius = '5px';
+button.style.WebkitBorderRadius = '5px';
+```
+
+
+**重置样式属性：**
+
+用 style.cssText 进行完全的重写通常，我们使用 style.* 来对各个样式属性进行赋值。我们不能像这样的 div.style="color: red; width: 100px" 设置完整的属性，**因为 div.style 是一个对象，并且它是只读的**。
+
+```html
+<div id="div">Button</div>
+
+<script>
+  // 我们可以在这里设置特殊的样式标记，例如 "important"
+  // 我们很少使用这个属性，因为这样的赋值会删除所有现有样式：它不是进行添加，而是替换它们。
+  div.style.cssText=`color: red !important;
+    background-color: yellow;
+    width: 100px;
+    text-align: center;
+  `;
+
+  alert(div.style.cssText);
+  // 可以通过设置一个特性（attribute）来实现同样的效果：
+  // 也是整个覆盖
+  div.setAttribute('style', 'color: red...')
+</script>
+```
+
+**计算样式：getComputedStyle**
+
+
+style 属性仅对 "style" 特性（attribute）值起作用，而没有任何 CSS 级联（cascade）。其实就是无法使用elem.style读取来自css类的任何内容。
+
+```html
+<head>
+  <style> body { color: red; margin: 5px } </style>
+</head>
+<body>
+
+  The red text
+  <script>
+    alert(document.body.style.color); // 空的
+    alert(document.body.style.marginTop); // 空的
+  </script>
+</body>
+```
+
+如果想读取这些样式值，我们可以使用：getComputedStyle
+
+- getComputedStyle(element, [pseudo])
+- 参数二pseudo表示伪元素（如果需要），例如 ::before。空字符串或无参数则意味着元素本身。
+
+```html
+<style>
+    h3 {
+      color: red;
+    }
+    h3::after {
+        content: "rocks!";
+    }
+</style>
+
+<h3>generated content</h3> 
+
+<script>
+    let h3 = document.querySelector('h3');
+    console.log(h3.style.color); // 空
+    // 下面设计一个转换过程
+    console.log(getComputedStyle(h3).color); // rgb(255, 0, 0)
+    result = getComputedStyle(h3, '::after').content;
+    console.log(`the generated content is: ${result}`); 
+</script>
+```
+
+在 CSS 中有两个概念：
+
+- 计算 (computed) 样式值是所有 CSS 规则和 CSS 继承都应用后的值，这是 CSS 级联（cascade）的结果。它看起来像 height:1em 或 font-size:125%。
+- 解析 (resolved) 样式值是最终应用于元素的样式值值。诸如 1em 或 125% 这样的值是相对的。浏览器将使用计算（computed）值，并使所有单位均为固定的，且为绝对单位，例如：height:20px 或 font-size:16px。对于几何属性，解析（resolved）值可能具有浮点，例如：width:50.5px。
+
+很久以前，创建了 getComputedStyle 来获取计算（computed）值，但事实证明，解析（resolved）值要方便得多，标准也因此发生了变化。
+
+所以，**现在 getComputedStyle 实际上返回的是属性的解析值（resolved），其实就是绝对尺寸，而且标准**。
+
+可以使用 CSS 伪类 :visited 对被访问过的链接进行着色。
+
+但 getComputedStyle 没有给出访问该颜色的方式，因为否则，任意页面都可以通过在页面上创建它，并通过检查样式来确定用户是否访问了某链接。
+
+JavaScript 看不到 :visited 所应用的样式。此外，CSS 中也有一个限制，即禁止在 :visited 中应用更改几何形状的样式。这是为了确保一个不好的页面无法测试链接是否被访问，进而窥探隐私。
+
+**元素大小和滚动：**
+
+![浏览器的各种宽度和高度](/jsArt/assets/images/css/cssWidth.png)
+
+offsetParent 是最接近的祖先（ancestor），在浏览器渲染期间，它被用于计算坐标。属性 offsetLeft/offsetTop 提供相对于 offsetParent 左上角的 x/y 坐标。
+
+```html
+<main style="position: relative" id="main">
+  <article>
+    <div id="example" style="position: absolute; left: 180px; top: 180px">...</div>
+  </article>
+</main>
+<script>
+  alert(example.offsetParent.id); // main
+  alert(example.offsetLeft); // 180（注意：这是一个数字，不是字符串 "180px"）
+  alert(example.offsetTop); // 180
+</script>
+```
+
+有以下几种情况下，offsetParent 的值为 null：
+
+- 对于未显示的元素（display:none 或者不在文档中）。
+- 对于 <body> 与 <html>。
+- 对于带有 position:fixed 的元素。
+
+**clientTop/Left：**
+
+但准确地说 — 这些属性不是边框的 width/height，而是内侧与外侧的相对坐标。也就是说，假如滚动条在左侧的话，clientLeft的宽度会包含滚动条的宽度。
+
+**clientWidth/height：**
+
+它们包括了 “content width” 和 “padding”，但不包括滚动条宽度（scrollbar）：
+
+**scrollLeft/scrollTop：**
+
+大多数几何属性是只读的，但是 scrollLeft/scrollTop 是可修改的，并且浏览器会滚动该元素。
+
+元素具有以下几何属性：
+
+- offsetParent — 是最接近的 CSS 定位的祖先，或者是 td，th，table，body。
+- offsetLeft/offsetTop — 是相对于 offsetParent 的左上角边缘的坐标。
+- offsetWidth/offsetHeight — 元素的“外部” width/height，边框（border）尺寸计算在内。
+- clientLeft/clientTop — 从元素左上角外角到左上角内角的距离。对于从左到右显示内容的操作系统来说，它们始终是左侧/顶部 border 的宽度。而对于从右到左显示内容的操作系统来说，垂直滚动条在左边，所以 clientLeft 也包括滚动条的宽度。
+- clientWidth/clientHeight — 内容的 width/height，包括 padding，但不包括滚动条（scrollbar）。
+- scrollWidth/scrollHeight — 内容的 width/height，就像 clientWidth/clientHeight 一样，但还包括元素的滚动出的不可见的部分。
+- scrollLeft/scrollTop — 从元素的左上角开始，滚动出元素的上半部分的 width/height。
+
+除了 scrollLeft/scrollTop 外，所有属性都是只读的。如果我们修改 scrollLeft/scrollTop，浏览器会滚动对应的元素。
+
+getComputedStyle(elem).width 与 elem.clientWidth 之间有什么不同点？
+
+- clientWidth 值是数值，而 getComputedStyle(elem).width 返回一个以 px 作为后缀的字符串。
+- getComputedStyle 可能会返回非数值的 width，例如内联（inline）元素的 "auto"。
+- clientWidth 是元素的内部内容区域加上 padding，而 CSS width（具有标准的 box-sizing）是内部内容区域，不包括 padding。
+- 如果有滚动条，并且浏览器为其保留了空间，那么某些浏览器会从 CSS width 中减去该空间（因为它不再可用于内容），而有些则不会这样做。clientWidth 属性总是相同的：如果为滚动条保留了空间，那么将减去滚动条的大小。
+
+```js
+// elem.scrollTop 属性是从顶部滚动出来的部分的大小。如何获得底部滚动的大小（我们称其为 scrollBottom）？
+let scrollBottom = elem.scrollHeight - elem.scrollTop - elem.clientHeight;
+
+// 获取滚动条的宽度？
+// 对于 Windows，它通常在 12px 和 20px 之间变化。如果浏览器没有为其保留任何空间（滚动条以半透明的形式处于文本上面，也是可能发生的），那么它可能是 0px。
+let scrollWidth = div.offsetWidth - div.clientWidth;
+```
+
+### Window大小和滚动
+
+为了获取窗口（window）的宽度和高度，我们可以使用 document.documentElement 的 clientWidth/clientHeight。
+
+浏览器也支持 window.innerWidth/innerHeight 属性。它们看起来像我们想要的。那为什么不使用它们呢？
+
+如果这里存在一个滚动条，并且滚动条占用了一些空间，那么 clientWidth/clientHeight 会提供没有滚动条（减去它）的 width/height。换句话说，它们返回的是可用于内容的文档的可见部分的 width/height。
+
+……而 window.innerWidth/innerHeight 包括了滚动条。
+
+**文档的widht和height：**
+
+在 Chrome/Safari/Opera 中，如果没有滚动条，documentElement.scrollHeight 甚至可能小于 documentElement.clientHeight！听起来像胡话，很奇怪，对吧？
+
+为了可靠地获得完整的文档高度，我们应该采用以下这些属性的最大值：
+
+```js
+let scrollHeight = Math.max(
+  document.body.scrollHeight, document.documentElement.scrollHeight,
+  document.body.offsetHeight, document.documentElement.offsetHeight,
+  document.body.clientHeight, document.documentElement.clientHeight
+);
+// 为什么这样？最好不要问。这些不一致来源于远古时代，而不是“聪明”的逻辑。
+```
+
+获得当前滚动
+DOM 元素的当前滚动状态在 elem.scrollLeft/scrollTop 中。
+
+对于文档滚动，在大多数浏览器中，我们可以使用 document.documentElement.scrollLeft/Top，但在较旧的基于 WebKit 的浏览器中则不行，例如在 Safari（bug 5991）中，我们应该使用 document.body 而不是 document.documentElement。
+
+幸运的是，我们根本不必记住这些特性，因为滚动在 window.pageXOffset/pageYOffset 中可用：
+
+```js
+alert('Current scroll from the top: ' + window.pageYOffset);
+alert('Current scroll from the left: ' + window.pageXOffset);
+```
+
+滚动：scrollTo，scrollBy，scrollIntoView
+
+对 elem.scrollIntoView(top) 的调用将滚动页面以使 elem 可见。它有一个参数：
+
+- 如果 top=true（默认值），页面滚动，使 elem 出现在窗口顶部。元素的上边缘与窗口顶部对齐。
+- 如果 top=false，页面滚动，使 elem 出现在窗口底部。元素的底部边缘与窗口底部对齐。
+
+禁止滚动：要使文档不可滚动，只需要设置 document.body.style.overflow = "hidden"。该页面将冻结在其当前滚动上。
+
+### 元素坐标
+
+大多数 JavaScript 方法处理的是以下两种坐标系中的一个：
+
+- 相对于窗口 — 类似于 position:fixed，从窗口的顶部/左侧边缘计算得出。
+    我们将这些坐标表示为 clientX/clientY，当我们研究事件属性时，就会明白为什么使用这种名称来表示坐标。
+- 相对于文档  — 与文档根（document root）中的 position:absolute 类似，从文档的顶部/左侧边缘计算得出。
+    我们将它们表示为 pageX/pageY。
+
+当文档滚动了：
+
+- pageY — 元素在文档中的相对坐标保持不变，从文档顶部（现在已滚动出去）开始计算。
+- clientY — 窗口相对坐标确实发生了变化（箭头变短了），因为同一个点越来越靠近窗口顶部。
+
+**elementFromPoint(x, y)：**
+
+对 document.elementFromPoint(x, y) 的调用会返回在窗口坐标 (x, y) 处嵌套最多（the most nested）的元素。其实就是给定一个位置，然后返回覆盖整个位置最多的元素。
+
+
+**元素坐标：getBoundingClientRect**
+
+方法 elem.getBoundingClientRect() 返回最小矩形的窗口坐标，该矩形将 elem 作为内建 DOMRect 类的对象。
+
+主要的 DOMRect 属性：
+
+- x/y — 矩形原点相对于窗口的 X/Y 坐标，
+- width/height — 矩形的 width/height（可以为负）。
+此外，还有派生（derived）属性：
+
+- top/bottom — 顶部/底部矩形边缘的 Y 坐标，
+- left/right — 左/右矩形边缘的 X 坐标。
+
+为了显示元素附近的东西，我们可以使用 getBoundingClientRect 来获取其坐标，然后使用 CSS position 以及 left/top（或 right/bottom）。
+
+页面上的任何点都有坐标：
+
+- 相对于窗口的坐标 — elem.getBoundingClientRect()。
+- 相对于文档的坐标 — elem.getBoundingClientRect() 加上当前页面滚动。
+窗口坐标非常适合和 position:fixed 一起使用，文档坐标非常适合和 position:absolute 一起使用。
+
+## 事件
+
+### 浏览器事件简介
+
+**事件**是某事发生的信号。**所有的 DOM 节点都生成这样的信号**（但事件不仅限于 DOM）。
+
+鼠标事件：
+
+- click —— 当鼠标点击一个元素时（触摸屏设备会在点击时生成）。
+- contextmenu —— 当鼠标右键点击一个元素时。
+- mouseover / mouseout —— 当鼠标指针移入/离开一个元素时。
+- mousedown / mouseup —— 当在元素上按下/释放鼠标按钮时。
+- mousemove —— 当鼠标移动时。
+
+键盘事件：
+
+- keydown 和 keyup —— 当按下和松开一个按键时。
+
+表单（form）元素事件：
+
+- submit —— 当访问者提交了一个 <form> 时。
+- focus —— 当访问者聚焦于一个元素时，例如聚焦于一个 <input>。
+
+Document 事件：
+
+- DOMContentLoaded —— 当 HTML 的加载和处理均完成，DOM 被完全构建完成时。
+
+CSS 事件：
+
+transitionend —— 当一个 CSS 动画完成时。
+
+事件处理程器：为了对事件作出响应，我们可以分配一个 处理程序（handler）—— 一个在事件发生时运行的函数。
+
+有几种分配处理程序的方法：
+
+- HTML 特性，处理程序可以设置在 HTML 中名为 on<event> 的特性（attribute）中。
+- DOM 属性，我们可以使用 DOM 属性（property）on<event> 来分配处理程序。
+
+```html
+<input type="button" onclick="clickOne('click')" value="Button">
+<input type="button" id="button" value="Button">
+
+<!-- 处理函数中的this是对应的元素 -->
+<button onclick="alert(this.innerHTML)">Click me</button>
+<script>
+  function clickOne(type) {
+    console.log(type)
+  }
+  button.onclick = function() {
+    alert('Click!');
+  };
+  // 移除一个处理程序：elem.onclick = null;
+
+</script>
+```
+
+注意：
+- HTML 特性名是大小写不敏感的，所以 ONCLICK 和 onClick 以及 onCLICK 都一样可以运行。但是特性通常是小写的：onclick。
+
+在html特性里，务必要添加括号，因为当浏览器读取 HTML 特性（attribute）时，浏览器将会使用 特性中的内容 创建一个处理程序：
+
+```js
+button.onclick = function() {
+  doSomething(); // <-- 特性（attribute）中的内容变到了这里
+};
+```
+
+不要对处理程序使用 setAttribute。
+```js
+// 点击 <body> 将产生 error，
+// 因为特性总是字符串的，函数变成了一个字符串
+document.body.setAttribute('onclick', function() { alert(1) });
+```
+
+上述分配处理程序的方式的根本问题是 —— 我们**不能为一个事件分配多个处理程序**。
+
+因此Web 标准的开发者很早就了解到了这一点，并提出了一种使用特殊方法 addEventListener 和 removeEventListener 来管理处理程序的替代方法。
+
+```js
+// 添加处理程序的语法：
+element.addEventListener(event, handler[, options]);
+// event：事件名
+// handler：处理程序
+// options：具有以下属性的可选对象
+// 1、once：如果为 true，那么会在被触发后自动删除监听器。
+// 2、capture：事件处理的阶段，我们稍后将在 冒泡和捕获 一章中介绍。由于历史原因，options 也可以是 false/true，它与 {capture: false/true} 相同。
+// 3、passive：如果为 true，那么处理程序将不会调用 preventDefault()，
+
+// 要移除处理程序，我们需要传入与分配的函数完全相同的函数。下面的不起作用
+elem.addEventListener( "click" , () => alert('Thanks!'));
+// ....
+elem.removeEventListener( "click", () => alert('Thanks!'));
+```
+
+我们可以 同时 使用 DOM 属性和 addEventListener 来设置处理程序。但有些事件无法通过 DOM 属性进行分配。只能使用 addEventListener
+
+如：DOMContentLoaded 事件，该事件在文档加载完成并且 DOM 构建完成时触发。
+
+```js
+// 永远不会运行
+document.onDOMContentLoaded = function() {
+  alert("DOM built");
+};
+
+// 这种方式可以运行
+document.addEventListener("DOMContentLoaded", function() {
+  alert("DOM built");
+});
+```
+
+
+事件对象：
+为了正确处理事件，我们需要更深入地了解发生了什么。不仅仅是 “click” 或 “keydown”，还包括鼠标指针的坐标是什么？按下了哪个键？等等。
+
+当事件发生时，浏览器会创建一个 event 对象，将详细信息放入其中，并将其作为参数传递给处理程序。
+
+```js
+<button onclick="clickThis(this)">Click me</button>
+<button onclick="clickEvent(event)">Click me</button>
+
+<script>
+function clickThis(_this) {
+  console.log(_this.innerHTML, 'this')
+}
+function clickEvent(e) {
+  console.log(e, 'e')
+}
+</script>
+```
+- event.type：事件类型，这里是 "click"。
+- event.currentTarget：处理事件的元素。这与 this 相同，除非处理程序是一个箭头函数，或者它的 this 被绑定到了其他东西上，之后我们就可以从 event.currentTarget 获取元素了。
+- event.clientX / event.clientY：指针事件（pointer event）的指针的窗口相对坐标。
+- ...其他
+
+我们不仅可以分配函数，还可以使用 addEventListener 将一个对象分配为事件处理程序。当事件发生时，就会调用该对象的 handleEvent 方法。
+
+```js
+<button id="elem">Click me</button>
+
+<script>
+  let obj = {
+    handleEvent(event) {
+      alert(event.type + " at " + event.currentTarget);
+    }
+  };
+
+  elem.addEventListener('click', obj);
+</script>
+```
+
+创建元素，点击时隐藏自己：
+```html
+<input type="button" onclick="this.hidden=true" value="Click to hide">
+```
+
+### 冒泡和捕获
+
+当一个事件发生在一个元素上，它会首先运行在该元素上的处理程序，然后运行其父元素上的处理程序，然后一直向上到其他祖先上的处理程序。
+```js
+<style>
+  body * {
+    margin: 10px;
+    border: 1px solid blue;
+  }
+</style>
+
+<form onclick="alert('form')">FORM
+  <div onclick="alert('div')">DIV
+    <p onclick="alert('p')">P</p>
+  </div>
+</form>
+```
+几乎 所有事件都会冒泡。但也有例外，例如，focus 事件不会冒泡。同样，我们以后还会遇到其他例子。
+
+**event.target：**
+
+父元素上的处理程序始终可以获取事件实际发生位置的详细信息。
+
+引发事件的那个嵌套层级最深的元素被称为目标元素,可以通过 event.target 访问。
+
+注意与 this（=event.currentTarget）之间的区别：
+
+- event.target —— 是引发事件的“目标”元素，它在冒泡过程中不会发生变化。
+- this —— 是“当前”元素，其实就是当前正在运行的处理程序绑定的元素。
+
+每个处理程序都可以访问 event 对象的属性：
+
+- event.target —— 引发事件的层级最深的元素。
+- event.currentTarget（=this）—— 处理事件的当前元素（具有处理程序的元素）
+- event.eventPhase —— 当前阶段（capturing=1，target=2，bubbling=3）
+
+**停止冒泡：**
+
+冒泡事件从目标元素开始向上冒泡。通常，**它会一直上升到 <html>，然后再到 document 对象，有些事件甚至会到达 window，它们会调用路径上所有的处理程序**。
+
+但是任意处理程序都可以决定事件已经被完全处理，并停止冒泡。用于停止冒泡的方法是 event.stopPropagation()。
+
+例如，如果你点击 <button>，这里的 body.onclick 不会工作：
+
+```js
+<body onclick="alert(`the bubbling doesn't reach here`)">
+  <button onclick="event.stopPropagation()">Click me</button>
+</body>
+```
+
+如果一个元素在一个事件上有多个处理程序，即使其中一个停止冒泡，其他处理程序仍会执行。
+换句话说，event.stopPropagation() 停止向上移动，但是当前元素上的其他处理程序都会继续运行。
+有一个 **event.stopImmediatePropagation()** 方法，可以用于停止冒泡，并阻止当前元素上的处理程序运行。使用该方法之后，其他处理程序就不会被执行。
+
+**捕获阶段：**
+
+DOM 事件标准描述了事件传播的 3 个阶段：
+- 捕获阶段（Capturing phase）—— 事件（从 Window）向下走近元素。
+- 目标阶段（Target phase）—— 事件到达目标元素。
+- 冒泡阶段（Bubbling phase）—— 事件从元素上开始冒泡。
+
+```js
+elem.addEventListener(..., {capture: true})
+// 或者，用 {capture: true} 的别名 "true"
+elem.addEventListener(..., true)
+```
+
+请注意，虽然形式上有 3 个阶段，但第 2 阶段（“目标阶段”：事件到达元素）没有被单独处理：捕获阶段和冒泡阶段的处理程序都在该阶段被触发。
+
+```html
+<style>
+  body * {
+    margin: 10px;
+    border: 1px solid blue;
+  }
+</style>
+
+<form>FORM
+  <div>DIV
+    <p>P</p>
+  </div>
+</form>
+
+<script>
+  for(let elem of document.querySelectorAll('*')) {
+    elem.addEventListener("click", e => alert(`Capturing: ${elem.tagName}`), true);
+    elem.addEventListener("click", e => alert(`Bubbling: ${elem.tagName}`));
+  }
+</script>
+```
+上面这段代码为文档中的 每个 元素都设置了点击处理程序，以查看哪些元素上的点击事件处理程序生效了。
+
+如果你点击了 <p>，那么顺序是：
+
+1. HTML → BODY → FORM → DIV（捕获阶段第一个监听器）：
+2. P（目标阶段，触发两次，因为我们设置了两个监听器：捕获和冒泡）
+3. DIV → FORM → BODY → HTML（冒泡阶段，第二个监听器）。
+
+### 事件代理
+
+```js
+// 单击表格中任意一个td会触发事件，但如果event.target不是td，就会有问题
+// 但是可以借助closest，从而返回 匹配的最近的祖先
+table.onclick = function(event) {
+  let td = event.target.closest('td'); // (1)
+
+  if (!td) return; // (2)
+
+  if (!table.contains(td)) return; // (3)
+
+  highlight(td); // (4)
+};
+```
+
+例如，我们想要编写一个有“保存”、“加载”和“搜索”等按钮的菜单。并且，这里有一个具有 save、load 和 search 等方法的对象。如何匹配它们？
+```js
+<div id="menu">
+  <button data-action="save">Save</button>
+  <button data-action="load">Load</button>
+  <button data-action="search">Search</button>
+</div>
+
+<script>
+  class Menu {
+    constructor(elem) {
+      this._elem = elem;
+      elem.onclick = this.onClick.bind(this); // (*)
+    }
+
+    save() {
+      alert('saving');
+    }
+
+    load() {
+      alert('loading');
+    }
+
+    search() {
+      alert('searching');
+    }
+
+    onClick(event) {
+      let action = event.target.dataset.action;
+      if (action) {
+        this[action]();
+      }
+    };
+  }
+
+  new Menu(menu);
+</script>
+```
+
+事件代理优势：
+- 简化初始化并节省内存：无需添加许多处理程序。
+- 更少的代码：添加或移除元素时，无需添加/移除处理程序。
+- DOM 修改 ：我们可以使用 innerHTML 等，来批量添加/移除元素。
+
+事件代理局限性：
+- 首先，事件必须冒泡。而有些事件不会冒泡。此外，低级别的处理程序不应该使用 event.stopPropagation()。
+- 其次，委托可能会增加 CPU 负载，因为容器级别的处理程序会对容器中任意位置的事件做出反应，而不管我们是否对该事件感兴趣。但是，通常负载可以忽略不计，所以我们不考虑它。
+
+
+编写工具提示（tooltip）行为的 JavaScript 代码。
+当鼠标在带有 data-tooltip 的元素的上方时，工具提示应显示在其上方，当鼠标移开时，工具提示将隐藏起来。
+- 元素和工具提示之间的距离应为 5px。
+- 如果可能，工具提示应相对于元素居中。
+- 工具提示不应与窗口边缘交叉。通常，它应该在元素的上方，但是如果元素位于页面顶部，并且没有工具提示的空间，则应该在元素的下方。
+- 工具提示的内容在 data-tooltip 属性中给定。它可以是任意 HTML。
+```html
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      height: 2000px;
+      /* make body scrollable, the tooltip should work after the scroll */
+    }
+
+    .tooltip {
+      position: fixed;
+      padding: 10px 20px;
+      border: 1px solid #b3c9ce;
+      border-radius: 4px;
+      text-align: center;
+      font: italic 14px/1.3 sans-serif;
+      color: #333;
+      background: #fff;
+      box-shadow: 3px 3px 3px rgba(0, 0, 0, .3);
+    }
+  </style>
+</head>
+
+<body>
+
+  <p>LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa</p>
+  <p>LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa LaLaLa</p>
+
+  <button data-tooltip="the tooltip is longer than the element">Short button</button>
+  <button data-tooltip="HTML<br>tooltip">One more button</button>
+
+  <p>Scroll the page to make buttons appear on the top, check if the tooltips show up correctly.</p>
+
+
+  <script>
+    let tooltipElem;
+
+    document.onmouseover = function(event) {
+      let target = event.target;
+
+      // if we have tooltip HTML...
+      let tooltipHtml = target.dataset.tooltip;
+      if (!tooltipHtml) return;
+
+      // ...create the tooltip element
+
+      tooltipElem = document.createElement('div');
+      tooltipElem.className = 'tooltip';
+      tooltipElem.innerHTML = tooltipHtml;
+      document.body.append(tooltipElem);
+
+      // position it above the annotated element (top-center)
+      let coords = target.getBoundingClientRect();
+
+      let left = coords.left + (target.offsetWidth - tooltipElem.offsetWidth) / 2;
+      if (left < 0) left = 0; // don't cross the left window edge
+
+      let top = coords.top - tooltipElem.offsetHeight - 5;
+      if (top < 0) { // if crossing the top window edge, show below instead
+        top = coords.top + target.offsetHeight + 5;
+      }
+
+      tooltipElem.style.left = left + 'px';
+      tooltipElem.style.top = top + 'px';
+    };
+
+    document.onmouseout = function(e) {
+
+      if (tooltipElem) {
+        tooltipElem.remove();
+        tooltipElem = null;
+      }
+
+    };
+  </script>
+
+</body>
+</html>
+```
+
+### 浏览器默认行为
+
+许多事件会自动触发浏览器执行某些行为。
+
+例如：
+
+- 点击一个链接 —— 触发导航（navigation）到该 URL。
+- 点击表单的提交按钮 —— 触发提交到服务器的行为。
+- 在文本上按下鼠标按钮并移动 —— 选中文本。
+
+如果我们**使用 JavaScript 处理一个事件，那么我们通常不希望发生相应的浏览器行为。而是想要实现其他行为进行替代**。
+
+**阻止浏览器行为：**
+
+有两种方式来告诉浏览器我们不希望它执行默认行为：
+
+- 主流的方式是使用 event 对象。有一个 event.preventDefault() 方法。
+- 如果处理程序是使用 on<event>（而不是 addEventListener）分配的，那返回 false 也同样有效。
+```html
+<a href="/" onclick="return false">Click here</a>
+or
+<a href="/" onclick="event.preventDefault()">here</a>
+```
+
+某些事件会相互转化。如果我们阻止了第一个事件，那就没有第二个事件了。
+
+例如，在 <input> 字段上的 mousedown 会导致在其中获得焦点，以及 focus 事件。如果我们阻止 mousedown 事件，在这就没有焦点了。
+
+尝试点击下面的第一个 <input> —— 会发生 focus 事件。但是如果你点击第二个，则没有聚焦。
+
+```js
+<input value="Focus works" onfocus="this.value=''">
+<input onmousedown="return false" onfocus="this.value=''" value="Click me">
+```
+这是因为浏览器行为在 mousedown 上被取消。**如果我们用另一种方式进行输入，则仍然可以进行聚焦。例如，可以使用 Tab 键从第一个输入切换到第二个输入。但鼠标点击则不行**。
+
+**处理程序选项 “passive”：**
+
+addEventListener 的可选项 passive: true 向浏览器发出信号，表明处理程序将不会调用 preventDefault()。
+
+为什么需要这样做？
+
+移动设备上会发生一些事件，例如 touchmove（当用户在屏幕上移动手指时），默认情况下会导致滚动，但是可以使用处理程序的 preventDefault() 来阻止滚动。
+
+因此，当浏览器检测到此类事件时，它必须首先处理所有处理程序，然后如果没有任何地方调用 preventDefault，则页面可以继续滚动。**但这可能会导致 UI 中不必要的延迟**和“抖动”。
+
+passive: true 选项告诉浏览器，处理程序不会取消滚动。然后浏览器立即滚动页面以提供最大程度的流畅体验，并通过某种方式处理事件。
+
+对于某些浏览器（Firefox，Chrome），默认情况下，touchstart 和 touchmove 事件的 passive 为 true。
+
+**event.defaultPrevented：**
+
+如果默认行为被阻止，那么 event.defaultPrevented 属性为 true，否则为 false。
+
+默认情况下，浏览器在 contextmenu 事件（单击鼠标右键）时，显示带有标准选项的上下文菜单。我们可以阻止它并显示我们自定义的菜单，就像这样：
+```html
+<button>Right-click shows browser context menu</button>
+
+<button oncontextmenu="alert('Draw our menu'); return false">
+  Right-click shows our context menu
+</button>
+```
+
+```html
+<p>Right-click for the document menu (added a check for event.defaultPrevented)</p>
+<button id="elem">Right-click for the button menu</button>
+
+<script>
+  elem.oncontextmenu = function(event) {
+    event.preventDefault();
+    // event.stopPropagation(); // 阻止事件冒泡的成本太大
+    alert("Button context menu");
+  };
+
+  document.oncontextmenu = function(event) {
+    // 这里只需根据是否已经阻止默认行为来判断就好
+    if (event.defaultPrevented) return;
+
+    event.preventDefault();
+    alert("Document context menu");
+  };
+</script>
+```
+
+有很多默认的浏览器行为：
+
+- mousedown —— 开始选择（移动鼠标进行选择）。
+- 在 <input type="checkbox"> 上的 click —— 选中/取消选中的 input。
+- submit —— 点击 <input type="submit"> 或者在表单字段中按下 Enter 键会触发该事件，之后浏览器将提交表单。
+- keydown —— 按下一个按键会导致将字符添加到字段，或者触发其他行为。
+- contextmenu —— 事件发生在鼠标右键单击时，触发的行为是显示浏览器上下文菜单。
+- ……还有更多……
+
+如果我们只想通过 JavaScript 来处理事件，那么所有默认行为都是可以被阻止的。
+
+想要阻止默认行为 —— 可以使用 event.preventDefault() 或 return false。**第二个方法只适用于通过 on<event> 分配的处理程序**。
+
+addEventListener 的 passive: true 选项告诉浏览器该行为不会被阻止。这对于某些移动端的事件（像 touchstart 和 touchmove）很有用，**用以告诉浏览器在滚动之前不应等待所有处理程序完成**。
+
+如果默认行为被阻止，event.defaultPrevented 的值会变成 true，否则为 false。
+
+为什么下面这段代码中的 return false 不起作用？
+```html
+<script>
+  function handler() {
+    alert( "..." );
+    return false;
+  }
+</script>
+
+<a href="https://w3.org" onclick="handler()">the browser will go to w3.org</a>
+```
+
+当浏览器读取诸如 onclick 之类的 on* 特性（attribute）时，浏览器会根据其内容创建对应的处理程序。
+
+对于 onclick="handler()" 来说，函数是：
+
+```js
+function(event) {
+  handler() // onclick 的内容
+}
+// 现在我们可以看到 handler() 的返回值并没有被使用，也没有对结果产生影响。
+```
+
+因此可以这样修复：
+
+```html
+<script>
+  function handler() {
+    alert("...");
+    return false;
+  }
+</script>
+
+<a href="https://w3.org" onclick="return handler()">w3.org</a>
+
+<!-- 或者下面 -->
+<script>
+  function handler(event) {
+    alert("...");
+    event.preventDefault();
+  }
+</script>
+
+<a href="https://w3.org" onclick="handler(event)">w3.org</a>
+```
+
+### 创建自定义事件
+
+```js
+// 我们可以像这样创建 Event 对象：
+let event = new Event(type[, options]);
+```
+- type —— 事件类型，可以是像这样 "click" 的字符串，或者我们自己的像这样 "my-event" 的参数。
+
+- options —— 具有两个可选属性的对象：
+
+  - bubbles: true/false —— 如果为 true，那么事件会冒泡。
+  - cancelable: true/false —— 如果为 true，那么“默认行为”就会被阻止。稍后我们会看到对于自定义事件，它意味着什么。
+
+默认情况下，以上两者都为 false：{bubbles: false, cancelable: false}。
+
+**dispatchEvent:**
+
+事件对象被创建后，我们应该使用 elem.dispatchEvent(event) 在元素上“运行”它。
+
+```html
+<button id="elem" onclick="alert('Click!');">Autoclick</button>
+
+<script>
+  let event = new Event("click event");
+  elem.dispatchEvent(event);
+</script>
+```
+
+```html
+<h1 id="elem">Hello from the script!</h1>
+
+<script>
+  // 在 document 上捕获...
+  document.addEventListener("hello", function(event) { // (1)
+    alert("Hello from " + event.target.tagName); // Hello from H1
+  });
+
+  // ...在 elem 上 dispatch！
+  let event = new Event("hello", {bubbles: true}); // (2)
+  elem.dispatchEvent(event);
+
+  // 在 document 上的处理程序将被激活，并显示消息。
+
+</script>
+```
 
 [nullandundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html "阮一峰"
 [ieee_754url]: https://zh.wikipedia.org/wiki/IEEE_754 "维基百科"
