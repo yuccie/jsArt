@@ -2486,6 +2486,523 @@ let event = new Event(type[, options]);
 </script>
 ```
 
+## 事件循环
+
+例如，当引擎正在忙于执行一段 script 时，用户可能会移动鼠标而产生 mousemove 事件，setTimeout 或许也刚好到期，以及其他任务，这些任务组成了一个队列。
+
+队列中的任务基于“先进先出”的原则执行。当浏览器引擎执行完 script 后，它会处理 mousemove 事件，然后处理 setTimeout 处理程序，依此类推。
+
+两个细节：
+
+- 引擎执行任务时永远不会进行渲染（render）。如果任务执行需要很长一段时间也没关系。仅在任务完成后才会绘制对 DOM 的更改。
+- 如果一项任务执行花费的时间过长，浏览器将无法执行其他任务，无法处理用户事件，因此，在一定时间后浏览器会在整个页面抛出一个如“页面未响应”之类的警报，建议你终止这个任务。这种情况常发生在有大量复杂的计算或导致死循环的程序错误时。
+
+**拆分 CPU 过载任务：**
+
+当执行一个大任务时，甚至可能会导致浏览器“中断（hiccup）”甚至“挂起（hang）”一段时间，这是不可接受的。
+
+因此此时，可以将大任务拆分为多个任务，这样不至于页面的其他的任务没法执行。比如下面的大任务：
+
+```js
+let i = 0;
+
+let start = Date.now();
+
+function count() {
+
+  // 做一个繁重的任务
+  for (let j = 0; j < 1e9; j++) {
+    i++;
+  }
+
+  alert("Done in " + (Date.now() - start) + 'ms');
+}
+
+count();
+```
+
+如果拆分为多个任务，可以如下：
+
+```js
+let i = 0;
+
+let start = Date.now();
+
+function count() {
+
+  // 做繁重的任务的一部分 (*)
+  do {
+    i++;
+  } while (i % 1e6 != 0);
+
+  if (i == 1e9) {
+    alert("Done in " + (Date.now() - start) + 'ms');
+  } else {
+    setTimeout(count); // 安排（schedule）新的调用 (**)
+  }
+
+}
+
+count();
+```
+
+还有对于进度条，如果不拆分的话，很容易只显示最后的一个值：
+
+```js
+<div id="progress"></div>
+
+<script>
+
+  function count() {
+    for (let i = 0; i < 1e6; i++) {
+      i++;
+      progress.innerHTML = i;
+    }
+  }
+
+  count();
+</script>
+```
+
+如果拆分的话，则会有慢慢变化的效果：
+
+```js
+<div id="progress"></div>
+
+<script>
+  let i = 0;
+
+  function count() {
+
+    // 做繁重的任务的一部分 (*)
+    do {
+      i++;
+      progress.innerHTML = i;
+    } while (i % 1e3 != 0);
+
+    if (i < 1e7) {
+      setTimeout(count);
+    }
+
+  }
+
+  count();
+</script>
+```
+
+还有一个特殊的函数 queueMicrotask(func)，它对 func 进行排队，以在微任务队列中执行。说白了，就是包装成微任务：
+
+```js
+let urgentCallback = () => log("*** Oh noes! An urgent callback has run!");
+
+let doWork = () => {
+  let result = 1;
+ 
+  queueMicrotask(urgentCallback);
+
+  for (let i=2; i<=10; i++) {
+    result *= i;
+  }
+  return result;
+};
+
+log("Main program started");
+setTimeout(callback, 0);
+log(`10! equals ${doWork()}`);
+log("Main program exiting");
+
+// Main program started
+// 10! equals 3628800
+// Main program exiting
+// *** Oh noes! An urgent callback has run!
+// Regular timeout callback has run
+```
+
+## Frame 和 window
+
+### 弹窗和window
+
+从窗口访问弹窗，open 调用会返回对新窗口的引用。它可以用来操纵弹窗的属性，更改位置，甚至更多操作。
+
+```js
+let newWin = window.open("about:blank", "hello", "width=200,height=200");
+
+newWin.document.write("Hello, world!");
+```
+
+```js
+let newWindow = open('/', 'example', 'width=300,height=300')
+newWindow.focus(); // 可以用于将新打开的窗口置为最顶
+
+alert(newWindow.location.href); // (*) about:blank，加载尚未开始
+
+newWindow.onload = function() {
+  let html = `<div style="font-size:30px">Welcome!</div>`;
+  newWindow.document.body.insertAdjacentHTML('afterbegin', html);
+};
+```
+
+弹窗也可以使用 window.opener 来访问 opener 窗口，其实就是父窗口
+
+关闭窗口：关闭一个窗口：win.close()。
+
+检查一个窗口是否被关闭：win.closed。
+
+从技术上讲，close() 方法可用于任何 window，但是如果 window 不是通过 window.open() 创建的，那么大多数浏览器都会忽略 window.close()。因此，close() 只对弹窗起作用。
+
+如果窗口被关闭了，那么 closed 属性则为 true。这对于检查弹窗（或主窗口）是否仍处于打开状态很有用。用户可以随时关闭它，我们的代码应该考虑到这种可能性。
+
+```js
+let newWindow = open('/', 'example', 'width=300,height=300');
+
+newWindow.onload = function() {
+  newWindow.close();
+  alert(newWindow.closed); // true
+};
+```
+
+JavaScript 无法最小化或者最大化一个窗口。这些操作系统级别的功能对于前端开发者而言是隐藏的。移动或者调整大小的方法不适用于最小化/最大化的窗口。
+
+从理论上讲，使用 window.focus() 和 window.blur() 方法可以使窗口获得或失去焦点。此外，这里还有 focus/blur 事件，可以聚焦窗口并捕获访问者切换到其他地方的瞬间。
+
+### 跨窗口通信
+
+实例：iframe
+
+一个 <iframe> 标签承载了一个单独的嵌入的窗口，它具有自己的 document 和 window。
+
+我们可以使用以下属性访问它们：
+
+- iframe.contentWindow 来获取 <iframe> 中的 window。
+- iframe.contentDocument 来获取 <iframe> 中的 document，是iframe.contentWindow.document 的简写形式。
+
+当我们访问嵌入的窗口中的东西时，浏览器会检查 iframe 是否具有相同的源。如果不是，则会拒绝访问（对 location 进行写入是一个例外，它是会被允许的）。
+
+```html
+<iframe src="https://example.com" id="iframe"></iframe>
+
+<script>
+  iframe.onload = function() {
+    // 我们可以获取对内部 window 的引用
+    let iframeWindow = iframe.contentWindow; // OK
+    try {
+      // ...但是无法获取其中的文档
+      let doc = iframe.contentDocument; // ERROR
+    } catch(e) {
+      alert(e); // Security Error（另一个源）
+    }
+
+    // 并且，我们也无法 **读取** iframe 中页面的 URL
+    try {
+      // 无法从 location 对象中读取 URL
+      let href = iframe.contentWindow.location.href; // ERROR
+    } catch(e) {
+      alert(e); // Security Error
+    }
+
+    // ...我们可以 **写入** location（所以，在 iframe 中加载了其他内容）！
+    iframe.contentWindow.location = '/'; // OK
+
+    iframe.onload = null; // 清空处理程序，在 location 更改后不要再运行它
+  };
+</script>
+```
+
+iframe.onload 事件（在 <iframe> 标签上）与 iframe.contentWindow.onload（在嵌入的 window 对象上）基本相同。当嵌入的窗口的所有资源都完全加载完毕时触发。
+
+……但是，我们无法使用 iframe.contentWindow.onload 访问不同源的 iframe。因此，请使用 iframe.onload，
+
+**Iframe：错误文档陷阱:**
+
+在创建 iframe 后，iframe 会立即就拥有了一个文档。但是该文档不同于加载到其中的文档！
+
+```html
+<iframe src="/" id="iframe"></iframe>
+
+<script>
+  let oldDoc = iframe.contentDocument;
+  iframe.onload = function() {
+    let newDoc = iframe.contentDocument;
+    // 加载的文档与初始的文档不同！
+    alert(oldDoc == newDoc); // false
+  };
+</script>
+```
+
+我们不应该对尚未加载完成的 iframe 的文档进行处理，因为那是 错误的文档。如果我们在其上设置了任何事件处理程序，它们将会被忽略。
+
+如何检测文档就位（加载完成）的时刻呢？
+
+正确的文档在 iframe.onload 触发时肯定就位了。但是，只有在整个 iframe 和它所有资源都加载完成时，iframe.onload 才会触发。
+
+集合：window.frames
+
+获取 <iframe> 的 window 对象的另一个方式是从命名集合 window.frames 中获取：
+
+通过索引获取：window.frames[0] —— 文档中的第一个 iframe 的 window 对象。
+通过名称获取：window.frames.iframeName —— 获取 name="iframeName" 的 iframe 的 window 对象。
+
+```js
+<iframe src="/" style="height:80px" name="win" id="iframe"></iframe>
+
+<script>
+  alert(iframe.contentWindow == frames[0]); // true
+  alert(iframe.contentWindow == frames.win); // true
+</script>
+```
+
+一个 iframe 内可能嵌套了其他的 iframe。相应的 window 对象会形成一个层次结构（hierarchy）。
+
+可以通过以下方式获取：
+
+- window.frames —— “子”窗口的集合（用于嵌套的 iframe）。
+- window.parent —— 对“父”（外部）窗口的引用。
+- window.top —— 对最顶级父窗口的引用。
+
+**iframes的沙盒特性：**
+
+sandbox 特性（attribute）允许在 <iframe> 中禁止某些特定行为，以防止其执行不被信任的代码。它通过将 iframe 视为非同源的，或者应用其他限制来实现 iframe 的“沙盒化”。
+
+对于 <iframe sandbox src="...">，有一个应用于其上的默认的限制集。但是，我们可以通过提供一个以空格分隔的限制列表作为特性的值，来放宽这些限制，该列表中的各项为不应该应用于这个 iframe 的限制，例如：<iframe sandbox="allow-forms allow-popups">。
+
+换句话说，一个空的 "sandbox" 特性会施加最严格的限制，但是我们用一个以空格分隔的列表，列出要移除的限制。
+
+
+**跨窗口通信：**
+
+```html
+<!-- iframe.html -->
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+
+  Receiving iframe.
+  <script>
+    window.addEventListener('message', function(event) {
+      alert(`Received ${event.data} from ${event.origin}`);
+    });
+  </script>
+
+</body>
+</html>
+
+
+<!-- index.html -->
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+
+  <form id="form">
+    <input type="text" placeholder="Enter message" name="message">
+    <input type="submit" value="Click to send">
+  </form>
+
+  <iframe src="iframe.html" id="iframe" style="display:block;height:60px"></iframe>
+
+  <script>
+    form.onsubmit = function() {
+      iframe.contentWindow.postMessage(this.message.value, '*');
+      return false;
+    };
+  </script>
+
+</body>
+</html>
+```
+
+postMessage 接口允许两个具有任何源的窗口之间进行通信：
+
+- 发送方调用 targetWin.postMessage(data, targetOrigin)。
+- 如果 targetOrigin 不是 '*'，那么浏览器会检查窗口 targetWin 是否具有源 targetOrigin。
+- 如果它具有，targetWin 会触发具有特殊的属性的 message 事件：
+
+- origin —— 发送方窗口的源（比如 http://my.site.com）。
+- source —— 对发送方窗口的引用。
+- data —— 数据，可以是任何对象。但是 IE 浏览器只支持字符串，因此我们需要对复杂的对象调用 JSON.stringify 方法进行处理，以支持该浏览器。
+
+我们应该使用 addEventListener 来在目标窗口中设置 message 事件的处理程序。
+
+
+### 点击劫持攻击
+
+我们以 Facebook 为例，解释点击劫持是如何完成的：
+
+- 访问者被恶意页面吸引。怎样吸引的不重要。
+- 页面上有一个看起来无害的链接（例如：“变得富有”或者“点我，超好玩！”）。
+-恶意页面在该链接上方放置了一个透明的 <iframe>，其 src 来自于 facebook.com，这使得“点赞”按钮恰好位于该链接上面。这通常是通过 z-index 实现的。
+- 用户尝试点击该链接时，实际上点击的是“点赞”按钮。
+
+点击劫持是对点击事件，而非键盘事件
+此攻击仅影响鼠标行为（或者类似的行为，例如在手机上的点击）。
+
+键盘输入很难重定向。从技术上讲，我们可以用 iframe 的文本区域覆盖原有的文本区域实现攻击。因此，当访问者试图聚焦页面中的输入时，实际上聚焦的是 iframe 中的输入。
+
+但是这里有个问题。访问者键入的所有内容都会被隐藏，因为该 iframe 是不可见的。
+
+当用户无法在屏幕上看到自己输入的字符时，通常会停止打字。
+
+一个页面如果不想被别人通过iframe利用，可以设置`X-Frame-Options`，这样的话这个页面就不能嵌套在iframe里了，
+
+服务器端 header X-Frame-Options 可以允许或禁止在 frame 中显示页面。
+
+它必须被完全作为 HTTP-header 发送：如果浏览器在 HTML <meta> 标签中找到它，则会忽略它。因此，<meta http-equiv="X-Frame-Options"...> 没有任何作用。
+
+这个 header 可能包含 3 个值：
+
+- DENY，始终禁止在 frame 中显示此页面。
+- SAMEORIGIN，允许在和父文档同源的 frame 中显示此页面。
+- ALLOW-FROM domain，允许在来自给定域的父文档的 frame 中显示此页面。
+
+**Samesite cookie 特性：**
+
+samesite cookie 特性也可以阻止点击劫持攻击。
+
+具有 samesite 特性的 cookie 仅在网站是通过直接方式打开（而不是通过 frame 或其他方式）的情况下才发送到网站。
+
+## 二进制数据、文件
+
+### ArrayBuffer，二进制数组
+
+在 Web 开发中，当我们处理文件时（创建，上传，下载），经常会遇到二进制数据。另一个典型的应用场景是图像处理。
+
+这些都可以通过 JavaScript 进行处理，而且二进制操作性能更高。
+
+不过，在 JavaScript 中有很多种二进制数据格式，会有点容易混淆。仅举几个例子：
+
+ArrayBuffer，Uint8Array，DataView，Blob，File 及其他。
+
+基本的二进制对象是 **ArrayBuffer —— 对固定长度的连续内存空间的引用**。ArrayBuffer 是核心对象，是所有的基础，是原始的二进制数据。
+
+```js
+let buffer = new ArrayBuffer(16); // 创建一个长度为 16 的 buffer
+alert(buffer.byteLength); // 16
+// 它会分配一个 16 字节的连续内存空间，并用 0 进行预填充。
+```
+
+**ArrayBuffer 不是某种东西的数组**，让我们先澄清一个可能的误区。ArrayBuffer 与 Array 没有任何共同之处：
+
+- 它的长度是固定的，我们无法增加或减少它的长度。
+- 它正好占用了内存中的那么多空间。
+- 要访问单个字节，需要另一个“视图”对象，而不是 buffer[index]。
+
+ArrayBuffer 是一个内存区域。它里面存储了什么？无从判断。只是一个原始的字节序列。
+
+如要操作 ArrayBuffer，我们需要使用“视图”对象。
+
+视图对象本身并不存储任何东西。它是一副“眼镜”，透过它来解释存储在 ArrayBuffer 中的字节。
+
+以下是几种视图对象：
+
+- Uint8Array —— 将 ArrayBuffer 中的每个字节视为 0 到 255 之间的单个数字（每个字节是 8 位，因此只能容纳那么多）。这称为 “8 位无符号整数”。
+- Uint16Array —— 将每 2 个字节视为一个 0 到 65535 之间的整数。这称为 “16 位无符号整数”。
+- Uint32Array —— 将每 4 个字节视为一个 0 到 4294967295 之间的整数。这称为 “32 位无符号整数”。
+- Float64Array —— 将每 8 个字节视为一个 5.0x10-324 到 1.8x10308 之间的浮点数。
+
+![ArrayBuffer与视图对象](/jsArt/assets/images/css/ArrayBuffer.png)
+
+因此，一个 16 字节 ArrayBuffer 中的二进制数据可以解释为 16 个“小数字”，或 8 个更大的数字（每个数字 2 个字节），或 4 个更大的数字（每个数字 4 个字节），或 2 个高精度的浮点数（每个数字 8 个字节）。
+
+ArrayBuffer 是核心对象，是所有的基础，是原始的二进制数据。
+
+但是，如果我们要写入值或遍历它，基本上几乎所有操作 —— 我们必须使用视图（view），例如：
+
+```js
+let buffer = new ArrayBuffer(16); // 创建一个长度为 16 的 buffer
+
+let view = new Uint32Array(buffer); // 将 buffer 视为一个 32 位整数的序列
+
+alert(Uint32Array.BYTES_PER_ELEMENT); // 每个整数 4 个字节
+
+alert(view.length); // 4，它存储了 4 个整数
+alert(view.byteLength); // 16，字节中的大小
+
+// 让我们写入一个值
+view[0] = 123456;
+
+// 遍历值
+for(let num of view) {
+  alert(num); // 123456，然后 0，0，0（一共 4 个值）
+}
+```
+
+### Blob
+
+ArrayBuffer 和视图（view）都是 ECMA 标准的一部分，是 JavaScript 的一部分。
+
+在浏览器中，还有其他更高级的对象，特别是 Blob，Blob 由一个可选的字符串 type（通常是 MIME 类型）和 blobParts 组成 —— 一系列其他 Blob 对象，字符串和 BufferSource。
+
+ArrayBuffer，Uint8Array 及其他 BufferSource 是“二进制数据”，而 Blob 则表示“具有类型的二进制数据”。
+
+这样可以方便 Blob 用于在浏览器中非常常见的上传/下载操作。
+
+XMLHttpRequest，fetch 等进行 Web 请求的方法可以自然地使用 Blob，也可以使用其他类型的二进制数据。
+
+我们可以轻松地在 Blob 和低级别的二进制数据类型之间进行转换：
+
+我们可以使用 new Blob(...) 构造函数从一个类型化数组（typed array）创建 Blob。
+我们可以使用 FileReader 从 Blob 中取回 ArrayBuffer，然后在其上创建一个视图（view），用于低级别的二进制处理。
+
+**File 和 FileReader：**
+
+File 对象继承自 Blob，并扩展了与文件系统相关的功能。
+
+有两种方式可以获取它。
+
+第一种，与 Blob 类似，有一个构造器：
+new File(fileParts, fileName, [options])
+- fileParts —— Blob/BufferSource/String 类型值的数组。
+- fileName —— 文件名字符串。
+- options —— 可选对象：
+    - lastModified —— 最后一次修改的时间戳（整数日期）。
+
+第二种，更常见的是，我们从 <input type="file"> 或拖放或其他浏览器接口来获取文件。在这种情况下，file 将从操作系统（OS）获得 this 信息。
+
+由于 File 是继承自 Blob 的，所以 File 对象具有相同的属性，附加：
+
+name —— 文件名，
+lastModified —— 最后一次修改的时间戳。
+
+```html
+<input type="file" onchange="showFile(this)">
+
+<script>
+function showFile(input) {
+  // 输入（input）可以选择多个文件，因此 input.files 是一个类数组对象。这里我们只有一个文件，所以我们只取 input.files[0]。
+  let file = input.files[0];
+
+  alert(`File name: ${file.name}`); // 例如 my.png
+  alert(`Last modified: ${file.lastModified}`); // 例如 1552830408824
+}
+</script>
+```
+
+**FileReader:**
+
+FileReader 是一个对象，其唯一目的是从 Blob（因此也从 File）对象中读取数据。它使用事件来传递数据，因为从磁盘读取数据可能比较费时间。
+
+构造函数：
+```js
+let reader = new FileReader(); // 没有参数
+```
+主要方法:
+
+- readAsArrayBuffer(blob) —— 将数据读取为二进制格式的 ArrayBuffer。
+- readAsText(blob, [encoding]) —— 将数据读取为给定编码（默认为 utf-8 编码）的文本字符串。
+- readAsDataURL(blob) —— 读取二进制数据，并将其编码为 base64 的 data url。
+- abort() —— 取消操作。
+
+
+
 [nullandundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html "阮一峰"
 [ieee_754url]: https://zh.wikipedia.org/wiki/IEEE_754 "维基百科"
 [minusoperatorurl]: http://www.wenjiangs.com/article/javascript-string-number.html "减号运算符"
