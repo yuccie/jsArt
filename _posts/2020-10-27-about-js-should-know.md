@@ -4839,6 +4839,36 @@ alert( str.match(/(?<=\$)\d+/) ); // 30 （跳过了单个的数字 1）
 alert( str.match(/(?<!\$)\d+/) ); // 1 (跳过了价格)
 ```
 
+#### 捕获组
+
+在前面的断言中，断言中的内容，都没有作为结果返回。。。但如果想要返回呢？
+
+例如：在模式 \d+(?!€) 中，€ 符号就不会出现在匹配结果中。
+
+但是如果我们想要捕捉整个环视表达式或其中的一部分，那也是有可能的。只需要将其包裹在另加的括号中。
+
+例如，这里货币符号 (€|kr) 和金额一起被捕获了：
+
+```js
+let str = "1 turkey costs 30€";
+let reg = /\d+(?=(€))/; // € 两边有额外的括号
+
+alert( str.match(reg) ); // 30, €
+```
+
+### 正则表达式（RegExp）和字符串（String）的方法
+
+#### str.match(regexp)
+#### str.matchAll(regexp)
+#### str.split(regexp|substr, limit)
+
+```js
+alert('12-34-56'.split('-')) // 数组 ['12', '34', '56']
+alert('12, 34, 56'.split(/,\s*/)) // 数组 ['12', '34', '56']
+```
+
+
+
 [nullandundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html "阮一峰"
 [ieee_754url]: https://zh.wikipedia.org/wiki/IEEE_754 "维基百科"
 [minusoperatorurl]: http://www.wenjiangs.com/article/javascript-string-number.html "减号运算符"
