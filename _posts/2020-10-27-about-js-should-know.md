@@ -3956,8 +3956,6 @@ Sec-WebSocket-Version: 13
 |WebSocket 协议	|	常规 HTTP 协议 |
 
 
-
-
 与 WebSocket 相比，EventSource 是与服务器通信的一种不那么强大的方式。
 
 我们为什么要使用它？
@@ -3965,6 +3963,233 @@ Sec-WebSocket-Version: 13
 主要原因：简单。在很多应用中，WebSocket 有点大材小用。
 
 我们需要从服务器接收一个数据流：可能是聊天消息或者市场价格等。这正是 EventSource 所擅长的。它还支持自动重新连接，而在 WebSocket 中这个功能需要我们手动实现。此外，它是一个普通的旧的 HTTP，不是一个新协议。
+
+## 正则表达式
+
+### 模式（Patterns）和修饰符（flags）
+
+正则表达式（可叫作“regexp”或者“reg”）**包含 模式 和可选的 修饰符**。
+
+```js
+// 构造器语法
+regexp = new RegExp("pattern", "flags");
+
+// 斜杠语法
+regexp = /pattern/; // 没有修饰符
+regexp = /pattern/gmi; // 伴随修饰符 g、m 和 i（后面会讲到）
+```
+
+由于斜杠语法不支持变量，因此当构造一些动态的正则时，需要用到构造器语法：
+
+```js
+let str = 'abc'
+/`${str}`/.test('abc'); // false
+/abc/.test('abc'); // true
+```
+
+#### 修饰符
+
+- i，使用此修饰符后，搜索时不区分大小写: A 和 a 没有区别（具体看下面的例子）。
+- g，使用此修饰符后，搜索时会查找所有的匹配项，而不只是第一个（在下一章会讲到）。
+- m，多行模式（详见章节 文章 "regexp-multiline" 未找到）。
+- u，开启完整的 unicode 支持。该修饰符能够修正对于代理对的处理。更详细的内容见章节 Unicode：修饰符 “u” 和 class \p{...}。
+- y，粘滞模式
+
+str.search(regexp) 方法返回的是找到的匹配项的索引位置，如果没找到则返回 -1。
+
+### 字符类
+
+```js
+let str = "+7(903)-123-45-67";
+
+let regexp = /\d/g;
+
+alert( str.match(regexp) ); // array of matches: 7,9,0,3,1,2,3,4,5,6,7
+
+// let's make the digits-only phone number of them:
+alert( str.match(regexp).join('') ); // 79035419441
+```
+
+- \d（“d” 来自 “digit”），数字：从 0 到 9 的字符。
+- \s（“s” 来自 “space”），空格符号：包括空格，制表符 \t，换行符 \n 和其他少数稀有字符，例如 \v，\f 和 \r。
+- \w（“w” 来自 “word”），“单字”字符：拉丁字母或数字或下划线 _。非拉丁字母（如西里尔字母或印地文）不属于 \w。
+
+#### 反向类
+
+对于**每个字符类，都有一个“反向类”，用相同的字母表示，但要以大写书写形式**。
+
+- \D，非数字：除 \d 以外的任何字符，例如字母。
+- \S，非空格符号：除 \s 以外的任何字符，例如字母。
+- \W，非单字字符：除 \w 以外的任何字符，例如非拉丁字母或空格。
+
+```js
+let str = "+7(903)-123-45-67";
+
+alert( str.replace(/\D/g, "") ); // 79031234567
+```
+
+#### 点（.）是匹配“任何字符”
+
+点 . 是一种特殊字符类，它与 “除换行符之外的任何字符” 匹配。
+
+```js
+let regexp = /CS.4/;
+
+alert( "CSS4".match(regexp) ); // CSS4
+alert( "CS-4".match(regexp) ); // CS-4
+alert( "CS 4".match(regexp) ); // CS 4 (space is also a character)
+
+// 请注意，点表示“任何字符”，而不是“缺少字符”。必须有一个与之匹配的字符：
+alert( "CS4".match(/CS.4/) );
+// null, no match because there's no character for the dot
+```
+
+#### 带有“s”标志时点字符类严格匹配任何字符
+
+```js
+alert( "A\nB".match(/A.B/) ); // null (no match)
+
+// 如果我们希望用点来表示“任何字符”（包括换行符）时，可以使用s
+alert( "A\nB".match(/A.B/s) ); // A\nB (match!)
+// 但s并不是所有的浏览器都支持，可以如下：
+alert( "A\nB".match(/A[\s\S]B/) ); // A\nB (match!)
+// 模式 [\s\S] 从字面上说：“空格字符或非空格字符”。换句话说，“任何东西”。
+// 当然还可以，[\d\D]。甚至是 [^]
+```
+
+### Unicode：修饰符 “u” 和 class \p{...}
+
+JavaScript 使用 Unicode 编码 （Unicode encoding）对字符串进行编码。大多数字符使用 2 个字节编码，但这种方式只能编码最多 65536 个字符。
+
+这个范围不足以对所有可能的字符进行编码，这就是为什么一些罕见的字符使用 4 个字节进行编码，比如 𝒳 （数学符号 X）或者 😄 （笑脸），一些象形文字等等。
+
+**很久以前，当 JavaScript 被发明出来的时候，Unicode 的编码要更加简单：当时并没有 4 个字节长的字符。所以，一部分语言特性在现在仍旧无法对 unicode 进行正确的处理**。比如：
+
+```js
+// 明明只有一个字符。。。
+alert('😄'.length); // 2
+alert('𝒳'.length); // 2
+```
+
+默认情况下，正则表达式同样把一个 4 个字节的“长字符”当成一对 2 个字节长的字符。正如在字符串中遇到的情况，这将导致一些奇怪的结果。
+
+与字符串有所不同的是，正则表达式有一个修饰符 u 被用以解决此类问题。当一个正则表达式使用这个修饰符后，4 个字节长的字符将被正确地处理。同时也能够用上 **Unicode 属性（Unicode property）**来进行查找了。
+
+#### Unicode 属性（Unicode properties）\p{…}
+
+Unicode 中的**每一个字符都具有很多的属性**。它们**描述了一个字符属于哪个“类别”**，包含了各种关于字符的信息。
+
+例如，如果一个字符具有 Letter 属性，这意味着这个字符归属于（任意语言的）一个字母表。而 Number 属性则表示这是一个数字：也许是阿拉伯语，亦或者是中文，等等。
+
+我们可以查找具有某种属性的字符，写作 \p{…}。为了顺利使用 \p{…}，一个正则表达式必须使用修饰符 u。
+
+举个例子，\p{Letter} 表示任何语言中的一个字母。我们也可以使用 \p{L}，**因为 L 是 Letter 的一个别名（alias）。对于每种属性而言，几乎都存在对应的缩写别名**。
+
+在下面的例子中 3 种字母将会被查找出：英语、格鲁吉亚语和韩语。
+
+```js
+let str = "A ბ ㄱ";
+
+alert( str.match(/\p{L}/gu) ); // A,ბ,ㄱ
+alert( str.match(/\p{L}/g) ); // null（没有匹配的文本，因为没有修饰符“u”）
+```
+
+有一个 unicode 属性 Script （一个书写系统），这个属性可以有一个值：Cyrillic，Greek，Arabic，Han （中文）等等.
+
+为了实现查找一个给定的书写系统中的字符，我们需要使用 Script=`<value>`，例如对于西里尔字符：\p{sc=Cyrillic}, 中文字符：\p{sc=Han}，等等。
+
+```js
+let regexp = /\p{sc=Han}/gu; // returns Chinese hieroglyphs
+
+let str = `Hello Привет 你好 123_456`;
+
+alert( str.match(regexp) ); // 你,好
+```
+
+表示货币的字符，例如 $，€，¥，具有 unicode 属性 \p{Currency_Symbol}，缩写为 \p{Sc}。
+
+让我们使用这一属性来查找符合“货币，接着是一个数字”的价格文本：
+
+```js
+let regexp = /\p{Sc}\d/gu;
+
+let  str = `Prices: $2, €1, ¥9`;
+
+alert( str.match(regexp) ); // $2,€1,¥9
+```
+
+总结：
+
+**修饰符 u 在正则表达式中提供对 Unicode 的支持**。
+
+这意味着两件事：
+
+- 4 个字节长的字符被以正确的方式处理：被看成单个的字符，而不是 2 个 2 字节长的字符。
+- Unicode 属性可以被用于查找中 \p{…}。
+- 有了 unicode 属性我们可以查找给定语言中的词，特殊字符（引用，货币）等等。
+
+### 锚点（Anchors)：字符串开始 ^ 和末尾 $
+
+插入符号 ^ 和美元符号 $ 在正则表达式中具有特殊的意义。它们被称为“锚点”。
+
+插入符号 ^ 匹配文本开头，而美元符号 $ － 则匹配文本末尾。
+
+锚点具有“零宽度”，**锚点 ^ 和 $ 属于测试。它们的宽度为零**。换句话来说，它们并不匹配一个具体的字符（其实就是不占用匹配的字符串），而是让正则引擎测试所表示的条件（文本开头/文本末尾）。
+
+什么字符串可以匹配模式 ^$？
+唯一一个匹配的字符串是空字符串：它的开始紧跟着结束。这个题目再一次说明了锚不是一个字符串，而是一个测试（其实就是空，不占用任何宽度，也就满足了题意）。对于空字符串 ""，正则表达式引擎将会首先匹配模式 ^（输入开始），匹配成功之后，会紧跟着检查模式 $，也匹配成功。所以空字符串是匹配 ^$ 的。
+
+```js
+/^$/.test(''); // true
+/^$/.test('1'); // false
+/^\d$/.test('1'); // true
+```
+
+### Flag "m" — 多行模式
+
+通过 flag /.../m 可以开启多行模式。这仅仅会影响 ^ 和 $ 锚符的行为。在多行模式下，**它们不仅仅匹配文本的开始与结束，还匹配每一行的开始与结束**。
+
+```js
+// 默认情况下，锚符 ^ 仅仅匹配文本的开头，在多行模式下，它匹配行的开头。
+let str = `1st place: Winnie
+2nd place: Piglet
+33rd place: Eeyore`;
+
+alert( str.match(/^\d+/gm) ); // 1, 2, 33
+alert( str.match(/^\d+/g) ); // 1
+
+
+alert( str.match(/\w+$/gim) ); // Winnie,Piglet,Eeyore
+alert( str.match(/\w+$/gi) ); // Eeyore
+```
+
+### 词边界：\b
+
+词边界 \b 是一种检查，就像 ^ 和 $ 一样。
+
+当正则表达式引擎（实现搜索正则表达式的程序模块）遇到 \b 时，它会检查字符串中的位置是否是词边界。其实就是检查单词的完整性。
+
+```js
+alert( "Hello, Java!".match(/\bJava\b/) ); // Java
+alert( "Hello, JavaScript!".match(/\bJava\b/) ); // null
+alert( "Hello, Java!".match(/\bHello\b/) ); // Hello
+alert( "Hello, Java!".match(/\bJava\b/) );  // Java
+alert( "Hello, Java!".match(/\bHell\b/) );  // null (no match)
+alert( "Hello, Java!".match(/\bJava!\b/) ); // null (no match)
+
+// \b 既可以用于单词，也可以用于数字。
+alert( "1 23 456 78".match(/\b\d\d\b/g) ); // 23,78
+alert( "12,34,56".match(/\b\d\d\b/g) ); // 12,34,56
+// 词边界 \b 不适用于非拉丁字母
+```
+
+### 转义，特殊字符
+
+正如我们所看到的，一个反斜杠 "\" 是用来表示匹配字符类的。所以它是一个特殊字符。
+
+还存在其它的特殊字符，这些字符在正则表达式中有特殊的含义。它们可以被用来做更加强大的搜索。
+
+这里是包含所有特殊字符的列表：[ \ ^ $ . | ? * + ( )。
 
 [nullandundefined(阮一峰)]: http://www.ruanyifeng.com/blog/2014/03/undefined-vs-null.html "阮一峰"
 [ieee_754url]: https://zh.wikipedia.org/wiki/IEEE_754 "维基百科"
