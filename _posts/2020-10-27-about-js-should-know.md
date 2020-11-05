@@ -4866,6 +4866,13 @@ alert( str.match(reg) ); // 30, €
 alert('12-34-56'.split('-')) // 数组 ['12', '34', '56']
 alert('12, 34, 56'.split(/,\s*/)) // 数组 ['12', '34', '56']
 ```
+#### str.search(regexp)
+
+str.search(regexp) 返回第一个匹配项的位置，如果未找到，则返回 -1：
+
+重要限制：search 仅查找第一个匹配项。
+
+
 
 
 
