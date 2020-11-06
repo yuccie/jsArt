@@ -480,6 +480,23 @@ bar.printName()
 
 2. foo 函数返回的 printName 是全局声明的函数，因此和 foo 当中定义的变量也没有任何联系，这个时候 foo 函数返回 printName 并不会产生闭包。因此打印两次极客邦
 
+#### 内存泄露
+
+传统的 C/C++ 中存在野指针，对象用完之后未释放等情况导致的内存泄漏。而在使用虚拟机执行的语言中如 Java、JavaScript 由于使用了 GC （Garbage Collection，垃圾回收）机制自动释放内存，使得程序员的精力得到的极大的解放，不用再像传统语言那样时刻对于内存的释放而战战兢兢。
+
+但是，即便有了 GC 机制可以自动释放，但这并不意味这内存泄漏的问题不存在了。内存泄漏依旧是开发者们不能绕过的一个问题，今天让我们来了解如何分析 Node.js 中的内存泄漏。
+
+Node.js 使用 V8 作为 JavaScript 的执行引擎，所以讨论 Node.js 的 GC 情况就等于在讨论 V8 的 GC。在 V8 中一个对象的内存是否被释放，是看程序中是否还有地方持有改对象的引用。
+
+在 V8 中，每次 GC 时，是根据 root 对象 (浏览器环境下的 window，Node.js 环境下的 global ) 依次梳理对象的引用，如果能从 root 的引用链到达访问，V8 就会将其标记为可到达对象，反之为不可到达对象。被标记为不可到达对象（即无引用的对象）后就会被 V8 回收。
+
+造成内存泄的几种情况：
+
+- 全局变量
+- 闭包
+- 事件监听
+- 控制台log或缓存对象等
+
 #### this：从JavaScript执行上下文的视角讲清楚this
 
 前面的例题，其实就是想实现**在对象内部的方法中使用对象内部的属性**，但结果却不是想要的效果。。。这确实是一个需求，但是 JavaScript 的作用域机制并不支持这一点，**基于这个需求，JavaScript 又搞出来另外一套 this 机制**
@@ -965,6 +982,45 @@ setTimeOut(MyObj.showName.bind(MyObj), 1000)
 
 当然如果requestAnimationFrame的回调任务执行时间过长，也会影响渲染帧率。但js不会说在执行过程中就退出，而是执行完才会执行下一个任务，即使下一个任务优先级很高。
 
+一般的浏览器每秒钟会绘制60帧，也就是每帧需要16ms左右，如果js计算任务长时间占用线程那个，会导致一些ui无法及时得到渲染，出现卡顿。
+
+一帧内需要完成如下六个步骤的任务：
+
+- 处理用户的交互
+- JS 解析执行
+- 帧开始。窗口尺寸变更，页面滚去等的处理
+- requestAnimationFrame(rAF)
+- 布局
+- 绘制
+
+上面六个步骤完成后没超过 16 ms，说明时间有富余，此时就会执行 requestIdleCallback 里注册的任务。
+
+```js
+var handle = window.requestIdleCallback(callback[, options])
+```
+
+- callback：回调，即空闲时需要执行的任务，该回调函数接收一个IdleDeadline对象作为入参。其中IdleDeadline对象包含：
+  - didTimeout，布尔值，表示任务是否超时，结合 timeRemaining 使用。
+  - timeRemaining()，表示当前帧剩余的时间，也可理解为留给任务的时间还有多少。
+- options：目前 options 只有一个参数
+  - timeout。表示超过这个时间后，如果任务还没执行，则强制执行，不必等待空闲。
+
+```js
+//将js计算任务放在requestIdleCallback中运算
+function startRequestIdleCallback() {
+  requestIdleCallback(myNonEssentialWork, { timeout: 2000 });
+}
+
+function myNonEssentialWork(deadline) {
+  //alert(deadline.timeRemaining())
+  console.log(deadline, deadline.timeRemaining());
+  // 如果帧内有富余的时间，或者超时
+  while (deadline.timeRemaining() > 0 || deadline.didTimeout) {
+    // todo
+  }
+}
+```
+
 #### WebAPI：XMLHttpRequest是怎么实现的？
 
 尽管名字里有 XML 的 X，XHR 也不是专门针对 XML 开发的。这只是因为 Internet Explorer 5 当初发布它的时候，把它放到 MSXML 库里，这才“继承”了个 X:
@@ -1429,7 +1485,7 @@ Chrome 开发者工具（简称DevTools）是一组网页制作和调试的工�
 
 那详细解析HTML的流程是怎样的呢？网络进程接收到响应头之后，会根据响应头中的 content-type 字段来判断文件的类型，比如 content-type 的值是“text/html”，那么浏览器就会判断这是一个 HTML 类型的文件，然后为该请求选择或者创建一个渲染进程。渲染进程准备好之后，网络进程和渲染进程之间会建立一个共享数据的管道，网络进程接收到数据后就往这个管道里面放，而渲染进程则从管道的另外一端不断地读取数据，并同时将读取的数据“喂”给 HTML 解析器。你可以把这个管道想象成一个“水管”，网络进程接收到的字节流（其实可以理解为html文档）像水一样倒进这个“水管”，而“水管”的另外一端是渲染进程的 HTML 解析器，它会动态接收字节流，并将其解析为 DOM。
 
-**JavaScript 是如何影响 DOM 生成的**
+**JavaScript 是如何影响 DOM 生成的：**
 
 ```html
 <html>
