@@ -4,7 +4,21 @@
 
 
 
-
+// 给定一个日期范围，获取所有的非周末日期，格式可以自定义，范围可以自定义
+function getWeekDates(start, end) {
+  let startDate = new Date(start);
+  let endDate = new Date(end);
+  let ret = [];
+  while(startDate <= endDate) {
+    let tempDate = new Date(endDate);
+    if (![0,6].includes(tempDate.getDay())) {
+      ret.unshift(tempDate.toLocaleDateString().slice(5))
+    }
+    endDate -= 864e5;
+  }
+  console.log(ret)
+}
+getWeekDates('2020/09/01', '2020/10/31')
 
 
 
