@@ -1,7 +1,149 @@
+let testArr = Array.from({length: 10}, () => Math.floor(Math.random()*100))
 
 
+// 桶排序
+function bucketSort(arr) {
+  const len = arr.length;
+  if (len < 2) return arr;
 
+  console.time();
+  let buckets = [];
+  let res = [];
+  let min = max = arr[0];
+  let space;
+  let n = 0;
 
+  let bucketNum = Math.floor(len/num);
+  while(bucketNum < 2) {
+    num--;
+    bucketNum = Math.floor(len/num);
+  }
+
+  console.timeEnd();
+  return res;
+}
+countSort(testArr);
+
+// 计数排序
+function countSort(arr) {
+  let res = [];
+  let countArr = [];
+
+  console.time();
+  for(let i = 0; i < arr.length; i++) {
+    let key = arr[i];
+    countArr[key] = countArr[key] ? ++countArr[key] : 1;
+  }
+
+  for (let i = 0; i < countArr.length; i++) {
+    while(countArr[i] > 0) {
+      res.push(i);
+      countArr[i]--;
+    }
+  }
+
+  console.timeEnd();
+  return res;
+}
+countSort(testArr);
+
+function testObj() {
+  let a = b = {};
+  // 相当于
+  a.aa = 'aaa'
+  console.log(b);
+}
+testObj();
+console.log(b);// { aa:'aaa' }
+
+console.time();
+function fastSort(arr) {
+  const len = arr.length;
+  if (len < 2) return arr;
+
+  let middle = arr.pop();
+  let left = [];
+  let right = [];
+  arr.forEach(item => {
+    if (item < middle) {
+      left.push(item);
+    } else {
+      right.push(item)
+    }
+  })
+
+  return fastSort(left).concat([middle], fastSort(right))
+}
+console.timeEnd()
+fastSort(testArr);
+
+// 快速es6版本
+console.time();
+function fastSortEs(arr) {
+  const len = arr.length;
+  if (len < 2) return arr;
+
+  // 递归的拆分数组
+  const middle = arr.pop();
+  let left = arr.filter(item => item < middle);
+  let right = arr.filter(item => item >= middle);
+
+  return fastSortEs(left).concat([middle], fastSortEs(right))
+} 
+fastSortEs(testArr)
+console.timeEnd()
+
+// 选择
+function selectSort(arr) {
+  const len = arr.length;
+  if (len < 2) return arr;
+  console.time();
+  // 每次选择最小的放在排好序的数组中
+  for (let i = 0; i < len - 1; i++) {
+    // 假设第一项最小
+    let min = arr[i];
+
+    for (let j = i + 1; j < len; j++) {
+      if (arr[j] < min) {
+        [arr[j], min] = [min, arr[j]]
+      }
+    }
+    // 内层循环完后，会找到一个最小值，
+    arr[i] = min;
+  }
+  console.timeEnd();
+  return arr;
+}
+selectSort(testArr);
+
+// 插入
+function insertSort(arr) {
+  const len = arr.length;
+  if (len < 2) return arr;
+  console.time();
+  // 遍历待插入数组里的数据，挨个从后向前找到插入的位置
+  for (let i = 1; i < len; i++) {
+    // 暂存待插入的数据
+    let temp = arr[i]
+    let j = i - 1;
+    // 遍历已排好序的数组，倒序
+    for (; j >= 0; j--) {
+      // 比最后一项还小，移动
+      if (temp < arr[j]) {
+        arr[j+1] = arr[j]
+      } else {
+        // 否则，退出，必须break，因为j还会继续--
+        break;
+      }
+    }
+    // 内层执行完后，arr[j+1]位置应该为空了，
+    arr[j+1] = temp;
+  }
+  console.timeEnd();
+  return arr;
+}
+
+insertSort(testArr);
 
 
 // 给定一个日期范围，获取所有的非周末日期，格式可以自定义，范围可以自定义
@@ -18,7 +160,7 @@ function getWeekDates(start, end) {
   }
   console.log(ret)
 }
-getWeekDates('2020/09/01', '2020/10/31')
+getWeekDates('2020/09/01', '2020/10/30')
 
 
 
