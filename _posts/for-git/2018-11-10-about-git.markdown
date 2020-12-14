@@ -124,7 +124,7 @@ ssh-keygen -t rsa -C "your_mail@example.com" -f ~/.ssh/my_example_rsa
 # -f 因为默认都会生成同样的秘钥名字，这里相当于重命名
 # 此时会在~/.ssh目录生成my_example_rsa和my_example_rsa.pub两个文件
 # 只需将my_example_rsa.pub拷贝到远程
-# 还需要在~/.ssh目录增加(若没有)config文件，然后里面配置如下信息
+# 注意：还需要在~/.ssh目录增加(若没有)config文件，然后里面配置如下信息
 
 #------------
 # missfresh-gitlab（这是区分不同的用户名，自定义即可）
