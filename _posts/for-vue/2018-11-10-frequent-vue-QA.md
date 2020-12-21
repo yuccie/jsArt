@@ -230,6 +230,9 @@ export default {
 2. 父组件添加 v-on="$listeners"
 3. 爷爷组件添加：v-on:formTop2="handle"
 
+其实就是当嵌套层级比较深时，用来传递事件（$listener）、props（$props）、$attrs(非props特性，非calss及style)
+参考：https://www.cnblogs.com/jin-zhe/p/13099416.html
+
 [vueSyncModifierUrl]: https://cn.vuejs.org/v2/guide/components-custom-events.html#sync-%E4%BF%AE%E9%A5%B0%E7%AC%A6
 [vueNatvieModifierUrl]: https://cn.vuejs.org/v2/guide/components-custom-events.html
 [vueNatvieModifierUrl(知乎)]: https://zhuanlan.zhihu.com/p/36101632
