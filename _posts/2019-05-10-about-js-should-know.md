@@ -1473,11 +1473,11 @@ isNaN(null); // false，null会被转换0
 2. 如果是数值，只是简单的传入和返回
 3. 如果是`null`，返回 0
 4. 如果是`undefined`，返回`NaN`
-5. 如果是字符串，则有以下规则
+5. 如果是字符串，则有以下规则(务必注意是字符串)
 
    - 字符串**只包含数字(可以有正负号)**，则转为 10 进制，如：'1' => 1,'-123' => -123，'011' => 11(忽略前导 0)
    - 字符串**只包含浮点格式(可以有正负号)**，则转为对应浮点数值，忽略前导 0，如：'-01.1' => -1.1
-   - 字符串**包含十六进制格式**，转换为 10 进制，如：'0xa' => 10，'-0xa' => NaN
+   - 字符串**包含十六进制格式**，转换为 10 进制，如：'0xa' => 10，'-0xa' => -10
    - 字符串为空(空格' '或'')，转换为 0
    - 如果字符串中包含上述格式以外的字符，转为`NaN`
 
@@ -1550,18 +1550,18 @@ undefined.valueOf()              // 同上
 // Date对象转换后，直接就是数字了，直接调用数字转化规则
 new Date().valueOf()             // 1551667119234 距今的毫秒数
 
-// 下面几个对象转换之后仍然是对象，因此需要再调用toString()
+// 下面几个对象转换之后仍然是对象，因此会被忽略，从而需要调用toString()
 [].valueOf()                     // []
 ["ABC", true, 12, -5].valueOf()  // ["ABC", true, 12, -5]
 ({}).valueOf()                   // {}
 ({a:1}).valueOf()                // {a:1}
 (function(){}).valueOf()         // function(){}
 
-[].valueOf().toString()                     // ''
-["ABC", true, 12, -5].valueOf().toString()  // "ABC,true,12,-5"
-({}).valueOf().toString()                   // "[object Object]"
-({a:1}).valueOf().toString()                // "[object Object]"
-(function(){}).valueOf().toString()         // "function(){}"
+[].toString()                     // ''
+["ABC", true, 12, -5].toString()  // "ABC,true,12,-5"
+({}).toString()                   // "[object Object]"
+({a:1}).toString()                // "[object Object]"
+(function(){}).toString()         // "function(){}"
 ```
 
 **注意：**`({}).valueOf()`，这里的`{}`用`()`包括起来了，这是因为避免解析器将`{}`解析为代码块，此处应该为对象，所以包裹起来。
