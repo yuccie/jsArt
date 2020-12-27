@@ -2876,6 +2876,15 @@ Date.UTC(2019, 0); // 1546300800000 同 Date.parse(2019)
 Date.UTC(2019); // 1546300800000，其实月省略后也可以
 Date.UTC(2019, 1); // 1548979200000
 new Date(Date.UTC(2019, 1)); //Fri Feb 01 2019 08:00:00 GMT+0800 (中国标准时间)
+
+var date = new Date();
+console.log(date); //Thu Nov 09 2017 18:54:04 GMT+0800 (中国标准时间)
+
+var jsonDate = (date).toJSON();
+console.log(jsonDate); //"2017-11-09T10:51:11.395Z"
+
+var backToDate = new Date(jsonDate);
+console.log(backToDate); //Thu Nov 09 2017 18:54:04 GMT+0800 (中国标准时间)
 ```
 
 其实上面是通过`Date.parse()`获取时间戳，其实如果直接传入日期的字符串(如：`new Date('May 12, 2019')`)，后台调用的也是`Date.parse()`

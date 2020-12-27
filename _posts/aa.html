@@ -1,0 +1,33 @@
+<style>
+  body * {
+    margin: 10px;
+    border: 1px solid blue;
+  }
+</style>
+
+<form>FORM
+  <div>DIV
+    <p>P</p>
+  </div>
+</form>
+
+<script>
+  function getVal(a) {
+    let sum = a;
+    function _f(b) {
+      sum += b;
+      return _f
+    }
+    _f.toString = function() {
+      return sum;
+    }
+    return _f;
+  }
+  console.log(getVal(1)(2)(4).toString()); // 7
+
+  class A extends B {
+    constructor(...args){
+      super(...args);
+    }
+  }
+</script>
