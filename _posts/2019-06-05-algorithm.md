@@ -2915,6 +2915,7 @@ function bfs(root) {
     for (let child of node.child) {
       quene.push(child);
     }
+    debugger
   }
   return res;
 }

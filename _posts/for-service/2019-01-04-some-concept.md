@@ -2213,6 +2213,303 @@ $.html()
 - {decodeEntities: false} 配置是处理中文用的，不然拿到的中文是编码格式。
 - 这里比较麻烦的点是解析返回的数据
 
+#### egg之http相关
+
+- 浏览器中会对 URL 的长度有所限制(一般2000个字符)，如果需要传递的参数过多就会无法传递。[参考](http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers)
+- 服务端经常会将访问的完整 URL 记录到日志文件中，有一些敏感数据通过 URL 传递会不安全。
+
+
+一般请求中有 body 的时候，客户端（浏览器）会同时发送 Content-Type 告诉服务端这次请求的 body 是什么格式的。Web 开发中数据传递最常用的两类格式分别是 JSON 和 Form。
+
+框架内置了 bodyParser 中间件来对这两类格式的请求 body 解析成 object 挂载到 ctx.request.body 上。HTTP 协议中并不建议在通过 GET、HEAD 方法访问时传递 body，所以我们无法在 GET、HEAD 方法中按照此方法获取到内容。
+
+bodyParser默认对于不同的数据格式，限制的数据大小是不同的，json和表单格式一般限定在100kb，如果想覆盖可以
+
+```js
+module.exports = {
+  bodyParser: {
+    jsonLimit: '1mb',
+    formLimit: '1mb',
+  },
+};
+```
+如果用户的请求 body 超过了我们配置的解析最大长度，会抛出一个状态码为 413 的异常，如果用户请求的 body 解析失败（错误的 JSON），会抛出一个状态码为 400 的异常(这也印证了我们常常遇到的400错误)。
+
+**设置 body：**
+
+由于 Node.js 的流式特性，我们还有很多场景需要通过 Stream 返回响应，例如返回一个大文件，代理服务器直接返回上游的内容，框架也支持直接将 body 设置成一个 Stream，并会同时处理好这个 Stream 上的错误事件。
+
+```js
+class ProxyController extends Controller {
+  async proxy() {
+    const ctx = this.ctx;
+    const result = await ctx.curl(url, {
+      streaming: true,
+    });
+    ctx.set(result.header);
+    // result.res 是一个 stream
+    ctx.body = result.res;
+  }
+};
+```
+
+**渲染模板：**
+
+通常来说，我们不会手写 HTML 页面，而是会通过模板引擎进行生成。 框架自身没有集成任何一个模板引擎，但是约定了 View 插件的规范，通过接入的模板引擎，可以直接使用 ctx.render(template) 来渲染模板生成 html。
+
+```js
+class HomeController extends Controller {
+  async index() {
+    const ctx = this.ctx;
+    await ctx.render('home.tpl', { name: 'egg' });
+    // ctx.body = await ctx.renderString('hi, {{ name }}', { name: 'egg' });
+  }
+};
+```
+
+**别名使用：**
+
+```js
+// 假设在 app/router.js 中定义了 home router
+app.get('home', '/', 'home.index');
+
+// 使用 helper 计算指定 url path
+ctx.helper.pathFor('home', { by: 'recent', limit: 20 })
+// => /?by=recent&limit=20
+```
+
+#### 启动自定义
+
+
+我们常常需要在应用启动期间进行一些初始化工作，等初始化完成后应用才可以启动成功，并开始对外提供服务。
+
+框架提供了统一的入口文件（app.js）进行启动过程自定义，**这个文件返回一个 Boot 类，我们可以通过定义 Boot 类中的生命周期方法来执行启动应用过程中的初始化工作**。
+
+框架提供了这些 生命周期函数供开发人员处理：
+
+1. 配置文件即将加载，这是最后动态修改配置的时机（configWillLoad）
+2. 配置文件加载完成（configDidLoad）
+3. 文件加载完成（didLoad）
+4. 插件启动完毕（willReady）
+5. worker 准备就绪（didReady）
+6. 应用启动完成（serverDidReady）
+7. 应用即将关闭（beforeClose）
+
+#### 构建
+
+构建
+JavaScript 语言本身不需要编译的，构建过程主要是下载依赖。但如果使用 TypeScript 或者 Babel 支持 ES6 以上的特性，那就必须要这一步了。
+
+一般安装依赖会指定 NODE_ENV=production 或 npm install --production 只安装 dependencies 的依赖。因为 devDependencies 中的模块过大而且在生产环境不会使用，安装后也可能遇到未知问题。
+
+```bash
+cd baseDir
+npm install --production # 之前构建一般都直接npm i ？岂不是将非生产环境的包也打进去了
+tar -zcvf ../release.tgz .
+```
+
+#### HttpClient
+
+互联网时代，无数服务是基于 HTTP 协议进行通信的，Web 应用调用后端 HTTP 服务是一种非常常见的应用场景。
+
+为此框架基于 urllib 内置实现了一个 HttpClient，应用可以非常便捷地完成任何 HTTP 请求。
+
+框架在应用初始化的时候，会自动将 HttpClient 初始化到 app.httpclient。 同时增加了一个 app.curl(url, options) 方法，它等价于 app.httpclient.request(url, options)。
+
+响应回来的 body，默认 HttpClient 不会做任何处理，会直接返回 Buffer 类型数据。 一旦设置了 options.dataType，HttpClient 将会根据此参数对 data 进行相应的处理。
+
+```js
+// app/controller/npm.js
+class NpmController extends Controller {
+  async post() {
+    const ctx = this.ctx;
+    const result = await ctx.curl('https://httpbin.org/post', {
+      // 必须指定 method
+      method: 'POST',
+      // 通过 contentType 告诉 HttpClient 以 JSON 格式发送
+      // 这就是浏览器端发送数据时的数据格式
+      contentType: 'json',
+      data: {
+        hello: 'world',
+        now: Date.now(),
+      },
+      // 明确告诉 HttpClient 以 JSON 格式处理返回的响应 body
+      dataType: 'json',
+    });
+    ctx.body = result.data;
+  }
+}
+```
+
+#### 高级http请求
+
+面向浏览器设计的 **Form 表单（不包含文件）**提交接口，通常都要求以 `content-type: application/x-www-form-urlencoded` 的格式提交请求数据。
+
+```js
+// app/controller/npm.js
+class NpmController extends Controller {
+  async submit() {
+    const ctx = this.ctx;
+    const result = await ctx.curl('https://httpbin.org/post', {
+      // 必须指定 method，支持 POST，PUT 和 DELETE
+      method: 'POST',
+      // 不需要设置 contentType，HttpClient 会默认以 application/x-www-form-urlencoded 格式发送请求
+      data: {
+        now: Date.now(),
+        foo: 'bar',
+      },
+      // 明确告诉 HttpClient 以 JSON 格式处理响应 body
+      dataType: 'json',
+    });
+    ctx.body = result.data.form;
+    // 响应最终会是类似以下的结果：
+    // {
+    //   "foo": "bar",
+    //   "now": "1483864184348"
+    // }
+  }
+}
+```
+
+当一个 Form 表单提交包含文件的时候，请求数据格式就必须以 multipart/form-data 进行提交了。
+
+以 Stream 方式上传文件，其实，在 Node.js 的世界里面，Stream 才是主流。 如果服务端支持流式上传，最友好的方式还是直接发送 Stream。 Stream 实际会以 Transfer-Encoding: chunked 传输编码格式发送，这个转换是 HTTP 模块自动实现的。
+
+```js
+// app/controller/npm.js
+const fs = require('fs');
+const FormStream = require('formstream');
+class NpmController extends Controller {
+  async uploadByStream() {
+    const ctx = this.ctx;
+    // 上传当前文件本身用于测试
+    const fileStream = fs.createReadStream(__filename);
+    // httpbin.org 不支持 stream 模式，使用本地 stream 接口代替
+    const url = `${ctx.protocol}://${ctx.host}/stream`;
+    const result = await ctx.curl(url, {
+      // 必须指定 method，支持 POST，PUT
+      method: 'POST',
+      // 以 stream 模式提交
+      stream: fileStream,
+    });
+    ctx.status = result.status;
+    ctx.set(result.headers);
+    ctx.body = result.data;
+    // 响应最终会是类似以下的结果：
+    // {"streamSize":574}
+  }
+}
+```
+
+httpClient的一些设置：
+
+```js
+// config/config.default.js
+exports.httpclient = {
+  // 这样也证明了，httpClient端是可以缓存dns的。
+  // 是否开启本地 DNS 缓存，默认关闭，开启后有两个特性
+  // 1. 所有的 DNS 查询都会默认优先使用缓存的，即使 DNS 查询错误也不影响应用
+  // 2. 对同一个域名，在 dnsCacheLookupInterval 的间隔内（默认 10s）只会查询一次
+  enableDNSCache: false,
+  // 对同一个域名进行 DNS 查询的最小间隔时间
+  dnsCacheLookupInterval: 10000,
+  // DNS 同时缓存的最大域名数量，默认 1000
+  dnsCacheMaxLength: 1000,
+
+  request: {
+    // 默认 request 超时时间
+    timeout: 3000,
+  },
+
+  httpAgent: {
+    // 默认开启 http KeepAlive 功能
+    keepAlive: true,
+    // 空闲的 KeepAlive socket 最长可以存活 4 秒
+    freeSocketTimeout: 4000,
+    // 当 socket 超过 30 秒都没有任何活动，就会被当作超时处理掉
+    timeout: 30000,
+    // 允许创建的最大 socket 数
+    maxSockets: Number.MAX_SAFE_INTEGER,
+    // 最大空闲 socket 数
+    maxFreeSockets: 256,
+  },
+
+  httpsAgent: {
+    // 默认开启 https KeepAlive 功能
+    keepAlive: true,
+    // 空闲的 KeepAlive socket 最长可以存活 4 秒
+    freeSocketTimeout: 4000,
+    // 当 socket 超过 30 秒都没有任何活动，就会被当作超时处理掉
+    timeout: 30000,
+    // 允许创建的最大 socket 数
+    maxSockets: Number.MAX_SAFE_INTEGER,
+    // 最大空闲 socket 数
+    maxFreeSockets: 256,
+  },
+};
+```
+
+**发送的数据：data: Object**
+
+需要发送的请求数据，根据 method 自动选择正确的数据处理方式。
+
+- GET，HEAD：通过 querystring.stringify(data) 处理后拼接到 url 的 query 参数上。
+- POST，PUT 和 DELETE 等：需要根据 contentType 做进一步判断处理。
+  - contentType = json：通过 JSON.stringify(data) 处理，并设置为 body 发送。
+  - 其他：通过 querystring.stringify(data) 处理，并设置为 body 发送。
+
+**dataAsQueryString: Boolean**
+
+如果设置了 dataAsQueryString=true，**那么即使在 POST 情况下， 也会强制将 options.data 以 querystring.stringify 处理之后拼接到 url 的 query 参数上**。
+
+可以很好地解决以 stream 发送数据，且额外的请求参数以 url query 形式传递的应用场景：
+
+```js
+ctx.curl(url, {
+  method: 'POST',
+  dataAsQueryString: true,
+  data: {
+    // 一般来说都是 access token 之类的权限验证参数
+    accessToken: 'some access token value',
+  },
+  stream: myFileStream,
+});
+```
+
+**contentType: String**
+
+设置请求数据格式，默认是 undefined，HttpClient 会自动根据 data 和 content(将会忽略请求体) 参数自动设置。 data 是 object 的时候默认设置的是 form。支持 json 格式。
+
+#### 多进程模型及通信
+
+我们知道 JavaScript 代码是运行在单线程上的，换句话说一个 Node.js 进程只能运行在一个 CPU 上。那么如果用 Node.js 来做 Web Server，就无法享受到多核运算的好处。作为企业级的解决方案，我们要解决的一个问题就是:
+
+如何榨干服务器资源，利用上多核 CPU 的并发优势？
+
+而 Node.js 官方提供的解决方案是 Cluster 模块，其中包含一段简介：
+单个 Node.js 实例在单线程环境下运行。为了更好地利用多核环境，用户有时希望启动一批 Node.js 进程用于加载。
+集群化模块使得你很方便地创建子进程，以便于在服务端口之间共享。
+
+Cluster 是什么呢？
+
+简单的说，
+
+- 在服务器上同时启动多个进程。
+- 每个进程里都跑的是同一份源代码（好比把以前一个进程的工作分给多个进程去做）。
+- 更神奇的是，这些进程可以同时监听一个端口（具体[原理参考](https://cnodejs.org/topic/56e84480833b7c8a0492e20c)）。
+
+其中：
+- 负责启动其他进程的叫做 Master 进程，他好比是个『包工头』，不做具体的工作，只负责启动其他进程。
+- 其他被启动的叫 Worker 进程，顾名思义就是干活的『工人』。它们接收请求，对外提供服务。
+- Worker 进程的数量一般根据服务器的 CPU 核数来定，这样就可以完美利用多核资源。
+
+#### 前置代理模式
+一般来说我们的服务都不会直接接受外部的请求，而会将服务部署在接入层之后(比如放在nginx之后)，从而实现多台机器的负载均衡和服务的平滑发布，保证高可用。
+
+在这个场景下，我们无法直接获取到真实用户请求的连接，从而无法确认用户的真实 IP，请求协议，甚至请求的域名。为了解决这个问题，框架默认提供了一系列配置项来让开发者配置，以便基于和接入层的约定（事实标准）来让应用层获取到真实的用户请求信息。
+
+
+
 ### Mongodb4.x
 
 #### 安装方式
