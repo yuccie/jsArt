@@ -18,8 +18,15 @@ date: Fri Jan 04 2019 14:24:26 GMT+0800 (中国标准时间)
 
 因此二者的区别在于代理的对象不一样，正向代理代理的对象是客户端，反向代理代理的对象是服务端。
 
-
 ## nginx常用知识
+
+### nginx常用功能
+
+- 反向代理
+- 负载均衡，包含：内置策略和扩展策略。内置策略为轮询，加权轮询，Ip hash。
+- web缓存
+
+Ip hash算法，对客户端请求的ip进行hash操作，然后根据hash结果将同一个客户端ip的请求分发给同一台服务器进行处理，可以解决session不共享的问题。
 
 ***linux软件安装方式***<br/>
 
@@ -103,11 +110,518 @@ location / {
 }
 ```
 
+### nginx配置解析
+
+```bash
+...              #全局块
+
+events {         #events块
+   ...
+}
+
+http      #http块
+{
+    ...   #http全局块
+    server        #server块
+    { 
+        ...       #server全局块
+        location [PATTERN]   #location块
+        {
+            ...
+        }
+
+        location [PATTERN] 
+        {
+            ...
+        }
+    }
+
+    server
+    {
+      ...
+    }
+    ...     #http全局块
+}
+```
+- 全局块：配置影响nginx全局的指令。一般有运行nginx服务器的用户组，nginx进程pid存放路径，日志存放路径，配置文件引入，允许生成worker process数等。
+- events块：配置影响nginx服务器或与用户的网络连接。有每个进程的最大连接数，选取哪种事件驱动模型处理连接请求，是否允许同时接受多个网路连接，开启多个网络连接序列化等。
+- http块：可以嵌套多个server，配置代理，缓存，日志定义等绝大多数功能和第三方模块的配置。如文件引入，mime-type定义，日志自定义，是否使用sendfile传输文件，连接超时时间，单连接请求数等。
+- server块：配置虚拟主机的相关参数，一个http中可以有多个server。
+- location块：配置请求的路由，以及各种页面的处理情况。
+
+配置的优先级由低到高依次为 http < server < location，其中 http 层级位于 nginx.conf 文件，优先级高的层级配置会覆盖优先级低的层级配置。
+
+```bash
+########### 每个指令必须有分号结束。#################
+
+# 配置用户或者组，默认为nobody nobody。
+user www www; 
+
+# 允许生成的进程数，默认为1，建议设置为等于CPU总核心数
+worker_processes 2; 
+
+# 指定nginx进程运行文件存放地址
+# pid /nginx/pid/nginx.pid; 
+
+# 制定全局错误日志路径以及级别。这个设置可以放入全局块，http块，server块，
+# 级别依次为：debug|info|notice|warn|error|crit|alert|emerg
+error_log log/error.log debug; 
+
+# 指定进程可以打开的最大描述符：数目
+worker_rlimit_nofile 65535;
+
+# 工作模式及连接数上限
+events {
+  # 设置网路连接序列化，防止惊群现象发生，默认为on
+  # 惊群效应：一个网路连接到来，多个睡眠的进程被同时叫醒，但只有一个进程能获得链接，这样会影响系统性能
+  accept_mutex on; 
+
+  # 设置一个进程是否同时接受多个网络连接，默认为off
+  multi_accept on; 
+
+  # 事件驱动模型，select|poll|kqueue|epoll|resig|/dev/poll|eventport
+  # 是Linux 2.6以上版本内核中的高性能网络I/O模型，linux建议epoll，如果跑在FreeBSD上面，就用kqueue模型。
+  use epoll; 
+
+  # 单个进程允许的最大连接数，默认为512，最大连接数=连接数*进程数，尽量大，但是别把cpu跑到100%就行
+  worker_connections 1024; 
+
+  # keepalive超时时间。
+  keepalive_timeout 60;
+
+  # 客户端请求头部的缓冲区大小。根据你的系统分页大小来设置，一般一个请求头的大小不会超过1k，
+  # 不过由于一般系统分页都要大于1k，所以这里设置为分页大小。
+  # 分页大小可以用命令getconf PAGESIZE 取得。
+  # [root@web001 ~]# getconf PAGESIZE
+  # 4096
+  # 但也有client_header_buffer_size超过4k的情况，
+  # 但是client_header_buffer_size该值必须设置为“系统分页大小”的整倍数。
+  client_header_buffer_size 4k;
+
+  # 这个将为打开文件指定缓存，默认是没有启用的，max指定缓存数量，建议和打开文件数一致，
+  # inactive是指经过多长时间文件没被请求后删除缓存。
+  open_file_cache max=65535 inactive=60s;
+
+  # 这个是指多长时间检查一次缓存的有效信息。
+  # 语法: open_file_cache_valid time 默认值:open_file_cache_valid 60 
+  # 使用字段:http, server, location 这个指令指定了何时需要检查open_file_cache中缓存项目的有效信息.
+  open_file_cache_valid 80s;
+
+  # open_file_cache指令中的inactive参数时间内文件的最少使用次数，如果超过这个数字，文件描述符一直是在缓存中打开的，如上例，如果有一个文件在inactive时间内一次没被使用，它将被移除。
+  # 语法: open_file_cache_min_uses number 默认值:open_file_cache_min_uses 1 
+  open_file_cache_min_uses 1;
+
+  # 这个指令指定是否在搜索一个文件时记录cache错误.
+  open_file_cache_errors on;
+}
+
+# 设定http服务器，利用它的反向代理功能提供负载均衡支持
+http {
+  # 文件扩展名与文件类型映射表。设定mime类型(邮件支持类型),类型由mime.types文件定义
+  # include /usr/local/etc/nginx/conf/mime.types;
+  include mime.types; 
+
+  # 默认文件类型，默认为text/plain
+  default_type application/octet-stream; 
+
+  # 默认编码
+  # charset utf-8;
+
+  # 取消服务访问日志
+  # access_log off;
+   
+  #自定义日志格式（其实就是通过各种变量拼接成字符串log信息）
+  log_format myFormat '$remote_addr–$remote_user [$time_local] $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for';
+
+  # 设置访问日志路径和格式。"log/"该路径为nginx日志的相对路径，mac下是/usr/local/var/log/。
+  # combined为日志格式的默认值
+  access_log log/access.log myFormat; 
+  rewrite_log on;
+
+  # 开启高效文件传输模式，sendfile指令指定nginx是否调用sendfile函数来输出文件，对于普通应用设为 on，如果用来进行下载等应用磁盘IO重负载应用，可设置为off，以平衡磁盘与网络I/O处理速度，降低系统的负载。注意：如果图片显示不正常把这个改成off。
+  # sendfile指令指定 nginx 是否调用sendfile 函数（zero copy 方式）来输出文件，对于普通应用，必须设为on。如果用来进行下载等应用磁盘IO重负载应用，可设置为off，以平衡磁盘与网络IO处理速度，降低系统uptime。
+  sendfile on; 
+
+  # 每个进程每次调用传输数量不能大于设定的值，默认为0，即不设上限。
+  sendfile_max_chunk 100k; 
+
+  # 设定通过nginx上传文件的大小
+  client_max_body_size 10m;
+
+  # 开启目录列表访问，适合下载服务器，默认关闭。
+  autoindex on;
+
+  # 此选项允许或禁止使用sockt的TCP_CORK的选项，此选项仅在使用sendfile的时候使用
+  tcp_nopush on;
+
+  tcp_nodelay on;
+
+  # 长连接超时时间，默认为75s，可以在http，server，location块。
+  keepalive_timeout 65; 
+
+  # gzip模块设置
+  gzip on; # 开启gzip压缩输出
+  gzip_min_length 1k;    # 最小压缩文件大小
+  gzip_buffers 4 16k;    # 压缩缓冲区
+  gzip_http_version 1.0; # 压缩版本（默认1.1，前端如果是squid2.5请使用1.0）
+  gzip_comp_level 2;     # 压缩等级
+  # 压缩类型，默认就已经包含textml，所以下面就不用再写了，写上去也不会有问题，但是会有一个warn。
+  gzip_types text/plain application/x-javascript text/css application/xml;    
+  gzip_vary on;
+
+  # 负载均衡配置，设定实际的服务器列表
+  # 轮询（默认）、weight、ip_hash、fair（第三方）、url_hash（第三方）
+  upstream mysvr1 {   
+    server 127.0.0.1:7878;
+    server 192.168.10.121:3333 backup; #热备(其它所有的非backup机器down或者忙的时候，请求backup机器))
+  }
+  upstream mysvr2 {
+    # weigth参数表示权值，权值越高被分配到的几率越大
+    server 192.168.1.11:80 weight=5;
+    server 192.168.1.12:80 weight=1;
+    server 192.168.1.13:80 weight=6;
+  }
+  upstream https-svr {
+    # 每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，可以解决session的问题
+    ip_hash;
+    server 192.168.1.11:90;
+    server 192.168.1.12:90;
+  }
+  # 3、fair（第三方）
+  # 按后端服务器的响应时间来分配请求，响应时间短的优先分配。
+  upstream backend {
+    server server1;
+    server server2;
+    fair;
+  }
+  # 4、url_hash（第三方）
+  # 按访问url的hash结果来分配请求，使每个url定向到同一个后端服务器，后端服务器为缓存时比较有效。
+  # 例：在upstream中加入hash语句，server语句中不能写入weight等其他的参数，hash_method是使用的hash算法
+  upstream backend {
+    server squid1:3128;
+    server squid2:3128;
+    hash $request_uri;
+    hash_method crc32;
+  }
+
+# error_page 404 https://www.baidu.com; # 错误页
+
+# 虚拟主机的配置，静态资源一般放在nginx所在主机
+  server {
+    listen 80; # 监听HTTP端口
+    server_name 127.0.0.1; # 监听地址  
+    keepalive_requests 120; # 单连接请求上限次数
+    set $doc_root_dir "/Users/doing/IdeaProjects/edu-front-2.0"; #设置server里全局变量
+    #index index.html;  # 定义首页索引文件的名称
+    location ~*^.+$ { # 请求的url过滤，正则匹配，~为区分大小写，~*为不区分大小写。
+      root $doc_root_dir; # 静态资源根目录
+      proxy_pass http://mysvr1; # 请求转向“mysvr1”定义的服务器列表
+      # deny 127.0.0.1; # 拒绝的ip
+      # allow 172.18.5.54; # 允许的ip           
+    } 
+  }
+
+# http
+  server {
+    listen 80;
+    server_name www.helloworld.com; # 监听的虚拟主机。可有多个，空格隔开，可以使用正则表达式和通配符
+    charset utf-8; # 编码格式
+    set $static_root_dir "/Users/doing/static";
+
+    # 对xxx进行负载均衡
+    location /app1 { # 反向代理的路径（和upstream绑定），location后面设置映射的路径 
+      proxy_pass http://zp_server1;
+    } 
+    location /app2 {  
+      proxy_pass http://zp_server2;
+    } 
+    location ~ ^/(images|javascript|js|css|flash|media|static)/ {  # 静态文件，nginx自己处理
+      root $static_root_dir;
+      expires 30d; # 静态资源过时间30天
+    }
+    # JS和CSS缓存时间设置
+    location ~ .*.(js|css)?$ {
+      expires 1h;
+    }
+    location ~ /\.ht {  # 禁止访问 .htxxx 文件
+      deny all;
+    }
+    location = /do_not_delete.html { # 直接简单粗暴的返回状态码及内容文本
+      return 200 "hello.";
+    }
+
+    # 指定某些路径使用https访问(使用正则表达式匹配路径+重写uri路径)
+    location ~* /http* { # 路径匹配规则：如localhost/http、localhost/httpsss等等
+      # rewrite只能对域名后边的除去传递的参数外的字符串起作用，
+      # 例如www.c.com/proxy/html/api/msg?method=1&para=2只能对/proxy/html/api/msg重写。
+      # 语法：rewrite 规则 定向路径 重写类型;
+      # rewrite后面的参数是一个简单的正则。$1代表正则中的第一个()。
+      # $host是nginx内置全局变量，代表请求的主机名（内置全局变量下面有）
+      # 重写规则permanent表示返回301永久重定向，临时为redirect
+      rewrite ^/(.*)$ https://$host/$1 permanent;
+    }
+
+    # 错误处理页面（可选择性配置）
+    # error_page 404 /404.html;
+    # error_page 500 502 503 504 /50x.html;
+
+    # 以下是一些反向代理的配置(可选择性配置)
+    # proxy_redirect off;
+    # proxy_set_header Host $host; # proxy_set_header用于设置发送到后端服务器的request的请求头
+    # proxy_set_header X-Real-IP $remote_addr;
+
+    # 后端的Web服务器可以通过X-Forwarded-For获取用户真实IP
+    # proxy_set_header X-Forwarded-For $remote_addr; 
+    # proxy_connect_timeout 90; # nginx跟后端服务器连接超时时间(代理连接超时)
+    # proxy_send_timeout 90; # 后端服务器数据回传时间(代理发送超时)
+    # proxy_read_timeout 90; # 连接成功后，后端服务器响应时间(代理接收超时)
+    # proxy_buffer_size 4k;  # 设置代理服务器（nginx）保存用户头信息的缓冲区大小
+    # proxy_buffers 4 32k; # proxy_buffers缓冲区，网页平均在32k以下的话，这样设置
+    # proxy_busy_buffers_size 64k; # 高负荷下缓冲大小（proxy_buffers*2）
+    # proxy_temp_file_write_size 64k; # 设定缓存文件夹大小，大于这个值，将从upstream服务器传
+
+    # client_body_buffer_size 128k; # 缓冲区代理缓冲用户端请求的最大字节数
+  }
+
+    # https
+    # 1、HTTPS的固定端口号是443，不同于HTTP的80端口；
+    # 2、SSL标准需要引入安全证书，所以在 nginx.conf 中你需要指定证书和它对应的 key
+  server {
+    listen 443;
+    server_name  www.hellohttps1.com www.hellohttps2.com;
+    set $geek_web_root "/Users/doing/IdeaProjects/backend-geek-web";
+    ssl_certificate      /usr/local/etc/nginx/ssl-key/ssl.crt; # ssl证书文件位置(常见证书文件格式为：crt/pem)
+    ssl_certificate_key  /usr/local/etc/nginx/ssl-key/ssl.key; # ssl证书key位置
+    location /passport {
+      send_timeout 90;
+      proxy_connect_timeout 50;
+      proxy_send_timeout 90;
+      proxy_read_timeout 90;
+      proxy_pass http://https-svr;
+    }
+    location ~ ^/(res|lib)/ {
+      root $geek_web_root; 
+      expires 7d;
+      # add_header用于为后端服务器返回的response添加请求头，这里通过add_header实现CROS跨域请求服务器
+      add_header Access-Control-Allow-Origin *; 
+    }
+    # ssl配置参数（选择性配置）
+    ssl_session_cache shared:SSL:1m;
+    ssl_session_timeout 5m;
+  }
+
+  # 配置访问控制：每个IP一秒钟只处理一个请求，超出的请求会被delayed
+  # 语法：limit_req_zone  $session_variable  zone=name:size  rate=rate
+  # 为session会话状态分配一个大小为size的内存存储区，限制了每秒（分、小时）只接受rate个IP的频率
+  limit_req_zone  $binary_remote_addr zone=req_one:10m   rate=1r/s nodelay;
+
+  location /pay {
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real_IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    # 访问控制：limit_req zone=name [burst=number] [nodelay];
+    # burst=5表示超出的请求(被delayed)如果超过5个，那些请求会被终止（默认返回503）
+    limit_req zone=req_one burst=5; 
+    proxy_pass http://mysvr1;
+  }
+
+  #可以把子配置文件放到/usr/local/etc/nginx/servers/路径下，通过include引入
+  include /usr/local/etc/nginx/servers/*.conf;
+}
+```
+
+**server 匹配规则详解:**
+
+server 匹配方式一般有以下几种：
+
+- 精准匹配，如 www.site1.com 匹配 www.site1.com
+- 前通配符匹配，如 *.site1.com 匹配 www.site1.com
+- 后通配符匹配，如 www.site1.* 匹配 www.site1.com
+- 正则匹配，如 ~^(www|img).*\.site1\.com 匹配 www.site1.com
+- default_server 匹配
+
+以上规则优先级由高到低，当第一种找不到时，则去找第二种，以此类推
+
+location语法规则：
+
+```js
+location optional_modifier location_match {
+  ...
+}
+```
+
+optional_modifier 有如下几种取值：
+
+- 不指定：那么此时 location_match 将会作为一组请求 URI 的匹配前缀
+- =：使用等号将会精准完全匹配 location_match
+- ~：将会匹配一组大小写敏感（区分大小写）的正则表达式的 location_match
+- ~*：将会匹配一组大小写不敏感（不区分大小写）的正则表达式的 location_match
+- ^~：如果 location_match 满足，则直接使用这个 location，忽略剩下的正则 location 查找
+
+```js
+// 会匹配 /api，/api/user，/api/project/1。
+location /api {}
+
+// 只会严格匹配 /user 请求，而不会匹配 /user/info 等。
+location = /api {}
+
+// 区分大小写，会匹配 /avatar.jpg，/avatar.jpeg，/avatar.png 等，但是不会匹配 /avatar.PNG。
+location ~ \.(jpe?g|png|gif|ico)$ {}
+
+// 
+```
+
+**NGINX 匹配 location 的过程：**
+
+1. NGINX 选出所有的前缀匹配 location（**非正则表达式的 location**），将请求 URI 与 location 逐一比对
+2. NGINX 首先会去找使用了 = 的 location，如果能找到一个与请求 URI 完全匹配的使用了 = 的 location，那么请求将会立即响应，返回给客户端
+3. 如果没有找到与请求 URI 完全匹配的使用了 = 的 location，那么 NGINX 会去查找最长的前缀匹配，有如下两种情况：
+  1. 如果一个最长的前缀匹配使用了 ^~，那么 NGINX 会立即停止搜索，使用这个 location 处理请求
+  2. 如果最长前缀匹配没有使用 ^~，那么这个前缀匹配会被 NGINX 暂存起来，进行下面的查找
+4. 接下来 NGINX 将会查找**正则表达式的 location**（包括大小写敏感和不敏感的），如果有任意一个正则表达式的 location 能够匹配前面暂存的前缀 location，那么将会被 NGINX 存储到正则表达式 location 队列的最前面，所有的正则表达式 location 搜索完毕之后，NGINX 将会使用正则表达式 location 队列中的第一个 location
+5. 如果没有找到一个正则表达式 location，那么 NGINX 将会使用前面暂存的前缀 location
+
+```js
+// 步骤4、5意思是：
+location /user {}
+location /user/project {}
+location ~ \.(jpe?g|png|gif|ico)$ {}
+```
+对于上面的配置：
+如果请求的 URI 为 `/user/project/avatar.jpg`
+NGINX 会先匹配到最长前缀 location，即第二个，然后，将这个最长前缀 location 暂存起来，继续找有没有满足的正则表达式 location，显然，第三个 location 是符合的，所以 NGINX 最终会使用第三个 location 处理请求。
+
+如果请求的 URI 为 `/user/project/task/1`
+过程类似，当最长前缀 location 暂存之后，发现剩下的正则表达式 location 都不满足，那么则直接使用暂存的 location，也就是第二个 location 处理请求。
+
+**location 跳转：**
+
+注意，经过上述过程挑选出的 location，并不一定是最终处理请求的 location，还有几种情况会导致 location 出现跳转，场景的情况有如下几种：
+
+- index
+- try_files
+- rewrite
+- error_page
+
+**1、index**
+
+```js
+root /srv/www/hello;
+index index.html;
+location = /user {
+}
+```
+如果请求的 URI 为 /user，而 /user 是一个目录的话，NGINX 内部会做一次 index 跳转，实际返回的文件为 /srv/www/hello/user/index.html。
+
+**2、try_files**
+try_files 会根据后面的参数，依次尝试对应的文件是否存在，如果存在则立即返回，否则就继续进行查找。
+
+```js
+root /srv/www/hello;
+location / {
+  try_files $uri $uri.html $uri/ /fallback/index.html;
+}
+
+location /fallback {
+  root /var/www/another;
+}
+```
+在上面的配置中，假设请求为 /user，则第一个 location 会依次尝试：
+
+1. 检测 /srv/www/hello/user 文件是否存在，如不存在，则
+2. 检测 /srv/www/hello/user.html 文件是否存在，如不存在，则
+3. 检测 /srv/www/hello/user 目录是否存在，如不存在，则
+4. 跳转到 /fallback/index.html，而这会匹配到第二个 location
+5. 最终响应的文件为 /var/www/another/index.html
+
+**3、rewrite**
+
+```js
+root /srv/www/hello;
+location / {
+  rewrite ^/user/(.*)$ /$1 last;
+  try_files $uri $uri.html $uri/ /fallback/index.html;
+}
+
+location /fallback {
+  root /var/www/another;
+}
+```
+
+在上面的配置中，假设请求为 /user/hello，首先会匹配到第一个 location，此时符合 rewrite 的要求，得到新的目标为 /hello，这将会再次匹配到第一个 location，此时 rewrite 已经不符合了，则会进入到 try_files 过程，即上一小节的内容。
+
+**4、error_page**
+
+error_page 的过程与 try_files 类似，用于处理一些特定错误码出现时的场景，如果已经使用了 try_files 时，error_page 往往是用不到的，因为 try_files 可以接管这种情况。
+
+```js
+root /srv/www/hello;
+location / {
+  error_page 404 /another/whoops.html;
+}
+location /another {
+  root root /srv/www/error;
+}
+```
+
+在上面的配置中，所有的请求（除 /another 外），都会被第一个 location 处理，当某个文件找不到时，也就是出现了 404 错误，error_page 会触发 /another/whoops.html，此时会匹配到第二个 location，实际返回给客户端的文件为 /srv/www/error/whoops.html。
+
+
+location [=|*|^~] /uri/ { … }
+
+- = 开头表示精确匹配
+- ^~ 开头表示uri以某个常规字符串开头，理解为匹配 url路径即可。nginx不对url做编码，因此请求为/static/20%/aa，可以被规则^~ /static/ /aa匹配到（注意是空格）。
+- ~ 开头表示区分大小写的正则匹配
+- ~* 开头表示不区分大小写的正则匹配
+- !和!*分别为区分大小写不匹配及不区分大小写不匹配 的正则
+- / 通用匹配，任何请求都会匹配到。
+
+多个location配置的情况下匹配顺序为: **首先匹配 =，其次匹配^~, 其次是按文件中顺序的正则匹配，最后是交给 /**
+
+通用匹配。当有匹配成功时候，停止匹配，按当前匹配规则处理请求。
+
+内置全局变量
+```bash
+1.$remote_addr 与 $http_x_forwarded_for 用以记录客户端的ip地址；
+2.$remote_user ：用来记录客户端用户名称；
+3.$time_local ： 用来记录访问时间与时区；
+4.$request ： 用来记录请求的url与http协议；
+5.$status ： 用来记录请求状态；成功是200；
+6.$body_bytes_s ent ：记录发送给客户端文件主体内容大小；
+7.$http_referer ：用来记录从那个页面链接访问过来的；
+8.$http_user_agent ：记录客户端浏览器的相关信息；
+
+$args ：这个变量等于请求行中的参数，同$query_string
+$content_length ： 请求头中的Content-length字段。
+$content_type ： 请求头中的Content-Type字段。
+$document_root ： 当前请求在root指令中指定的值。
+$host ： 请求主机头字段，否则为服务器名称。
+$http_user_agent ： 客户端agent信息
+$http_cookie ： 客户端cookie信息
+$limit_rate ： 这个变量可以限制连接速率。
+$request_method ： 客户端请求的动作，通常为GET或POST。
+$remote_addr ： 客户端的IP地址。
+$remote_port ： 客户端的端口。
+$remote_user ： 已经经过Auth Basic Module验证的用户名。
+$request_filename ： 当前请求的文件路径，由root或alias指令与URI请求生成。
+$scheme ： HTTP方法（如http，https）。
+$server_protocol ： 请求使用的协议，通常是HTTP/1.0或HTTP/1.1。
+$server_addr ： 服务器地址，在完成一次系统调用后可以确定这个值。
+$server_name ： 服务器名称。
+$server_port ： 请求到达服务器的端口号。
+$request_uri ： 包含请求参数的原始URI，不包含主机名，如：”/foo/bar.php?arg=baz”。
+$uri ： 不带请求参数的当前URI，$uri不包含主机名，如”/foo/bar.html”。
+$document_uri ： 与$uri相同。
+```
+
+[nginx配置入门](https://zhuanlan.zhihu.com/p/31202053)
+[nginx.conf详解](https://www.w3cschool.cn/nginx/nginx-d1aw28wa.html)
+
+
 ***nginx实现跨域***<br/>
 前端服务一般是静态文件，放在一个nginx服务器上，这个nginx还可以配置代理，以实现前端的接口请求后端不存在跨域问题。
 
 跨域是浏览器的安全行为，从浏览器端发出的请求，确实到了服务器，服务器也响应的，只是浏览器检测如果存在跨域行为，浏览器拦截了响应，并在控制台报错。
-
 
 而如果在nginx上配置代理，则相当于将所有前端的请求的前缀都换成服务器的了，这样的话，浏览器就会以为所有url都是相同的域名、协议和端口，也就是不是跨域了，具体配置可类似如下：
 
@@ -228,7 +742,6 @@ nginx -s reload
 # -p prefix     : set prefix path (default: /usr/local/Cellar/nginx/1.17.1/)
 # -c filename   : set configuration file (default: /usr/local/etc/nginx/nginx.conf)
 # -g directives : set global directives out of configuration file
-
 ```
 
 ## rddis常用知识

@@ -1948,6 +1948,8 @@ module.exports = {
 
 其实[`postcss`][postcssOfficialUrl]就是一个平台，在平台上可以借助各种中间件，实现各种操作，如下是自动添加前缀的中间件。
 
+PostCSS 接收一个 CSS 文件并提供了一个 API 来分析、修改它的规则（通过把 CSS 规则转换成一个抽象语法树的方式）。在这之后，这个 API 便可被许多插件利用来做有用的事情，比如寻错或自动添加 CSS vendor 前缀。
+
 ```js
 // 先安装postcss，autoprefixer，然后node运行这个文件
 var postcss = require('postcss');

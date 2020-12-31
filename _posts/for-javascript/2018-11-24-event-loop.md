@@ -274,6 +274,8 @@ function loadImgAsync(url) {
 ```
 
 上面代码中，使用 Promise 包装了一个图片加载的异步操作。如果加载成功，就调用 resolve 方法，否则就调用 reject 方法。
+[图片加载失败的处理方式](https://www.jianshu.com/p/394c487d81d7)<br/>
+[图片加载失败展示alt](https://www.zhangxinxu.com/wordpress/2020/10/css-style-image-load-fail/)
 
 再来看一个 Promise 实现的 ajax 操作的例子
 
