@@ -108,6 +108,21 @@ function formatCommandline(command: string[] | string) {
 
   // Do stuff with line: string
 }
+
+// 12、unknown类型
+// 就像所有类型都可以赋值给 any，所有类型也都可以赋值给 unknown。
+// 但是，作为unknown类型的值，只能赋值给any和unknown
+let value: unknown;
+
+value = true; // OK
+value = 42; // OK
+
+// 
+let value: unknown;
+let value1: unknown = value; // OK
+let value2: any = value; // OK
+let value3: boolean = value; // Error
+let value4: number = value; // Error
 ```
 
 ### 解构、展开
@@ -794,7 +809,63 @@ TypeScript编译器通过使用tsconfig.json文件里的"paths"来支持这样�
 
 - "*"： 表示名字不发生改变，所以映射为<moduleName> => <baseUrl>/<moduleName>
 - "generated/*"表示模块名添加了“generated”前缀，所以映射为<moduleName> => <baseUrl>/generated/<moduleName>
+### 断言
 
+```js
+// 1、类型断言
+// 1-1、尖括号语法
+let someValue: any = "this is a string";
+let strLength: number = (\<string>someValue).length;
+
+// 1-2、as语法
+let someValue: any = 'this is a string';
+let strLen: number = (someValue as string).length;
+
+
+// 2、非空断言
+// 后缀表达式操作符 ! 可以用于断言操作对象是非 null 和非 undefined 类型
+// 2-1、忽略undefined和null
+function myFunc(maybeString: string | undefined | null) {
+  // Type 'string | null | undefined' is not assignable to type 'string'.
+  // Type 'undefined' is not assignable to type 'string'. 
+  const onlyString: string = maybeString; // Error
+  const ignoreUndefinedAndNull: string = maybeString!; // Ok，这里就忽略了null和undefined，所以成功
+}
+// 2-2、调用函数时忽略
+type NumGenerator = () => number;
+
+function myFunc(numGenerator: NumGenerator | undefined) {
+  const num1 = numGenerator(); // Error
+  const num2 = numGenerator!(); // ok，这就排除了undefined，所以可以
+}
+
+// 但要注意：非空断言只是在编译阶段起到检查目的，如果设法通过了编译，则还是会出现null和undefined
+const a: number | undefined = undefined;
+const b: number = a!;
+console.log(b); 
+
+// 以上 TS 代码会编译生成以下 ES5 代码：
+"use strict";
+const a = undefined;
+const b = a;
+console.log(b); // 依然会打印undefined
+// 因此，ts的目的就是在编译阶段阻止错误可能的发生。
+
+
+// 3、确定赋值断言
+// 在使用const或者let定义变量时，常常发生错误：使用在定义之前；
+// 其实就是说变量在赋值前被使用了。。。此时就可以用确定赋值断言，明确告诉编译器，这个变量肯定会被赋值
+
+let a: number;
+// Variable 'a' is used before being assigned.
+console.log(a); // error
+a = 1;
+
+// 用!断言，编译器就会知道该属性会被明确地赋值
+let a!: number;
+console.log(a); // ok
+a = 1;
+```
 ### 常见ts引入问题：
 
 #### 不识别@
