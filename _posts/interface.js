@@ -38,7 +38,7 @@ function queuePostFlushCb(cb) {
 
   queueFlush()
 
-} 
+}
 
 // 深拷贝
 function deepClone(target) {
@@ -115,7 +115,7 @@ function bigNumAdd(a, b) {
   let res = ''; // 最终结果
   let carry = 0; // 进位
   // 只要有一个长度大于等于0，即循环
-  while(i >= 0 || j >= 0) {
+  while (i >= 0 || j >= 0) {
     let x = 0;
     let y = 0;
     let sum = 0; // 两个数的和
@@ -188,7 +188,7 @@ function getLen(arr) {
     for (let j = 0; j < i; j++) {
       // 每次i都会增加，记录不同数组长度下，有几个递增的。
       if (temp > arr[j]) {
-        max = Math.max(max, dp[j]+1)
+        max = Math.max(max, dp[j] + 1)
       }
     }
     dp[i] = max;
@@ -196,21 +196,21 @@ function getLen(arr) {
 
   return Math.max(...dp)
 }
-getLen([10,9,2,5,3,7,101,18])
+getLen([10, 9, 2, 5, 3, 7, 101, 18])
 
-var lengthOfLongestSubstring = function(s) {
+var lengthOfLongestSubstring = function (s) {
   let num = 0, res = 0, m = '';
   for (let n of s) {
-  if (m.indexOf(n) === -1) {
-    m += n;
-    num++;
-    res = num > res ? num : res;
-  } else {
-    m += n;
-    // 删除第一个重复的字符
-    m = m.slice(m.indexOf(n)+1)
-    num = m.length;
-  }
+    if (m.indexOf(n) === -1) {
+      m += n;
+      num++;
+      res = num > res ? num : res;
+    } else {
+      m += n;
+      // 删除第一个重复的字符
+      m = m.slice(m.indexOf(n) + 1)
+      num = m.length;
+    }
   }
   return res;
 };
@@ -219,18 +219,18 @@ function insertSort(arr) {
   let len = arr.length;
   if (len < 2) return arr;
 
-  for(let i = 1; i < len ;i++) {
+  for (let i = 1; i < len; i++) {
     let temp = arr[i];
 
     let j = i - 1;
-    for(;j>=0;j--) {
-      if (arr[j]> temp) {
-        arr[j+1] = arr[j]
+    for (; j >= 0; j--) {
+      if (arr[j] > temp) {
+        arr[j + 1] = arr[j]
       } else {
         break;
       }
     }
-    arr[j+1] = temp;
+    arr[j + 1] = temp;
   }
   return arr;
 }
@@ -260,7 +260,7 @@ class MyPromise {
     // 立马执行
     try {
       executor(resolve, reject);
-    } catch(err) {
+    } catch (err) {
       reject(err)
     }
   }
@@ -319,7 +319,7 @@ class MyPromise {
     // 立马执行
     try {
       executor(resolve, reject);
-    } catch(err) {
+    } catch (err) {
       reject(err)
     }
   }
@@ -381,7 +381,7 @@ class MyPromise {
     // 立马执行
     try {
       executor(resolve, reject);
-    } catch(err) {
+    } catch (err) {
       reject(err)
     }
   }
@@ -455,7 +455,7 @@ class MyPromise {
       return reject(new TypeError('Chaining cycle detected for promise #<Promise>'))
     }
     // 只调用一次
-    let called; 
+    let called;
     // 区分对象和函数
     if ((typeof x === 'object' && x !== null) || typeof x === 'function') {
       try {
@@ -490,7 +490,7 @@ class MyPromise {
 }
 
 // 手动实现Promise.prototype.finally
-MyPromise.prototype.finally = function(cb) {
+MyPromise.prototype.finally = function (cb) {
   return this.then(value => {
     return MyPromise.resolve(cb()).then(() => value)
   }, reason => {
@@ -498,7 +498,7 @@ MyPromise.prototype.finally = function(cb) {
   })
 }
 // 实现promise.all 
-Promise.all = function(values) {
+Promise.all = function (values) {
   if (!Array.isArray(values)) {
     return new TypeError(`TypeError: ${type} ${values} is not iterable`)
   }
@@ -582,7 +582,7 @@ class MyPromise {
           try {
             let x = onFulfilled(this.value);
             // 将返回值包装一下
-            this.resolvePromise(p2, x, resolve, reject );
+            this.resolvePromise(p2, x, resolve, reject);
           } catch (error) {
             reject(error);
           }
@@ -591,12 +591,12 @@ class MyPromise {
     })
     // 如果成功
     if (this.status === 'fulfilled') {
-      onFulfilled(this.value) 
+      onFulfilled(this.value)
     }
     if (this.status === 'rejected') {
       onRejected(this.reason)
     }
-    
+
     // 如果是pending状态，则压入到数组中
     if (this.status === 'pending') {
       this.onFulfilledCbs.push(() => {
@@ -617,7 +617,7 @@ function deepClonePro(target) {
   }
   function _deep(target) {
     // 非数组或对象，直接返回
-    if(!['Object', 'Array'].includes(_getType(target))) return target;
+    if (!['Object', 'Array'].includes(_getType(target))) return target;
 
     // 如果map里有，直接返回，解决循环引用
     if (wMap.has(target)) return wMap.get(target);
@@ -639,7 +639,7 @@ function deepClone(obj) {
   let ret = Object.create(null);
   for (let prop in obj) {
     if (obj.hasOwnProperty(prop)) {
-      typeof obj[prop] === 'object' 
+      typeof obj[prop] === 'object'
         ? ret[prop] = deepClone(obj[prop])
         : ret[prop] = obj[prop]
     }
@@ -683,7 +683,7 @@ function deepClonePro(target) {
   }
   function _deep(target) {
     // 非数组或对象，直接返回
-    if(!['Object', 'Array'].includes(_getType(target))) return target;
+    if (!['Object', 'Array'].includes(_getType(target))) return target;
 
     // 如果map里有，直接返回，解决循环引用
     if (wMap.has(target)) return wMap.get(target);
@@ -702,7 +702,7 @@ function deepClonePro(target) {
 }
 let obj = {
   date: new Date(),
-  fn: function() {},
+  fn: function () { },
   sym: Symbol,
   a: '1',
   b: 2,
@@ -743,7 +743,7 @@ function deepClonePro(target) {
 }
 let obj = {
   date: new Date(),
-  fn: function() {},
+  fn: function () { },
   sym: Symbol,
   a: '1',
   b: 2,
@@ -776,6 +776,7 @@ function throttle(fn, interval = 300) {
 }
 window.addEventListener('resize', throttle(() => console.log('d'), 2000))
 
+// Array.from接受像数组的对象，然后生成一个新的数组
 let testArr = Array.from({ length: 5000 }, () => Math.floor(Math.random() * 100))
 
 // 冒泡排序
@@ -798,6 +799,40 @@ function bubbleSort(arr) {
 }
 bubbleSort(testArr)
 
+// 两两比较，每轮循环，都会找到一个最值放在一侧
+// 需要循环length轮
+function bubbleSort(arr) {
+  const len = arr.length;
+  for (let i = 0; i < len; i++) {
+    // 每轮循环，最值都会在一侧，因此-i
+    for (let j = 0; j < len - i - 1; j++) {
+      // 两两比较
+      if (arr[j] > arr[j + 1]) {
+        [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]]
+      }
+    }
+  }
+  return arr;
+}
+// 还可以在每轮循环里增加flag，若是一轮循环后，没有调换顺序，说明已经排好序了
+function bubbleSort(arr) {
+  const len = arr.length;
+  for (let i = 0; i < len; i++) {
+    let flag = true;
+    // 每轮循环，最值都会在一侧，因此-i
+    for (let j = 0; j < len - i - 1; j++) {
+      // 两两比较
+      if (arr[j] > arr[j + 1]) {
+        flag = false;
+        [arr[j + 1], arr[j]] = [arr[j], arr[j + 1]]
+      }
+    }
+    if (flag) break;
+  }
+  return arr;
+}
+
+
 // 插入排序
 // 一个数组，假设一部分是排好序的，另一部分挨个拿过来比较，看需要插在哪个位置？
 function insertSort(arr) {
@@ -812,7 +847,7 @@ function insertSort(arr) {
     let j = i - 1;
     for (; j >= 0; j--) {
       if (arr[j] > temp) {
-        arr[j+1] = arr[j]
+        arr[j + 1] = arr[j]
       } else {
         // 必须break，否则j还会继续循环，就出问题了
         break;
@@ -820,11 +855,38 @@ function insertSort(arr) {
     }
 
     // 移动完后，会有个空缺，
-    arr[j+1] = temp;
+    arr[j + 1] = temp;
   }
   return arr;
 }
 insertSort(testArr);
+
+function insertSort(arr) {
+  const len = arr.length;
+  if (len < 2) return arr;
+
+  // 从1开始循环
+  for (let i = 1; i < len; i++) {
+    const temp = arr[i]; // 记录当下的值
+
+    // 循环左侧的区域
+    let j = i - 1;
+    for (; j >= 0; j--) {
+      // 倒着比较，如果最右侧比新来的还大，则移动最右侧的值
+      // 移动后，就会多出一个空隙
+      if (arr[j] > temp) {
+        // 其实就是将j的值赋值到j+1上，从而就可以随便处置arr[j]
+        arr[j + 1] = arr[j]
+      } else {
+        // 需要退出，不然j的值会继续变化
+        break;
+      }
+      // 循环结束后，j会减一，因此此处需要j+1
+      arr[j + 1] = temp;
+    }
+  }
+  return arr;
+}
 
 
 // 选择排序
@@ -843,32 +905,72 @@ function selectSort(arr) {
   }
   return arr;
 }
-function selectSort1(arr) {
-  let len = arr.length;
-  for (let i = 0; i < len -1; i++) {
-    // 假设最小
-    let min = arr[i]
+/**
+ * 其实就是每次从剩余的数组列表里选择一个最小值，然后放到最前面
+ * 外层循环，定义一个最小值
+ * 然后内从i+1开始，与最小值比较，如果比最小值还小，则交换
+ */
+function selectSort(arr) {
+  const len = arr.length;
+  // 之所以len-1，是因为内层排序会取到
+  for (let i = 0; i < len - 1; i++) {
+    // 假设当前项会最小值
+    let min = arr[i];
 
+    // 从i+1开始循环剩余的，与假设的最小值做对比
     for (let j = i + 1; j < len; j++) {
       if (arr[j] < min) {
+        // 交换值，此时min依然是最小
         [arr[j], min] = [min, arr[j]]
       }
     }
+
+    // 循环结束后，arr[i]的值可能已经不是最小了，此处再次覆盖
     arr[i] = min;
   }
   return arr;
 }
+
 selectSort(testArr)
+
+// 插入排序
+function insertSrot(arr) {
+  // 移动已经排好序的元素，最后插入
+  const len = arr.length;
+  console.log(3)
+  // 遍历待插入的值
+  for (let i = 1; i < len; i++) {
+    let temp = arr[i];
+
+    // 遍历排序好的数据，并移动
+    let j = i - 1;
+    for (; j >= 0; j--) {
+      if (arr[j] > temp) {
+        arr[j + 1] = arr[j];
+      } else {
+        break;
+      }
+    }
+    arr[j + 1] = temp;
+  }
+  return arr;
+}
+
 
 // 快手
 // 已知两个有序数组，合并排序并去重
 // 常见排序算法的复杂度
-let a = [1,3,5,7]
-let b = [2,3,4,6,8]
+let a = [1, 3, 5, 7]
+let b = [2, 3, 4, 6, 8]
 
 // 高复杂度版
 function merge(a, b) {
   return [...new Set([...a, ...b])].sort((a, b) => a - b)
+}
+var merge = function (nums1, m, nums2, n) {
+  nums1.splice(m, n, ...nums2)
+  nums1.sort((a, b) => a - b)
+  return nums1
 }
 
 // 低复杂度版，O(n)
@@ -876,7 +978,7 @@ function mergePro(a, b) {
   let mergeArr = a.concat(b);
   let len = mergeArr.length;
   // 先生成一个有序的数组，每一项有idx，val
-  let mapArr = Array.from({length: len}, (item, idx) => {
+  let mapArr = Array.from({ length: len }, (item, idx) => {
     return {
       idx,
       val: ''
@@ -892,6 +994,7 @@ function mergePro(a, b) {
   // 遍历有序数组，然后拿到对应索引下的值。
   mapArr = mapArr.map(item => {
     item.val = map.get(item.idx)
+    return item;
   })
   return mapArr.map(item => item.val)
 }
@@ -907,7 +1010,7 @@ function fastSort(arr) {
   let right = [];
 
   arr.forEach(item => {
-    if(item < tempVal) {
+    if (item < tempVal) {
       left.push(item);
     } else {
       right.push(item)
@@ -915,6 +1018,30 @@ function fastSort(arr) {
   })
 
   return fastSort(left).concat([tempVal], fastSort(right))
+}
+function fastSort(arr) {
+  // 快速排序，找出一个基准值，
+  // 然后根据基准值分割整个数组
+  // 递归分割
+
+  // 因为后续要操作原数组，所以不缓存长度
+  if (arr.length < 2) return arr;
+
+  // 取出基准值，取最后的性能好
+  const temp = arr.pop();
+  const left = [];
+  const right = [];
+
+  arr.forEach(item => {
+    if (item < temp) {
+      left.push(item);
+    } else {
+      right.push(item);
+    }
+  })
+
+  // 返回最后的值。
+  return fastSort(left).concat(temp, fastSort(right));
 }
 
 // 快速排序es6版本
@@ -927,4 +1054,51 @@ function fastSortEs(arr) {
 
   return fastSort(left).concat([tempVal], fastSort(right))
 }
-fastSortEs([6,5,4,1,1,7,9,10])
+fastSortEs([6, 5, 4, 1, 1, 7, 9, 10])
+
+// 手写apply和call
+// apply和call都是方法借用，别的对象上的方法，拿过来自己用，因此需要设法拿到这个方法，比如fn
+// 另外，apply和call都有两个参数，参数1是thisArg，参数二是argsArray
+// 现在是thisArg想调用fn方法，怎么办呢？只需挂载就好了啊：thisArg.fn = fn;
+// 现在有了fn方法，那直接执行就好了，然后返回执行的结果即可
+Function.prototype.apply = function (ctx, ...args) {
+  // 函数执行，this的指向是函数调用 . 前面的对象，所以：
+  ctx.fn = this;
+  const res = ctx.fn(args);
+  delete ctx.fn;
+  return res;
+}
+
+// 手写apply和call
+// apply和call都是方法借用，将fn.apply中的fn给别的对象用，因此可以通过this直接拿到
+// 给指定对象ctx使用，因此需要在这个对象上挂在ctx上，ctx.fn = this
+// 挂载完后，还需要传入指定的参数
+Function.prototype.myApply = function (ctx) {
+  // this指向的是当前调用apply的方法
+  ctx.fn = this;
+  console.log(222)
+  // apply还需要校验参数二是否为数组，因此不能使用...args
+  // 这里获取的是数组中的项：[1,2,3].splice(1)[0] => 2
+  const args = [...arguments].splice(1)[0];
+  if (!Array.isArray(args)) throw '参数错误';
+
+  const res = ctx.fn(args);
+  delete ctx.fn;
+  return res;
+}
+var obj = {
+  name: 'obj'
+}
+function sayName(arr) {
+  console.log(this.name, arr)
+}
+sayName.myApply(obj, [1, 2, 3]) //obj [1, 2, 3]
+
+Function.prototype.call = function () {
+  context.fn = this;//1.将函数挂载到传入的对象
+  // 这里获取的从1开始的数组：[1,2,3].splice(1) => [2,3]
+  var arg = [...arguments].splice(1);//2.取参数
+  const res = context.fn(...arg) //3.执行对象的方法
+  delete context.fn; //4.移除对象的方法
+  return res;
+}

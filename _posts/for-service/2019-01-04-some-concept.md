@@ -1947,6 +1947,109 @@ async testJsonp() {
 ;handleJsonp({"name":"test-jsonp"});
 ```
 
+```js
+function test(arr, num) {
+  let tempArr = [];
+  while(arr.length) {
+    if (tempArr.length === num) {
+      continue;
+    } else {
+      const restLen = num - tempArr.length;
+      tempArr.push(arr.slice(-restLen))
+
+      for (const item of tempArr) {
+        new Promise((resolve, reject) => {
+          try {
+            item.update()
+          } catch(err) {
+            reject(err);
+          } finally {
+            tempArr
+          }
+        })
+      }
+    }
+  }
+}
+
+function multiRequest(urls = [], maxNum) {
+  // 请求总数量
+  const len = urls.length;
+  // 根据请求数量创建一个数组来保存请求的结果
+  const result = new Array(len).fill(false);
+  // 当前完成的数量
+  let count = 0;
+
+  return new Promise((resolve, reject) => {
+    // 请求maxNum个
+    while (count < maxNum) {
+      next();
+    }
+    function next() {
+      let current = count++;
+      // 处理边界条件
+      if (current >= len) {
+        // 请求全部完成就将promise置为成功状态, 然后将result作为promise值返回
+        !result.includes(false) && resolve(result);
+        return;
+      }
+      const url = urls[current];
+      console.log(`开始 ${current}`, new Date().toLocaleString());
+      fetch(url)
+        .then((res) => {
+          // 保存请求结果
+          result[current] = res;
+          console.log(`完成 ${current}`, new Date().toLocaleString());
+          // 请求没有全部完成, 就递归
+          if (current < len) {
+            next();
+          }
+        })
+        .catch((err) => {
+          console.log(`结束 ${current}`, new Date().toLocaleString());
+          result[current] = err;
+          // 请求没有全部完成, 就递归
+          if (current < len) {
+            next();
+          }
+        });
+    }
+  });
+}
+
+function multiReq() {
+  const len = urls.length;
+  const res = Array(len).fill(0)
+  let sendCount = 0;
+  let finishCount = 0;
+
+  return new Promise((resolve, reject) => {
+    while(sendCount < len) {
+      next();
+    }
+    
+  })
+}
+
+function mulatiReq(urls = [], max) {
+  const len = urls.length;
+  const res = Array(len).fill(false);
+  let count = 0;
+
+  return new Promise((resolve, reject) => {
+    while(count < max) {
+      next();
+    }
+
+    function next() {
+      let cur = count++;
+
+    }
+  })
+
+}
+```
+
 其实 koa-jsonp 中间件就会解析url里的query，如果有callback，则会把ctx.body的数据传给callback。
 
 **例子**：前端请求的页面，如果很大的话会耗时很长，因此可以开启 gzip 压缩会压缩 html 大小，进而可以大幅提升传输效率；

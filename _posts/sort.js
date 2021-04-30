@@ -186,7 +186,6 @@ function bubbleSortPro(arr) {
   return arr;
 }
 
-
 function bubbleSort(arr) {
   let len = arr.length;
   let count = 0;
