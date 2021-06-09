@@ -165,6 +165,10 @@ process.nextTick(function A() {
 setTimeout(function timeout() {
   console.log("TIMEOUT FIRED");
 }, 0);
+
+setImmediate(() => {
+  console.log('immediate');
+);
 // 1
 // 2
 // TIMEOUT FIRED
@@ -351,6 +355,7 @@ p2.then(result => console.log("res", result)).catch(error =>
 如果不写`p2.then().catch()`,也会打印错误，只不过是`Uncaught (in promise) Error: fail`。未捕获的错误
 
 **注意**调用 resolve 或 reject 并不会终结后面函数体的执行。
+
 
 ```js
 new Promise((resolve, reject) => {
@@ -749,7 +754,9 @@ node 环境执行过程：
 
 ```js
 var p = Promise.resolve();
-
+setTimeout(() => {
+  console.log(0)
+})
 p.then(function() {
   p.then(function() {
     console.log("C");

@@ -4767,8 +4767,6 @@ console.log(person.name); // "Nicholas"
 
 2005 年，`JesseJamesGarrett`发表了一篇在线文章，题为`“Ajax:A new Approach to Web Applications”`。他在这篇文章里介绍了一种技术，用他的话说，就叫`Ajax`，是对 A`synchronous JavaScript+ XML`的简写。这一技术**能够向服务器请求额外的数据而无须卸载页面**，会带来更好的用户体验。`Garrett`还解释了怎样使用这一技术改变自从 Web 诞生以来就一直沿用的“单击，等待”的交互模式。
 
-### **性能优化**
-
 #### **首屏加载**
 
 首屏加载……骨架屏，ssr，cdn，prefetch，preload（早于页面请求)等。。。加载后的资源可以设置强制或协商缓存
