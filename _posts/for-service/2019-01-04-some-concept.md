@@ -83,6 +83,8 @@ brew services -h
 nginx默认监听8080端口，在浏览器里直接输入：http://localhost:8080/，会出现nginx服务的默认欢迎页面。但有时候启动后页面无法访问，此时可以查看下nginx的状态： brew services ,如果提示status则表示nginx服务有问题，此时可以尝试手动启动
 
 ```bash
+# 启动
+nginx
 # 启动，需要进到目录，有时候直接/usr/local/bin/nginx -s reload 会报错
 ./nginx -s reload 
 # 停止
@@ -733,6 +735,7 @@ nginx配置文件修改后，需要重启，一般重启前会执行以下相关
 
 ```bash
 # 检查配置文件是否正确
+# 这个命令还可以知道nginx的配置文件在哪里
 nginx -t
 
 # 重新加载nginx

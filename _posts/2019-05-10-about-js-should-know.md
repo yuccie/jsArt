@@ -634,6 +634,62 @@ isType('Number')(123);			// true
 
 
 ```js
+let count = 0;
+const arr = [];
+const countTime = (time, flag = false) => {
+  arr.push(time)
+  if (flag) {
+    return arr.reduce((pre, next) => pre + next, 0)
+  }
+}
+countTime(1)
+countTime(2)
+countTime(3)
+countTime(4, true); // 10
+
+// 改为countTime(1)(2)(3)()
+const countTime2 = (...args) => {
+  let arr = [];
+  if (!args.length) {
+    return 0;
+  }
+  // concat 不会改变自身，需要复制
+  arr = arr.concat(args);
+
+  const curry = (...sArgs) => {
+    arr = arr.concat(sArgs);
+    if (sArgs.length) {
+      return curry
+    } else {
+      return arr.reduce((pre, next) => pre + next, 0)
+    }
+  }
+  return curry;
+}
+
+// 改为柯力化模式
+function curry(fn) {
+  // 满足一定条件后，执行fn
+  let arr = [];
+
+  const next = (...args) => {
+    arr = arr.concat(args);
+    if (!args.length) {
+      // 使用call的话，fn函数的入参需要是个数组。
+      return fn.call(null, arr)
+    } else {
+      return next;
+    }
+  }
+  return next
+}
+var add = curry((arr = []) => {
+  return arr.reduce((pre, next) => pre + next, 0)
+})
+add(1)(2)(3,4)()
+```
+
+```js
 // 柯里化，可以理解为提前接收部分参数，延迟执行，不立即输出结果，
 // 而是返回一个接受剩余参数的函数。
 // 思考一个场景，设计一个算法记录一个月的加班时间？
@@ -2231,6 +2287,12 @@ a ? b : a;
 只执行一次，其结果用于条件判断和返回结果(如果适用的话)。a ? b : a 也是如此。
 
 纯函数：若输入参数相同，则永远会得到相同输出的函数。
+
+如果 ?? 左边的值是 null 或者 undefined，那么就返回右边的值。
+
+```js
+console.log(undefind ?? 'aaa') ; // aaa
+```
 
 #### 符号的强制类型转换
 

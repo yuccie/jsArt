@@ -248,7 +248,38 @@ var reverseList2 = function(head) {
   return head;
 };
 reverseList2([1,2,3,4,5])
+
+
+
+
+function reverseLine(head) {
+  // head就是一个指针，和null一样，就是单个独立的值，但其指向的是链表中的一段
+  let pre = null;
+  let cur = head; // 从当前的head处理
+
+  while(cur) {
+    // 保存旧的链表端指向，
+    let old = cur.next;
+
+    // 将指向改变，本来指向下一个，改为指向最后面的一个
+    cur.next = pre;
+
+    // 此时cur就可以理解为新的pre了
+    pre = cur;
+    // 然后将之前保存的下一个节点给cur
+    cur = old
+  }
+  return pre;
+}
+
+// 遍历节点
+function reverseLine(head) {
+  let 
+}
 ```
+
+
+
 
 <font color="red">题24. 两两交换链表中的节点</font>
 
@@ -3226,10 +3257,10 @@ function bfs(root) {
     let node = quene.shift();
     res.push(node.val);
     if (!node.child) continue;
-    for (let child of node.child) {
-      quene.push(child);
-    }
-    debugger
+    q.push(...node.child)
+    // for (let child of node.child) {
+    //   quene.push(child);
+    // }
   }
   return res;
 }

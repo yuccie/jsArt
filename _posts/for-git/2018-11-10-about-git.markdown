@@ -201,6 +201,7 @@ $ git help commit
 
 ```bash
 git rm -r --cached 文件名
+# 或 git rm -r --cached .
 git add .
 git commit -m 'update .gitignore'
 ```
@@ -311,6 +312,27 @@ echo 'package-lock.json' >> .gitignore
 # 当前机器当前用户，所有项目禁用
 npm config set package-lock false
 ```
+
+到底是否需要使用package.json-lock.json文件：
+
+package-lock.json 不应写进 .gitignore。
+
+这点无论你是否使用 lock 都是一样的。具体来说：如果你使用 lock 机制，则应该将 package-lock.json 提交到 repo 中。比如 Vue 采取了该策略。
+
+如果你不使用 lock 机制，则应该加入 .npmrc 文件，内容为 package-lock=false ，并提交到 repo 中。比如 ESLint 采取了该策略。
+
+例外是，如果你使用 yarn 并且不打算使用 npm，则可以把 package-lock.json 列入 .gitignore（比如 Babel）；反之如果你使用 npm 并且不打算使用 yarn，则可以把 yarn.lock 列入 .gitignore （比如 TypeScript）。
+
+如果你不按照上述方式做，请确定你清楚自己在干什么。比如 jQuery 为什么把 package-lock.json 写入 .gitignore 可以看其 commit message：Build: Remove package-lock.json, add it to .gitignore · jquery/jquery@7037fac 。简单说就是 optional 依赖包会导致不同平台上的 package-lock.json 发生变更。jQuery 的人认为这有问题，所以暂时性 ignore 了它。先不管是不是有更好的方式或者其他 workaround，最新的 npm 5.6.0 其实已经解决了这个问题。（想混个 jQuery contributor 的同学可以赶紧去提交 PR 了，成功之后可以给我发个红包当谢礼。）
+
+在npm@5.4.2版本后的表现：
+
+- 无package-lock.json，npm i 根据package.json进行安装，并生成package-lock.json
+- package.json和package-lock.json的版本不兼容，npm i 会以package.json为准进行安装，并更新package-lock.json
+- package.json和package-lock.json的版本兼容，npm i 会以package-lock.json为准进行安装。
+
+
+[package-lock.json 需要写进 .gitignore 吗？](https://www.zhihu.com/question/264560841)
 
 #### fatal: refusing to merge unrelated histories
 

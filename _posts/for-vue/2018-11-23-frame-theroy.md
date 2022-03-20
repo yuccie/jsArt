@@ -1719,6 +1719,40 @@ const Foo = {
 // 用创建好的实例调用 beforeRouteEnter 守卫中传给 next 的回调函数。
 ```
 
+<<<<<<< HEAD
+=======
+#### **滚动行为**
+
+使用前端路由，当切换到新路由时，想要页面滚到顶部，或者是保持原先的滚动位置，结合vue-router可以自定义路由切换时页面如何滚动。
+
+**注意**: 这个功能只在支持 history.pushState 的浏览器中可用。
+
+```js
+const router = new VueRouter({
+  routes: [...],
+  scrollBehavior (to, from, savedPosition) {
+    // return 期望滚动到哪个的位置
+  }
+})
+// scrollBehavior 方法接收 to 和 from 路由对象。
+// 第三个参数 savedPosition 当且仅当 popstate 导航 (通过浏览器的 前进/后退 按钮触发) 时才可用。
+```
+
+有时候，靠系统自动获取的位置并不是我们想要的，这时可以在页面内控制：
+
+- 一般使用scrollBehavior时，我们都是配合使用keep-alive，因为他让页面进行了缓存
+- 在列表页，找到滚动元素绑定滚动时间，beforeRouteLeave时记录滚动元素的位置至meta里
+- 从详情页返回后，根据情况，利用scrollTo滚动到指定位置也是可以的。
+
+参考资料：https://www.cnblogs.com/kdcg/p/9376737.html
+
+
+### histroy
+
+- history.pushState 可以使浏览器地址改变，但是无需刷新页面。
+- 用 history.pushState() 或者 history.replaceState() 不会触发 popstate 事件。 
+- popstate 事件只会在浏览器某些行为下触发, 比如点击后退、前进按钮或者调用 history.back()、history.forward()、history.go()方法。
+>>>>>>> 25e5544 (增加sls)
 ### **axios**
 
 参考：[axios 官网][axiosofficialurl]
