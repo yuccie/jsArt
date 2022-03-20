@@ -592,7 +592,6 @@ module.exports = {
 ```
 **注意：**这样意味着，可以根据业务需求自定义模板，可以灵活加以应用。。。
 
-
 #### 6、**插件删除dist目录**
 
 到目前为止，dist目录里的文件，一直都是手动删除，这不符合程序猿懒的特质，因此[clean-webpack-plugin][cleanWebpcakPluginUrl]需要了解一下：
@@ -657,17 +656,19 @@ module.exports = {
 - source-map，生成一个单独的sourceMap文件，在bundle文件末尾有类似注释//# sourceMappingURL=bundle.js.map，指向sourceMap
 - hidden-source-map, 和 source-map 一样，但不会在 bundle 末尾追加注释.
 - inline-source-map，生成一个 DataUrl 形式的 SourceMap 文件，直接追加在bundle文件末尾，//# sourceMappingURL=data:application/json;charset=utf-8;base64,xxx
-- eval-source-map，每个 module 会通过 eval() 来执行，并且生成一个 DataUrl 形式的 SourceMap .
 - cheap-source-map，生成一个没有列信息（column-mappings）的 SourceMaps 单独文件，不包含 loader 的 sourcemap（譬如 babel 的 sourcemap）
 - cheap-module-source-map，生成一个没有列信息（column-mappings）的 SourceMaps 文件，同时 loader 的 sourcemap 也被简化为只包含对应行的。
+- eval-source-map，每个 module 会通过 eval() 来执行，并且生成一个 DataUrl 形式的 SourceMap .
+- cheap-eval-source-map，在eval-source-map的基础之上加了一个cheap，这个模式只能帮我们定位到行，而没有列的信息。
+- cheap-module-eval-source-map，这个带有module模式下，他解析出来的源代码是没有经过loader加工的，是我们真正手写的那些源代码。
 
 >避免在生产中使用 inline-*** 和 eval-***，因为它们可以增加 bundle 大小，并降低整体性能。
 更多请参考：<br/>
 [滴滴出行说devtool的几种模式][didiDevtoolUrl]<br/>
 [阮一峰-sourceMap详解][ruanyifeng-sourceMapUrl]<br/>
+[source-map](https://zhuanlan.zhihu.com/p/342035401)
 
 控制台有时候报类似这样的错误：`DevTools failed to load SourceMap: Could not load content for...`，查看对应的源码，其实sourceMap是有的，但某些包就是报这些错误。如果控制台打印很多，会严重影响开发体验，可以关闭：控制台 -> setting -> sources -> 取消Enable Javascript Sources Maps勾选即可。当然也有人说浏览器的问题（[参考](https://bugs.chromium.org/p/chromium/issues/detail?id=1052872)）
-
 
 当然打包处理的代码有很多优点：
 

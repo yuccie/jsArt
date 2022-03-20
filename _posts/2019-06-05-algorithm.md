@@ -58,7 +58,7 @@ date: Wed Jun 05 2019 23:26:32 GMT+0800 (中国标准时间)
 - 第四周(7/25之前)，深度、广度优先搜索；贪心算法与二分查找；
 - 第五周(7/25之前)，动态规划
 - 第六周(7/25之前)，并查集、字典树、红黑树和AVL树
-- 第七周(7/25之前)，位运算、布隆过滤器和 LRU Cache；
+- 第七周(7/25之前)，位运算、布隆过滤器和 LRU Cache 算法；
 - 第八周(7/25之前)，字符串算法
 
 ### 前言
@@ -1044,11 +1044,19 @@ function formatNumber1(val) {
   str = str.replace(/(\d*\.\d{2})\d*/, '$1')
   // 处理.开头的内容
   str = str.replace(/^\./, '0.');
+  str = str.replace(/^\,/, '');
   return str;
 }
 formatNumber1(12456.734567); // "12,456.73"
 formatNumber1(0); // "0.00"
 formatNumber1(.1); // "0.10"
+
+function numThousandsFormat(num) {
+  var c = (num.toString().indexOf('.') !== -1) ? num.toLocaleString() : num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,')
+  return c
+}
+numThousandsFormat(0);
+
 
 // 5-3. 参数二还可以是函数
 // 函数场景，就类似map方法，对每个对象都执行一次指定操作
@@ -1492,6 +1500,10 @@ new Date().toLocaleString()
 // 指定年份，月份，日期
 new Date(2020, 4, 0).toLocaleString()
 "2020/4/30 上午12:00:00"
+
+// 获取今天星期几，这种方式牛逼
+new Date().toLocaleString('default', { weekday: 'long' })
+// "星期一"
 
 // 因此获取指定月份的天数，默认是当月
 function getMonthDays(year, month) {

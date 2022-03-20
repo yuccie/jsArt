@@ -441,6 +441,19 @@ $ git push -u origin master
 # 如果远程主机版本比本地版本新，推送时会报错，应该先pull再push
 # 如果强推则会覆盖远程，如下
 $ git push --force origin
+
+
+# 把本地的某个分支强制推送到master
+git push origin XXX:master -f
+
+2.切换到旧分支master
+git checkout master
+
+# 下载远程仓库最新内容，不合并
+git fetch --all
+
+# 
+git reset --hard origin/master
 ```
 
 #### git rebase
@@ -476,7 +489,10 @@ git revert HEAD~3
 
 # 若是想直接回滚到某个点，可以直接
 # 之前的提交记录会被移除，慎用
-git reset --hard 提交鸡柳
+git reset --hard 提交记录
+
+# 可以使用如下，保留修改记录，只是把commit取消了
+git reset --soft HEAD^
 ```
 
 #### bash 常用操作

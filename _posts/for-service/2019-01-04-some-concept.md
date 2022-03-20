@@ -80,7 +80,19 @@ brew services -h
 # brew services stop (formula|--all)
 # brew services restart (formula|--all)
 ```
-nginx默认监听8080端口，在浏览器里直接输入：http://localhost:8080/，会出现nginx服务的默认欢迎页面。如果想修改这个默认页面，可以在nginx的安装目录里找到对应的文件
+nginx默认监听8080端口，在浏览器里直接输入：http://localhost:8080/，会出现nginx服务的默认欢迎页面。但有时候启动后页面无法访问，此时可以查看下nginx的状态： brew services ,如果提示status则表示nginx服务有问题，此时可以尝试手动启动
+
+```bash
+# 启动，需要进到目录，有时候直接/usr/local/bin/nginx -s reload 会报错
+./nginx -s reload 
+# 停止
+./nginx -s stop
+# 判断配置文件是否正确
+nginx -t -c /usr/local/nginx/nginx.conf
+nginx -t 
+```
+
+如果想修改这个默认页面，可以在nginx的安装目录里找到对应的文件
 
 ```bash
 # 查找安装的路径，或者：which nginx
@@ -109,7 +121,6 @@ location / {
   index  index.html index.htm;
 }
 ```
-
 ### nginx配置解析
 
 ```bash
@@ -770,17 +781,23 @@ Or, if you don't want/need a background service you can just run:
 
 **启动与连接redis：**
 
+redis也是一个服务，因此需要先启动，然后再打开一个控制台连接它。当然这样做的是因为客服端和服务端都是你提供，对于已经在跑的服务，则可以直接连接。
+
 ```bash
 # 启动redis
 redis-server /usr/local/etc/redis.conf
 # 或者
 redis-server
 
+
 # 新打开一个终端，查看 redis 是否启动？
 redis-cli
 # 以上命令会打开以下终端，127.0.0.1 是本机 IP ，6379 是 redis 服务端口。
 redis 127.0.0.1:6379>
 # 现在我们输入 PING 命令。会输出PONG，说明redis已经成功安装。
+
+# 
+redis-cli -h host -p port -a password
 ```
 
 **redis常用命令：**
@@ -1021,8 +1038,9 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
 # 连接mysql，输入以下命令后，需要输入数据库的连接密码
 mysql -u root -p
 
-mysql -h 主机名 -u 用户名 -p <数据库名>
+mysql -h 主机名 -P 端口 -u 用户名 -p <数据库名>
 # -h : 指定客户端所要登录的 MySQL 主机名, 登录本机(localhost 或 127.0.0.1)该参数可以省略;
+# -P : 端口
 # -u : 登录的用户名;
 # -p : 告诉服务器将会使用一个密码来登录, 如果所要登录的用户名密码为空, 可以忽略此选项。
 # 如果要在-p选项后的 line 命令上提供密码，则必须在没有中间空格的情况下提供密码(对于 example，如-ppassword，而不是-p password)。但是，不建议将密码放在命令 line 上，因为这样做会使其暴露给在您的计算机上登录的其他用户。

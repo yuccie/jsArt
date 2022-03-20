@@ -2692,7 +2692,7 @@ alert(people.toLocaleString()); // Nikolaos,Grigorios
 [null, undefined, "see"].valueOf(); // 数组调用返回自身 [null, undefined, "see"]
 ```
 
-##### .**栈方法**
+##### .**方法**
 
 `ECMAScript`数组也提供了一种让数组的行为类似其他数据结构的方法。比如栈，栈是一种可以限制插入和删除项的数据结构，特点是 LIFO（Last-In-First-Out）,栈中项的插入（叫推入）和移除（叫弹出）只发生在一个位置--栈的顶部。
 
