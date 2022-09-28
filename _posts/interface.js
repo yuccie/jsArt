@@ -1,4 +1,109 @@
+// 事件订阅发布模式
+
+
+
+
+// 事件总线添加事件，然后触发事件，一次性事件，
+class myEvtEmitter {
+  constructor() {
+    this.map = new Map();
+  }
+  add(key, fn) {
+    // 添加事件
+    if (this.map.has(key)) {
+      this.map.get(key).push(fn)
+    } else {
+      this.map.set(key, [fn])
+    }
+  }
+  emit(key) {
+    // 触发事件
+    if (!this.map.has(key)) {
+      return;
+    }
+    this.map.get(key).forEach(fn => fn())
+  }
+  on(key, fn) {
+    // 监听事件
+
+  }
+  del(key) {
+    if (this.map.has(key)) {
+      this.map.delete(key)
+    }
+  }
+  once(key, fn) {
+    // 一次性事件
+    const _fn = () => {
+      fn();
+      this.del(key)
+    }
+    _fn();
+  } 
+}
+
+
+function myLRU(depth) {
+  this.maxLen = depth;
+  this.cache = [];
+}
+
+myLRU.prototype.get = function(key) {
+  const idx = this.cache.findIndex(item => item.key === key)
+  if (idx !== -1) {
+    this.cache.splice(idx, 1)
+  }
+  const val = this.cache[idx].val
+  this.cache.unshift({key, val})
+  return val;
+}
+
+myLRU.prototype.set = function(key, val) {
+  const idx = this.cache.findIndex(item => item.key === key)
+  if (idx > -1) {
+    this.cache.splice(idx, 1)
+  }
+  if (this.cache.length >= this.maxLen) {
+    this.cache.pop();
+  }
+  this.cache.unshift({key, val});
+}
+
+
+class myLRU {
+	constructor(depth) {
+    this.map = new Map();
+    this.maxDepth = depth;
+	}
+
+  get(key) {
+    if (!this.map.has(key)) {
+      return -1;
+    }
+    const val = this.map.get(key)
+    this.del(key)
+    this.set(key, val)
+    return val;
+  }
+  set(key, val) {
+    if (this.map.has(key)) {
+      this.del(key)
+    }
+    if (this.map.size >= this.maxDepth) {
+      // 删除最开始的一个
+      this.del(this.map.keys().next().value)
+    }
+    this.map.set(key, val)
+  }
+
+  del(key) {
+    this.map.delete(key)
+  }
+}
+
 console.log(Number('-123'))
+
+
 
 // 异步任务队列 
 
@@ -65,6 +170,42 @@ function deepClone(target) {
   }
 
   return _deep(target);
+}
+
+class EventEmitter {
+  constructor() {
+    this.events = new Map();
+  }
+  // 添加事件
+  add(name, cb) {
+    if (this.events.has(name)) {
+      this.events.get(name).push(cb)
+    } else {
+      this.events.set(name, [cb])
+    }
+  }
+  // 触发事件
+  emit(name, ...args) {
+    if (this.events.has(name)) {
+      this.events.get(name).forEach(fn => fn.apply(null, args))
+    }
+  }
+  // 解除事件
+  off(key, fn) {
+    if (!fn) {
+      this.events.delete(key)
+    } else {
+      this.events.set(key, this.events.get(key).filter(_fn => _fn !== fn))
+    }
+  }
+  // 一次性事件
+  once(name, cb) {
+    const _fn = (...args) => {
+      cb.apply(this, args)
+      this.off(name, _fn)
+    }
+    this.add(name, _fn)
+  }
 }
 
 // 实现订阅发布模式

@@ -109,7 +109,7 @@ git config --global user.name dujc
 
 #### **密钥生成**
 
-每个SSH用户都有自己的`known_hosts`文件，此外系统也有一个这样的文件，通常是`/etc/ssh/ssh_known_hosts`，保存一些对所有用户都可信赖的远程主机的公钥。`id_rsa.pub`是本机的公钥，`id_rsa`是本机的私钥。
+每个SSH用户都有自己的`known_hosts`文件，此外系统也有一个这样的文件，通常是`/etc/ssh/_known_hosts`，保存一些对所有用户都可信赖的远程主机的公钥。`id_rsa.pub`是本机的公钥，`id_rsa`是本机的私钥。
 
 ```bash
 # ~/.ssh 目录是一些密钥信息
@@ -144,11 +144,15 @@ IdentityFile ~/.ssh/missfresh-gitlab-rsa
 # 配置完可以测试一下：
 # @前面的协议一般都为git，后面的地址就是上面HostName
 ssh -T git@gitlab.missfresh.net
+# 还可以直接通过别名方式：ssh -T Hostxxx
 # 若输出类似一下信息，则代表成功：
 Hi xxx! You have successfully authenticated, but GitHub does not provide shell access.
 
 # 可以打印详细信息，尤其连接有问题时
 ssh -T -v git@gitlab.missfresh.net
+
+# 如果正常操作后，还是提示permission denied就执行
+ssh-add -k ~/.ssh/gitlab_rsa
 
 # 有时候会打印：Permissions 0644 xxx are too open.
 # 此时只需给指定的文件添加权限即可：

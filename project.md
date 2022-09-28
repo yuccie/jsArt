@@ -2277,6 +2277,7 @@ Lerna 是一个工具，它优化了使用 git 和 npm 管理多包存储库的�
 - Independent mode，独立模式，每个 package 都可以有自己的版本号。版本号维护在各自 package.json 的 version 中。每次发布前都会提示已经更改的包，以及建议的版本号或者自定义版本号。
 
 
+- lerna list 可以查看当前项目下的package
 - lerna link，类似npm link
 - lerna add react --scope=xxx，代表我的react 依赖只安装在xxx 包名下面， 而不是全部都安装，如果需要全部安装的话， 则 lerna add react 即可
 - 配置文件：lerna.json
@@ -2607,6 +2608,10 @@ ReactDOM.render(<Greeting {...p}/>, ele)
 - 为事件处理函数绑定实例
 
 ### 函数式组件
+
+- 是一个纯函数
+- 没有自身状态，只接收外部数据
+- 产出 VNode 的方式：单纯的函数调用
 
 ```jsx
 // 参数一props

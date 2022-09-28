@@ -147,6 +147,21 @@ const state = () => ({
 });
 ```
 
+vuex是如何实现响应式的呢？
+
+```js
+// 原来state的数据其实就是Vue实例的data数据。这个Vue实例并不关注页面渲染，是为了让state的数据都是响应式的。
+// 当其他Vue实例的页面模板对state的数据进行直接或者间接引用时，一样参与依赖收集过程。当state的数据变化时，通过Watcher的作用触发该页面更新。
+class Store {
+  constructor(options){
+    this.state = new Vue({
+      data:options.state
+    })
+  }
+}
+
+```
+
 #### Getter
 
 有时候需要从store的state里派生一些状态，其实就可以理解为计算属性，而getters的第一个参数就是state，第二个参数是其他的getters

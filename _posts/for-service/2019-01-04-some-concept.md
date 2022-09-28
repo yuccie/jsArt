@@ -2693,6 +2693,7 @@ whereis nginx
 
 # 如果都不行，可以用find
 find / -name nginx
+find . -name '*.js' # 在当前文件夹及子文件件下，搜索后缀是js的文件
 ```
 
 使用homebrew安装完以后，会提示如下内容：
