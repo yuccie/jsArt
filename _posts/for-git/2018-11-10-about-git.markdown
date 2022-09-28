@@ -530,6 +530,7 @@ $ which gcam
 // gcam: aliased to git commit -a -m
 
 # 对比一下alias
+# 在终端使用git的一些alias，需要先安装oh-my-zsh
 $ alias gcam
 // gcam='git commit -a -m'
 ```
