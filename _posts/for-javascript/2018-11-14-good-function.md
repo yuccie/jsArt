@@ -173,6 +173,12 @@ drawVideoToCanvas()
 
 #### 保存文件
  ```js
+// 将rgba(255 ,255, 255, 1) 转 0xFFFFFF
+this.placeholderStyle = `font-family:${placeholderCS["font-family"]};font-size:${placeholderCS["font-size"]};color:${placeholderCS
+  .getPropertyValue("color")
+  .match(/[0-9]+/g)
+  .reduce((a, b: any) => a + (b | 256).toString(16).slice(1), "0x")}`
+
 /**
  * 保存一个文件, 目前支持字符串与图片DOM
  * @param {(string|Document)} content - 要保存的内容
