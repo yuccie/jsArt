@@ -304,6 +304,26 @@ $ git log --graph --pretty=oneline --abbrev-commit
 
 # 修改已经提交的commit，会让你修改上次的提交内容
 git commit --amend
+
+# 查看本地的tag
+git tag
+
+# 新建tag，注意xxx可以很多，但必须是连续的字符串，如：v1.0.0_测试tag，若中间断开，则tag只会是一部分
+git tag xxx
+
+# 删除tag
+git tag -d xxx
+
+# 删除远程的tag
+git push origin :refs/tags/<tagname>
+
+# 推送所有的tags到远程
+git push [origin] --tags # 或者 git push --tags
+
+# 推送某个tag到远程
+git push origin tagxx
+
+
 ```
 
 #### 禁用 package-lock.json
