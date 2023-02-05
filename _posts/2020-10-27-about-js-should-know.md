@@ -287,6 +287,22 @@ alert( JSON.stringify(room) ); // 23
 
 ### Proxy 和 Reflect
 
+https://blog.csdn.net/qq_27127385/article/details/103959956
+
+Proxy 构造函数的两个参数
+Proxy 实例的方法
+属性读取拦截 -- get()
+属性赋值拦截 -- set()
+函数调用拦截 -- apply()
+函数查询拦截 -- has()
+构造函数拦截 -- construct()
+属性删除拦截 -- deleteProperty()
+添加属性拦截 -- defineProperty()
+描述对象拦截 -- getOwnPropertyDescriptor()
+对象原型拦截 -- getPrototypeOf()
+属性键名拦截 -- ownKeys()
+改变原型拦截 -- setPrototypeOf()
+this 问题
 
 
 ## **错误处理**
