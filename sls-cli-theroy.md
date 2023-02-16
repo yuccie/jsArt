@@ -34,7 +34,7 @@
 - os.homedir()，在mac中可以直接 echo $HOME 打印出来
 - golden上报时提供当前仓库、当前用户在$HOME/.sls/.sls.json里的accessToken，以及上报的类型（cli启动还是页面等），但ua竟然写死了，原理很简单就是利用request-promise-native发送ajax请求，也没有做队列、节流什么处理。
 - getLoggerWithTag利用函数柯力化，将console.log，consone.info等根据tab进行了包装，底层利用chalk显示不同的颜色
-- npm view ${packageName} dist-tags --json --registry=http://npm.intra.xiaojukeji.com 查看某个npm包的版本号。
+- npm view ${packageName} dist-tags --json --registry=http://npm.xxx.xxx.com 查看某个npm包的版本号。
 - minimist(argv.slice(2));the guts of optimist's argument parser without all the fanciful decoration
 - semver，一个处理版本的库
 - fsExtra.ensureFileSync，fs-extra adds file system methods that aren't included in the native fs module and adds promise support to the fs methods. It also uses graceful-fs to prevent EMFILE errors. It should be a drop in replacement for fs.
@@ -50,8 +50,8 @@
 - 
   
 ```js
-'git@git.xiaojukeji.com:puhui/596-crm.git'.match(/([^/:]+)\/([^/:]+)\.git/)
-// (3) ['puhui/596-crm.git', 'puhui', '596-crm', index: 23, input: 'git@git.xiaojukeji.com:puhui/596-crm.git', groups: undefined]
+'git@git.xxx.com:puhui/596-crm.git'.match(/([^/:]+)\/([^/:]+)\.git/)
+// (3) ['puhui/596-crm.git', 'puhui', '596-crm', index: 23, input: 'git@git.xxx.com:puhui/596-crm.git', groups: undefined]
 
 
 // meta.json
@@ -116,10 +116,10 @@ function getGitGroupRep({ cwd = null } = {}) {
     var remote = '', matched;
     try {
         remote = exec('git remote get-url origin', { cwd: cwd, stdio: [null], timeout: 2000 }).toString().trim();
-        // git@git.xiaojukeji.com:puhui/596-crm.git
+        // git@git.xxx.com:puhui/596-crm.git
         matched = remote.match(/([^/:]+)\/([^/:]+)\.git/) || [];
-        // 'git@git.xiaojukeji.com:puhui/596-crm.git'.match(/([^/:]+)\/([^/:]+)\.git/)
-        // ['puhui/596-crm.git', 'puhui', '596-crm', index: 23, input: 'git@git.xiaojukeji.com:puhui/596-crm.git', groups: undefined]
+        // 'git@git.xxx.com:puhui/596-crm.git'.match(/([^/:]+)\/([^/:]+)\.git/)
+        // ['puhui/596-crm.git', 'puhui', '596-crm', index: 23, input: 'git@git.xxx.com:puhui/596-crm.git', groups: undefined]
     }
     catch (err) {
         return {};
@@ -216,7 +216,7 @@ export default (options: any) => {
       golden('sma-light-getDevIndex','sma-light-访问开发首页')
       const pageList = getPageList(options.context) // 实时更新
       // pageList: [{ name: name, url: url }]
-      request.post('https://star.xiaojukeji.com/m/__devIndex', {
+      request.post('https://star.xxx.com/m/__devIndex', {
         body: {
           pageList
         },
@@ -248,9 +248,9 @@ export default (options: any) => {
 	<title>dev页面列表</title>
 	<link type="image/x-icon" href="//img.kuaidadi.com/cms/img/upload_df9978f80edeabfd9cd91469d34bb715.ico"
 		rel="shortcut icon">
-	<link rel="stylesheet" href="//assets.xiaojukeji.com/??kui/base/1.0.24/base.css" media="all">
+	<link rel="stylesheet" href="//assets.xxx.com/??kui/base/1.0.24/base.css" media="all">
 	<script type="text/javascript"
-		src="//assets.xiaojukeji.com/??kui/lib/1.4.0/zepto.js,kui/base/1.0.24/base.js,kui/base/1.0.24/event.js,kui/lib/1.4.0/zepto/detect.js,kui/base/1.0.24/platform.js,kui/native/1.4.16/didinative.js,kui/native/1.4.16/dididriver.js,kui/lib/1.4.0/promise.js,kui/lib/1.4.0/sha1.js,kui/dataing/2.0.7/wsgsig.js,kui/dataing/2.0.7/kop.js,kui/native/1.4.16/native.js,kui/native/1.4.16/didies.js,kui/login/4.3.13/unifiedLogin.js,kui/golden/4.5.15/golden.js,kui/lib/1.4.0/vue.js"
+		src="//assets.xxx.com/??kui/lib/1.4.0/zepto.js,kui/base/1.0.24/base.js,kui/base/1.0.24/event.js,kui/lib/1.4.0/zepto/detect.js,kui/base/1.0.24/platform.js,kui/native/1.4.16/didinative.js,kui/native/1.4.16/dididriver.js,kui/lib/1.4.0/promise.js,kui/lib/1.4.0/sha1.js,kui/dataing/2.0.7/wsgsig.js,kui/dataing/2.0.7/kop.js,kui/native/1.4.16/native.js,kui/native/1.4.16/didies.js,kui/login/4.3.13/unifiedLogin.js,kui/golden/4.5.15/golden.js,kui/lib/1.4.0/vue.js"
 		crossorigin></script>
 
 	<style type="text/css">
@@ -258,7 +258,7 @@ export default (options: any) => {
 	</style>
 
 	<script type="text/javascript">
-		var __global_dynamic_public_path__ =  "//assets.xiaojukeji.com" ; 
+		var __global_dynamic_public_path__ =  "//assets.xxx.com" ; 
 	</script>
 	<!--[if lt IE 9]> <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script> <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script> <![endif]-->
 </head>
@@ -291,7 +291,7 @@ export default (options: any) => {
 		</script>
 	</div>
 	<script type="text/javascript">
-		window.starPageEnv = "online"; window.KUIGlobalConfig = window.KUIGlobalConfig || {};window.goldenConfig = window.goldenConfig || {};window.KUIGlobalConfig.renderType = "node";window.GoldenTracker = window.GoldenTracker || "omegad6b5832cfb";window.goldenConfig.attrs = {};window.KUIGlobalConfig.pageHost = "page.kuaidadi.com";window.KUIGlobalConfig.nodeHost = "star.xiaojukeji.com";window.KUIGlobalConfig.didiPageHost = "page.xiaojukeji.com"; 
+		window.starPageEnv = "online"; window.KUIGlobalConfig = window.KUIGlobalConfig || {};window.goldenConfig = window.goldenConfig || {};window.KUIGlobalConfig.renderType = "node";window.GoldenTracker = window.GoldenTracker || "omegad6b5832cfb";window.goldenConfig.attrs = {};window.KUIGlobalConfig.pageHost = "page.kuaidadi.com";window.KUIGlobalConfig.nodeHost = "star.xxx.com";window.KUIGlobalConfig.didiPageHost = "page.xxx.com"; 
 	</script>
 	<script type="text/javascript">
 		$(function () {
@@ -669,7 +669,7 @@ async function start () {
       logger.info(`Global sls current version ${checkInfo.currentVersion} upgrade to ${checkInfo.latestVersion}`)
       let start = Date.now()
       try {
-        execSync(`npm install @didi/sls-cli -g --registry=http://npm.intra.xiaojukeji.com --loglevel=error --unsafe-perm`, {
+        execSync(`npm install @didi/sls-cli -g --registry=http://npm.xxx.xxx.com --loglevel=error --unsafe-perm`, {
           stdio: ['inherit','inherit','inherit']
         })
       } catch (err) {
@@ -1083,7 +1083,7 @@ export const checkVersion = async function (packageName: string, currentVersion:
   if (needUpdate || foreUpdate) {
     let start = Date.now()
     try {
-      var result = execSync(`npm view ${packageName} dist-tags --json --registry=http://npm.intra.xiaojukeji.com`, {
+      var result = execSync(`npm view ${packageName} dist-tags --json --registry=http://npm.xxx.xxx.com`, {
         stdio: [null],
         timeout: 10000
       }).toString();
