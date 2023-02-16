@@ -1247,6 +1247,37 @@ pnpm运行起来非常的快，甚至超过了npm和yarn。为什么这么快呢
 最后，我认为，npm仍然提供了一个非常有用的解决方案，支持大量的测试用例。大多数开发人员使用原始npm客户端仍然可以做得很好。
 
 
+```bash
+pnpm install -g @tarojs/cli
+ ERR_PNPM_NO_GLOBAL_BIN_DIR  Unable to find the global bin directory
+
+Run "pnpm setup" to create it automatically, or set the global-bin-dir setting, or the PNPM_HOME env variable. The global bin directory should be in the PATH.
+
+➜  react_taro pnpm install -g @tarojs/cli
+ ERR_PNPM_NO_GLOBAL_BIN_DIR  Unable to find the global bin directory
+
+Run "pnpm setup" to create it automatically, or set the global-bin-dir setting, or the PNPM_HOME env variable. The global bin directory should be in the PATH.
+
+➜  react_taro which pnpm
+/Users/yq/.npm-global/bin/pnpm
+
+➜  react_taro pnpm setup
+# Appended new lines to /Users/yq/.zshrc
+
+# Next configuration changes were made:
+export PNPM_HOME="/Users/yq/Library/pnpm"
+export PATH="$PNPM_HOME:$PATH"
+
+# To start using pnpm, run:
+source /Users/yq/.zshrc
+
+
+
+# Just put the following line to your .bashrc, .zshrc, or config.fish:
+alias pn=pnpm
+```
+
+
 ### Monorepo 
 
 Monorepo 是管理项目代码的一个方式，指在一个项目仓库 (repo) 中管理多个模块/包 (package)，不同于常见的每个模块建一个 repo。

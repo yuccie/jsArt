@@ -41,6 +41,22 @@ Ip hash算法，对客户端请求的ip进行hash操作，然后根据hash结果
 **注意：**rpm也能安装软件，但因为一个软件通常会有很多依赖，rpm不会自动处理依赖，因此比较繁琐，而用yum就可以自动处理rpm包的依赖比较方便。
 
 ```bash
+# 安装homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 安装后使用时，如果提示 zsh: command not found: brew，说明brew的执行命令目录不在path理
+# 一般安装后，会提示是否存在里面，比如：Warning: /opt/homebrew/bin is not in your PATH.
+# 此时就需要如下，将对应的环境变量加到path里
+# echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="/opt/homebrew/bin"' >> ~/.zshrc
+
+# 查看环境变量
+echo $PATH
+
+# 重新加载配置文件才会生效
+source ~/.zshrc
+
+
 # 可以查看对应的命令，然后执行对应的操作
 brew -h
 # Example usage:
