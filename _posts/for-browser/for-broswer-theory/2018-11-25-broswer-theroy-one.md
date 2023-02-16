@@ -4176,6 +4176,8 @@ RSS（really simple syndication）site summary，其实就是抽取的网页摘�
 
 构建vpn时，常用的是IPsec，指ip首部的后面追加"封装安全有效载荷"和"认证首部"，从而对此后的数据进行加密，不被道曲折轻易读懂。
 
+连接同一个vpn上的两个用户，在本地启动的server是可以互相访问的，前提是使用 vpn在本地生成的ip地址，而不是本机局域网内的ip。 ifconfig 可以查看，通过断开或者连上vpn可以看到 有个虚拟网络在列表里生成。
+
 **TLS/SSL 与https**
 
 使用TLS/SSL的http通信就是https通信，https传递数据过程中使用对称加密，而在秘钥传递过程中采用非对称加密。

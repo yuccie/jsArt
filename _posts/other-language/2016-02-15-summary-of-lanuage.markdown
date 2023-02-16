@@ -12,6 +12,12 @@ date: Mon Nov 26 2017 16:18:51 GMT+0800 (中国标准时间)
 
 从官网下载或者github仓库下载即可，下载完只需要解压到某个文件夹即可，解压完需要配置环境变量。
 
+```
+# flutter
+# /Applications/flutter 就是flutter sdk的目录
+export PATH="$PATH:/Applications/flutter/bin"
+```
+
 然后运行：flutter doctor，会自动检测还缺少哪些环境没有配置，根据提示再去安装。
 
 #### 安装安卓相关的环境

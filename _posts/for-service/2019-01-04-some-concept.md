@@ -2448,6 +2448,108 @@ npm install --production # 之前构建一般都直接npm i ？岂不是将非�
 tar -zcvf ../release.tgz .
 ```
 
+peerDependencies 是在 package.json 文件中用于指定一个包所依赖的其他包版本的字段。这个字段用于告诉包的使用者，它所依赖的其他包必须在同一个依赖层级中存在，并且必须满足指定的版本要求。
+
+例如，假设你有一个包 A，它依赖包 B，你可以在 A 的 package.json 中使用 peerDependencies 字段来指定 B 的版本要求，如下所示：
+
+```json
+{
+  "name": "A",
+  "peerDependencies": {
+    "B": "^1.0.0"
+  }
+}
+```
+这样，当别人使用你的包 A 时，它们必须安装同一个依赖树中的包 B，并且它们必须安装满足 ^1.0.0 版本要求的 B 版本。如果它们没有安装满足要求的版本，则会在安装包 A 时报错。
+
+peerDependencies 常用于指定插件或库的依赖关系，因为这些包通常需要与其他包配合使用。例如，假设你有一个 React 组件库，它依赖于 React 本身，你可以在你的组件库的 package.json 中使用 peerDependencies 来指定 React 的版本要求，如下所示：
+
+```json
+{
+  "name": "my-react-components",
+  "peerDependencies": {
+    "react": "^16.0.0"
+  }
+}
+```
+
+当别人使用你的 React 组件库时，他们必须安装同一个依赖树中的 React，并且它们必须安装满足 ^16.0.0 版本要求的 React 版本。如果它们没有安装满足要求的版本，则会在安装组件库时报错。
+
+另外，你也可以使用 peerDependencies 来指定一个包的多个依赖，如下所示：
+
+```json
+{
+  "name": "A",
+  "peerDependencies": {
+    "B": "^1.0.0",
+    "C": "^2.0.0"
+  }
+}
+```
+
+在这种情况下，包 A 依赖于包 B 和包 C，它们必须在同一个依赖层级中存在，并且必须满足指定的版本要求。
+
+总结一下，peerDependencies 用于指定一个包所依赖的其他包版本，这些包必须在同一个依赖层级中存在，并且必须满足指定的版本要求。它常用于指定插件或库的依赖关系，可以帮助开发者确保依赖的包能够顺利地工作。
+
+
+dependencies 和 devDependencies 是 package.josn 中的一个属性，其中放着运行代码时所需的依赖；在 npm install 时，这些依赖包会被安装；打包项目时， dependencies 中的包会被打包进去。
+
+
+peerDependencies 也是 package.json 中的一个属性，翻译过来是对等依赖的意思，其中的包在 npm install 时并不会被安装；打包项目时，其中的包也不会被打包进去。
+
+peerDependencies 中的包是没有显式依赖的，它默认库的使用者项目内已经安装过相关依赖，但是它不会自动检测并帮你安装。
+
+```json
+"peerDependencies": {
+  "echarts": "^5.3.1",
+  "vue": "^3.2.25"
+},
+```
+
+在 npm 库的开发过程中，使用到了 vue和echarts 这两个依赖库，将其放在了 peerDependencies 中，此时当前库进行打包的时候，vue和echarts 这两个库就不会被打包进去。但是使用这个 npm 库的用户，需要在自己的项目中额外安装 vue和echarts 这两个依赖库。
+
+在 npm2 中，packageName 包中 peerDependencies 的依赖会随着 npm install packageName 一起被强制安装。所以不需要库的使用者额外安装 peerDependencies 所需的依赖。
+
+在 npm3+ 中，则不会强制安装 peerDependencies 中的依赖。但是使用者没有提前安装 peerDependencies 中所需依赖的话， npm3 会在安装结束后打印警告信息：xxx 是一个需要的依赖，但是没有被安装。此时，使用者需要手动的在项目中安装 xxx 依赖。
+
+在开发插件时，你的插件需要某些依赖的支持，但是你又没必要去安装，因为插件的宿主回去安装这些依赖。此时就可以用 peerDependencies 去声明一下需要依赖的插件和版本。如果出问题的话，npm 会有警告来提示使用者去解决版本中的冲突。
+
+要将包安装到 peerDependencies 中，需要使用 npm install 命令，并在命令中使用 --save-peer 选项。
+
+`npm install --save-peer lodash`
+
+这会将 lodash 包安装到当前项目的 peerDependencies 中，并在 package.json 文件中更新 peerDependencies 字段。
+
+注意：
+- peerDependencies 字段中列出的包是应用程序所依赖的包，而不是项目所依赖的包。
+- 在安装包时，如果已经在 dependencies 或 devDependencies 中安装了相同的包，则不会将包安装到 peerDependencies 中。而是会更新dependencies 或 devDependencies 中的包
+#### npm ci
+
+npm ci 是 npm 的一个命令，它用于在项目中安装包依赖。
+
+与 npm install 命令不同，npm ci 命令在安装依赖时会使用 package-lock.json 文件中的信息，而不是根据 package.json 文件的信息来安装依赖。这意味着，使用 npm ci 命令安装依赖时，不会更新 package-lock.json 文件，并且会忽略 package.json 文件中的任何指定的安装选项。
+
+主要用途是在持续集成 (CI) 工作流程中，保证每次构建时使用相同的包依赖版本，从而确保每次构建的结果是可重现的。
+
+在使用 npm ci 命令安装依赖之前，需要确保已创建了 package-lock.json 文件。这可以通过使用 npm install 命令来完成，或者手动创建一个 package-lock.json 文件。
+
+如果想要使用 npm ci 命令安装特定的依赖包，可以在命令后面添加包的名称，例如 `npm ci express`
+
+这样，就会安装 package-lock.json 文件中指定的 express 包版本。
+
+此外，还可以使用 `--only=production` 选项来指定只安装 dependencies 中列出的包依赖，而不安装 devDependencies 中列出的包依赖。例如：`npm ci --only=production`
+
+如果想要获取更多关于 npm ci 命令的信息，可以在命令行中运行 `npm ci --help`。
+
+#### npm ci 与 npm i 的区别
+
+npm i 和 npm ci 都是 npm 的命令，用于在项目中安装包依赖。但是，它们之间有一些重要的区别。
+
+npm i 命令会根据 package.json 文件中的信息来安装依赖，并会更新 package-lock.json 文件。这意味着，使用 npm i 命令安装依赖时，可以指定安装选项，例如使用 --save-dev 选项将包安装到 devDependencies 中。
+
+npm ci 命令会使用 package-lock.json 文件中的信息来安装依赖，并不会更新 package-lock.json 文件。这意味着，使用 npm ci 命令安装依赖时，不能指定安装选项，并且会忽略 package.json 文件中的任何指定的安装选项。
+
+因此，在普通的项目开发流程中，通常使用 npm i 命令安装依赖。而在持续集成 (CI) 工作流程中，为了保证每次构建时使用相同的包依赖版本，通常使用 npm ci 命令安装依赖。
 #### HttpClient
 
 互联网时代，无数服务是基于 HTTP 协议进行通信的，Web 应用调用后端 HTTP 服务是一种非常常见的应用场景。
@@ -2709,6 +2811,7 @@ whereis nginx
 
 # 如果都不行，可以用find
 find / -name nginx
+find . -name '*.js' # 在当前文件夹及子文件件下，搜索后缀是js的文件
 ```
 
 使用homebrew安装完以后，会提示如下内容：

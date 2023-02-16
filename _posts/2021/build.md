@@ -349,6 +349,21 @@ app.use(webpackDevMiddleware(compiler,
     }
 ));
 
+// express默认cors是关闭的，另外本地起两个服务，如果用script获取资源是不跨域的，
+// app.all('*',function (req, res, next) {
+//     res.header('Access-Control-Allow-Origin','*');     // 当允许携带cookies此处的白名单不能写’*’
+//     res.header('Access-Control-Allow-Headers','content-type,Content-Length, Authorization,Origin,Accept,X-Requested-With'); //允许的请求头
+//     res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PUT'); // 允许的请求方法
+//     res.header('Access-Control-Allow-Credentials',true);                   // 允许携带cookies
+//     next();
+// });
+
+app.get('*', function(req, res) {
+    console.log('req', req.headers)
+    // console.log('res', res)
+    res.send('收到了')
+})
+
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!\n');
 });
