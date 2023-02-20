@@ -747,6 +747,19 @@ $ git reset -- <filename>
 ```
 
 
+```bash
+# 在 Git 中，可以使用git cherry-pick命令将某个分支中的某个提交合并到另一个分支中。具体的操作步骤如下：
+
+# 切换到要合并的目标分支，例如：
+git checkout master
+# 运行以下命令，将指定的提交合并到当前分支：
+git cherry-pick <commit>
+# 其中，<commit>是要合并的提交的 SHA-1 标识符。
+
+# 如果要合并的提交不止一个，可以将多个 SHA-1 标识符放到一个列表中：
+git cherry-pick <commit1> <commit2> <commit3>
+```
+
 #### bash 常用操作
 
 ```bash
