@@ -516,6 +516,57 @@ Node.js 使用 V8 作为 JavaScript 的执行引擎，所以讨论 Node.js 的 G
 - 事件监听
 - 控制台log或缓存对象等
 
+JavaScript 堆内存分析工具的主要原理是通过 JavaScript 引擎提供的接口，获取程序运行时的内存信息。这些信息包括对象数量、对象类型、内存占用大小等。通常，堆内存分析工具会先执行一段程序，生成内存快照。内存快照记录了程序在某个时间点的内存状态，可以通过分析内存快照来检测内存泄漏问题。
+
+一般来说，堆内存分析工具会提供可视化界面，让开发人员可以直观地查看内存快照中的对象信息，并通过分析工具提供的统计数据，确定哪些对象需要进行优化。一些常见的堆内存分析工具包括 Chrome DevTools 中的 Heap Snapshot、Node.js 内置的 heapdump 模块，以及第三方库如 Memory-fs、heap-plot 等。
+
+在实际使用堆内存分析工具时，一些常见的内存泄漏问题包括意外的对象保留（例如缓存、事件监听器等），DOM 元素未正确清理（例如未移除事件监听器、未释放内存等），循环引用等。通过使用堆内存分析工具，开发人员可以及早发现这些问题，并通过调整代码逻辑或手动释放内存来解决问题。
+
+
+Node.js 内置的 heapdump 模块可以用于生成 Node.js 应用的堆内存快照，以便进行分析和诊断内存问题。
+
+要使用 heapdump 模块，首先需要在 Node.js 应用中导入它：
+
+```js
+const heapdump = require('heapdump');
+
+// 然后，可以在需要生成堆内存快照的地方调用 heapdump.writeSnapshot() 方法，例如：
+heapdump.writeSnapshot((err, filename) => {
+  console.log(`Heap snapshot written to ${filename}`);
+});
+```
+
+这将在当前工作目录下生成一个 .heapsnapshot 文件，其中包含了当前 Node.js 进程的堆内存快照。
+
+使用这个 .heapsnapshot 文件可以通过一些工具进行分析，比如 Chrome 开发者工具、HeapProfiler、devtool 等。例如，在 Chrome 开发者工具中可以通过以下步骤来打开并分析一个 .heapsnapshot 文件：
+
+1. 在 Chrome 中打开开发者工具。
+2. 在开发者工具中切换到 Memory 选项卡。
+3. 点击左上角的“Load”按钮，选择要加载的 .heapsnapshot 文件。
+4. 在加载完成后，可以使用开发者工具的工具和视图来分析和调试堆内存问题。
+
+需要注意的是，生成堆内存快照可能会导致一定的性能损耗，因此建议在开发环境下使用，而不是在生产环境下使用。
+
+
+
+memory-stats 是一个用于在浏览器中监测 JavaScript 内存使用情况的 npm 包，它可以帮助你查看内存使用情况、分析内存泄露等问题。
+
+使用 memory-stats 时，你需要在你的 HTML 文件中引入 memory-stats.min.js，然后在代码中实例化一个 MemoryStats 对象：
+
+```js
+var memoryStats = new MemoryStats();
+memoryStats.domElement.style.position = 'fixed';
+memoryStats.domElement.style.right = '0px';
+memoryStats.domElement.style.bottom = '0px';
+document.body.appendChild(memoryStats.domElement);
+
+requestAnimationFrame(function rAFloop(){
+    memoryStats.update();
+    requestAnimationFrame(rAFloop);
+});
+```
+这个示例中，MemoryStats 对象被实例化后，它会在页面的右下角显示内存使用情况的信息。requestAnimationFrame 方法被用来循环调用 update 方法，以更新内存使用情况的信息。
+
 #### this：从JavaScript执行上下文的视角讲清楚this
 
 前面的例题，其实就是想实现**在对象内部的方法中使用对象内部的属性**，但结果却不是想要的效果。。。这确实是一个需求，但是 JavaScript 的作用域机制并不支持这一点，**基于这个需求，JavaScript 又搞出来另外一套 this 机制**
