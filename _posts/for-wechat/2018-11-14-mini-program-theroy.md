@@ -532,3 +532,20 @@ Chromium 是 Google 的 chrome 浏览器背后的引擎，其目的是为了创�
 一些链接：<br/>
 	https://nwjs-cn.readthedocs.io/zh_CN/latest/Base/Getting%20Started/index.html
 	https://www.kancloud.cn/chandler/web_app/98298
+
+
+1.    webkit是apple制造的开源产物，包含了html渲染引擎，和 javascript解释引擎 (注意，这不是一个浏览器，只是浏览器里边的核心部件)
+
+2.   google一开始是参与并采用webkit开发自己的浏览器， 后来用自己的v8替换了webkit的javascript解释引擎
+
+3.   再之后，google拉取了自己的分支 blink, 这个blink就是从webkit分离出来的，google在上边做了很多工作，
+
+      比如v8替换默认javascript引擎
+
+4.    chromium 就是完备的浏览器的，和 chrome 是两个版本，
+
+       chromium是开源版本，google牵头，大家一起搞， chrome是商业版本，google 会基于chromium开发自己的闭源版本。
+
+       一般chromium上的功能多，新功能都在上边尝试，但是不一定保证稳定性。
+
+       尽管chromiun功能优先，但是并不保证google会把自家的核心内容放上去，chrome反而在某些私有技术上，有自己的优势，
