@@ -623,6 +623,7 @@ git reset --hard origin/master
 
 ```bash
 # 多人开发一个分支时，远程更新后，本地commit后直接push后会出错，此时若先pull后push，则提交记录会分叉
+# fatal: Not possible to fast-forward, aborting.
 # 为了让提交记录在一条直线上同时解决问题，可以如下，然后push即可
 $ git pull --rebase origin master
 
@@ -633,7 +634,9 @@ $ git pull --rebase origin master
 # To abort and get back to the state before "git rebase", run "git rebase --abort".
 ```
 
-`git pull --rebase origin master`意为先取消commit记录，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，之后同步远程库到本地，最后合并补丁到本地库之中。其实就是先把远程的更新插入到提交树上，然后将自己的提交放在挪到了最后，从而看起来所有的提交都在一条线上。
+`git pull --rebase origin master`意为先取消commit记录，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中)，之后同步远程库到本地，最后合并补丁到本地库之中。其实就是先把远程的更新插入到提交树上，然后将自己的提交挪到了最后，从而看起来所有的提交都在一条线上。
+
+
 
 #### 代码回滚
 

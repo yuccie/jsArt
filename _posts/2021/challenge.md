@@ -103,6 +103,7 @@ export NVM_DIR="$HOME/.nvm"
 
 如果对 命令行不是很了解，可以将整个命令复制到：https://explainshell.com 搜索，可以简要的给出各个命令的含义。
 
+iPhone 并不支持 USB 调试，因为它是封闭的系统，无法通过 USB 接口直接访问文件系统或操作系统底层。如果你要开发 iPhone 应用程序，可以使用 Xcode 和 iOS 模拟器进行调试和测试。如果你想在 iPhone 上进行调试，可以使用 Safari 开发者工具，它可以通过网络连接远程调试 iPhone 上的 Web 应用程序。要打开 Safari 开发者工具，请在 iPhone 设置中启用“Web 检查器”选项，并使用 Safari 浏览器连接 iPhone。在 Safari 浏览器中，单击“开发”菜单并选择您要调试的设备和应用程序。
 ## adb调试手机
 
 adb的全称为Android Debug Bridge，就是起到调试桥的作用。
