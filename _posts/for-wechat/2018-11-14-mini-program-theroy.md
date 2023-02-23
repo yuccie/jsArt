@@ -446,6 +446,45 @@ iOS 是利用了WKWebView 的提供 messageHandlers 特性。
 
 需要注意的是，使用 require.async 方法加载模块时，需要在模块定义时使用 define 方法进行定义，并且模块必须采用 AMD 规范编写，即使用 define 方法定义模块，并在其中定义模块的依赖项和工厂函数。
 
+```js
+// /require\.async\(["']([^"']+)["']\)/
+
+// 
+const fs = require('fs');
+
+const rootDir = '/path/to/project'; // 项目的根目录
+const fileExtensions = ['js', 'html', 'css']; // 要遍历的文件扩展名
+
+// const depRegExp = /\/node_modules\/(.+?)(?:\/|$)/;   // 匹配依赖资源路径的正则表达式
+// 匹配以 "/node_modules/" 开头，后面跟着一个或多个字符（任何字符）
+// 以 "/" 结尾或直到字符串结束的部分。其中，括号中的 ".+?" 匹配任意多个字符（包括 0 个字符），并以非贪婪模式匹配，也就是说尽可能匹配较短的字符串
+// /(?:\/|$)/  匹配一个字符串中的斜杠 / 或者字符串结尾 $，其中 ?: 表示这个括号内的匹配不作为捕获结果。因此，这个正则可以用于匹配路径中的目录或者文件名，或者是字符串结尾的位置。
+
+const depRegExp = /require\.async\(["']([^"']+)["']\)/; // 匹配使用require.async加载资源的场景
+// 这个正则表达式中的括号 ([^"']+) 表示匹配引号中的任意一个字符序列，且长度不为零。
+
+const deps = new Set(); // 存储依赖资源的集合
+
+function walkDir(dir) {
+  const files = fs.readdirSync(dir, { withFileTypes: true });
+  for (const file of files) {
+    if (file.isDirectory()) {
+      walkDir(`${dir}/${file.name}`);
+    } else if (fileExtensions.includes(file.name.split('.').pop())) {
+      const content = fs.readFileSync(`${dir}/${file.name}`, 'utf8');
+      let match;
+      while ((match = depRegExp.exec(content)) !== null) {
+        deps.add(match[1]);
+      }
+    }
+  }
+}
+
+walkDir(rootDir);
+
+console.log([...deps]);
+```
+
 #### 微信小程序异步分包组件的原理
 
 微信小程序异步分包组件的原理涉及到小程序的分包加载机制。小程序在编译时将项目分为多个分包，主包是必须加载的，分包可以根据需要进行动态加载，分包的 js 代码被分成若干个 chunk，当分包需要被加载时，会将相应的 chunk 从网络上下载到本地，并在运行时动态解析加载。
