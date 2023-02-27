@@ -809,6 +809,284 @@ TypeScript编译器通过使用tsconfig.json文件里的"paths"来支持这样�
 
 - "*"： 表示名字不发生改变，所以映射为<moduleName> => <baseUrl>/<moduleName>
 - "generated/*"表示模块名添加了“generated”前缀，所以映射为<moduleName> => <baseUrl>/generated/<moduleName>
+
+### tsconfig选项的含义
+
+- --allowJs	boolean	false	允许编译javascript文件。
+- --allowSyntheticDefaultImports	boolean	module === "system" 或设置了 --esModuleInterop 且 module 不为 es2015 / esnext	允许从没有设置默认导出的模块中默认导入。这并不影响代码的输出，仅为了类型检查。
+  - esModuleInterop 当它为true时，相当于在commonjs可以使用es6的模块方式导入导出
+- --allowUnreachableCode	boolean	false	不报告执行不到的代码错误。
+- --allowUnusedLabels	boolean	false	不报告未使用的标签错误。
+- --alwaysStrict	boolean	false	以严格模式解析并为每个源文件生成 "use strict"语句
+- --baseUrl	string		解析非相对模块名的基准目录。查看 模块解析文档了解详情。
+- --charset	string	"utf8"	输入文件的字符集。
+- --checkJs	boolean	false	在 .js文件中报告错误。与 --allowJs配合使用。
+- --declaration
+  - -d	boolean	false	生成相应的 .d.ts文件。
+- --declarationDir	string		生成声明文件的输出路径。
+- --diagnostics	boolean	false	显示诊断信息。
+- --disableSizeLimit	boolean	false	禁用JavaScript工程体积大小的限制
+- --emitBOM	boolean	false	在输出文件的开头加入BOM头（UTF-8 Byte Order Mark）。
+- --emitDecoratorMetadata [1]	boolean	false	给源码里的装饰器声明加上设计类型元数据。查看 issue #2577了解更多信息。
+- --experimentalDecorators [1]	boolean	false	启用实验性的ES装饰器。
+- --extendedDiagnostics	boolean	false	显示详细的诊段信息。
+- --forceConsistentCasingInFileNames	boolean	false	禁止对同一个文件的不一致的引用。
+- --help
+  - -h			打印帮助信息。
+- --importHelpers	string		从 tslib 导入辅助工具函数（比如 __extends， __rest等）
+- --inlineSourceMap	boolean	false	生成单个sourcemaps文件，而不是将每sourcemaps生成不同的文件。
+- --inlineSources	boolean	false	将代码与sourcemaps生成到一个文件中，要求同时设置了 --inlineSourceMap或 --sourceMap属性。
+- --init			初始化TypeScript项目并创建一个 tsconfig.json文件。
+- --isolatedModules	boolean	false	将每个文件作为单独的模块（与“ts.transpileModule”类似）。
+- --jsx	string	"Preserve"	在 .tsx文件里支持JSX： "React"或 "Preserve"。查看 JSX。
+- --jsxFactory	string	"React.createElement"	指定生成目标为react JSX时，使用的JSX工厂函数，比如 React.createElement或 h。
+- --lib	string[]		编译过程中需要引入的库文件的列表。
+  - 可能的值为：
+  - ► ES5
+  - ► ES6
+  - ► ES2015
+  - ► ES7
+  - ► ES2016
+  - ► ES2017
+  - ► ES2018
+  - ► ESNext
+  - ► DOM
+  - ► DOM.Iterable
+  - ► WebWorker
+  - ► ScriptHost
+  - ► ES2015.Core
+  - ► ES2015.Collection
+  - ► ES2015.Generator
+  - ► ES2015.Iterable
+  - ► ES2015.Promise
+  - ► ES2015.Proxy
+  - ► ES2015.Reflect
+  - ► ES2015.Symbol
+  - ► ES2015.Symbol.WellKnown
+  - ► ES2016.Array.Include
+  - ► ES2017.object
+  - ► ES2017.Intl
+  - ► ES2017.SharedMemory
+  - ► ES2017.String
+  - ► ES2017.TypedArrays
+  - ► ES2018.Intl
+  - ► ES2018.Promise
+  - ► ES2018.RegExp
+  - ► ESNext.AsyncIterable
+  - ► ESNext.Array
+  - ► ESNext.Intl
+  - ► ESNext.Symbol
+
+  - 注意：如果--lib没有指定默认注入的库的列表。默认注入的库为：
+  - ► 针对于--target ES5：DOM，ES5，ScriptHost
+  - ► 针对于--target ES6：DOM，ES6，DOM.Iterable，ScriptHost
+- --listEmittedFiles	boolean	false	打印出编译后生成文件的名字。
+- --listFiles	boolean	false	编译过程中打印文件名。
+- --locale	string	(platform specific)	显示错误信息时使用的语言，比如：en-us。
+- --mapRoot	string		为调试器指定指定sourcemap文件的路径，而不是使用生成时的路径。当 .map文件是在运行时指定的，并不同于 js文件的地址时使用这个标记。指定的路径会嵌入到 sourceMap里告诉调试器到哪里去找它们。
+- --maxNodeModuleJsDepth	number	0	node_modules依赖的最大搜索深度并加载JavaScript文件。仅适用于 --allowJs。
+- --module
+  - -m	string	target === "ES6" ? "ES6" : "commonjs"	指定生成哪个模块系统代码： "None"， "CommonJS"， "AMD"， "System"， "UMD"， - "ES6"或 "ES2015"。
+  - ► 只有 "AMD"和 "System"能和 --outFile一起使用。
+  - ► "ES6"和 "ES2015"可使用在目标输出为 "ES5"或更低的情况下。
+- --moduleResolution	string	module === "AMD" or "System" or "ES6" ? "Classic" : "Node"	决定如何处理模块。或者是"Node"对于Node.js/io.js，或者是"Classic"（默认）。查看模块解析了解详情。
+- --newLine	string	(platform specific)	当生成文件时指定行结束符： "crlf"（windows）或 "lf"（unix）。
+- --noEmit	boolean	false	不生成输出文件。只做类型检查，不然项目中全是编译后的js文件
+- --noEmitHelpers	boolean	false	不在输出文件中生成用户自定义的帮助函数代码，如 __extends。
+- --noEmitOnError	boolean	false	报错时不生成输出文件。
+- --noErrorTruncation	boolean	false	不截短错误消息。
+- --noFallthroughCasesInSwitch	boolean	false	报告switch语句的fallthrough错误。（即，不允许switch的case语句贯穿）
+- --noImplicitAny	boolean	false	在表达式和声明上有隐含的 any类型时报错。
+- --noImplicitReturns	boolean	false	不是函数的所有返回路径都有返回值时报错。
+- --noImplicitThis	boolean	false	当 this表达式的值为 any类型的时候，生成一个错误。
+- --noImplicitUseStrict	boolean	false	模块输出中不包含 "use strict"指令。
+- --noLib	boolean	false	不包含默认的库文件（ lib.d.ts）。
+- --noResolve	boolean	false	不把 /// <reference``>或模块导入的文件加到编译文件列表。
+- --noStrictGenericChecks	boolean	false	禁用在函数类型里对泛型签名进行严格检查。
+- --noUnusedLocals	boolean	false	若有未使用的局部变量则抛错。
+- --noUnusedParameters	boolean	false	若有未使用的参数则抛错。
+- --out	string		弃用。使用 --outFile 代替。
+- --outDir	string		重定向输出目录。
+- --outFile	string		将输出文件合并为一个文件。合并的顺序是根据传入编译器的文件顺序和 ///<reference``>和 import的文件顺序决定的。查看输出文件顺序文件了解详情。
+paths [2]	Object		模块名到基于 baseUrl的路径映射的列表。查看 模块解析文档了解详情。
+- --preserveConstEnums	boolean	false	保留 const和 enum声明。查看 const enums documentation了解详情。
+- --preserveSymlinks	boolean	false	不把符号链接解析为其真实路径；将符号链接文件视为真正的文件。
+- --preserveWatchOutput	boolean	false	保留watch模式下过时的控制台输出。
+- --pretty [1]	boolean	false	给错误和消息设置样式，使用颜色和上下文。
+- --project
+-p	string		编译指定目录下的项目。这个目录应该包含一个 tsconfig.json文件来管理编译。查看 tsconfig.json文档了解更多信息。
+- --reactNamespace	string	"React"	当目标为生成 "react" JSX时，指定 createElement和 __spread的调用对象
+- --removeComments	boolean	false	删除所有注释，除了以 /!*开头的版权信息。
+- --rootDir	string	(common root directory is computed from the list of input files)	仅用来控制输出的目录结构 --outDir。
+rootDirs [2]	string[]		根（root）文件夹列表，表示运行时组合工程结构的内容。查看 模块解析文档了解详情。
+- --skipDefaultLibCheck	boolean	false	忽略 库的默认声明文件的类型检查。
+- --skipLibCheck	boolean	false	忽略所有的声明文件（ *.d.ts）的类型检查。
+- --sourceMap	boolean	false	生成相应的 .map文件。
+- --sourceRoot	string		指定TypeScript源文件的路径，以便调试器定位。当TypeScript文件的位置是在运行时指定时使用此标记。路径信息会被加到 sourceMap里。
+- --strict	boolean	false	启用所有严格类型检查选项。
+启用 --strict相当于启用 --noImplicitAny, --noImplicitThis, --alwaysStrict， --strictNullChecks和 --strictFunctionTypes和--strictPropertyInitialization。
+- --strictFunctionTypes	boolean	false	禁用函数参数双向协变检查。
+- --strictPropertyInitialization	boolean	false	确保类的非undefined属性已经在构造函数里初始化。若要令此选项生效，需要同时启用--strictNullChecks。
+- --strictNullChecks	boolean	false	在严格的 null检查模式下， null和 undefined值不包含在任何类型里，只允许用它们自己和 any来赋值（有个例外， undefined可以赋值到 void）。
+- --stripInternal [1]	boolean	false	不对具有 /** @internal */ JSDoc注解的代码生成代码。
+- --suppressExcessPropertyErrors [1]	boolean	false	阻止对对象字面量的额外属性检查。
+- --suppressImplicitAnyIndexErrors	boolean	false	阻止 --noImplicitAny对缺少索引签名的索引对象报错。查看 issue #1232了解详情。
+- --target
+-t	string	"ES3"	指定ECMAScript目标版本 "ES3"（默认）， "ES5"， "ES6"/ "ES2015"， "ES2016"， "ES2017"或 "ESNext"。
+
+注意： "ESNext"最新的生成目标列表为 ES proposed features
+- --traceResolution	boolean	false	生成模块解析日志信息
+- --types	string[]		要包含的类型声明文件名列表。查看 @types，--typeRoots和--types章节了解详细信息。
+- --typeRoots	string[]		要包含的类型声明文件路径列表。查看 @types，--typeRoots和--types章节了解详细信息。
+- --version
+-v			打印编译器版本号。
+- --watch
+-w			在监视模式下运行编译器。会监视输出文件，在它们改变时重新编译。监视文件和目录的具体实现可以通过环境变量进行配置。详情请看配置 Watch。
+
+- @ts-nocheck 忽略文件检查
+- 添加ts doc 注释
+- 宽松策略：
+
+```json
+// 下面是 tsc --init初始化的配置文件
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+
+    /* Projects */
+    // "incremental": true,                              /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
+    // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
+    // "tsBuildInfoFile": "./.tsbuildinfo",              /* Specify the path to .tsbuildinfo incremental compilation file. */
+    // "disableSourceOfProjectReferenceRedirect": true,  /* Disable preferring source files instead of declaration files when referencing composite projects. */
+    // "disableSolutionSearching": true,                 /* Opt a project out of multi-project reference checking when editing. */
+    // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
+
+    /* Language and Environment */
+    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    // "jsx": "preserve",                                /* Specify what JSX code is generated. */
+    // "experimentalDecorators": true,                   /* Enable experimental support for TC39 stage 2 draft decorators. */
+    // "emitDecoratorMetadata": true,                    /* Emit design-type metadata for decorated declarations in source files. */
+    // "jsxFactory": "",                                 /* Specify the JSX factory function used when targeting React JSX emit, e.g. 'React.createElement' or 'h'. */
+    // "jsxFragmentFactory": "",                         /* Specify the JSX Fragment reference used for fragments when targeting React JSX emit e.g. 'React.Fragment' or 'Fragment'. */
+    // "jsxImportSource": "",                            /* Specify module specifier used to import the JSX factory functions when using 'jsx: react-jsx*'. */
+    // "reactNamespace": "",                             /* Specify the object invoked for 'createElement'. This only applies when targeting 'react' JSX emit. */
+    // "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
+    // "useDefineForClassFields": true,                  /* Emit ECMAScript-standard-compliant class fields. */
+    // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
+
+    /* Modules */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    // "rootDir": "./",                                  /* Specify the root folder within your source files. */
+    // "moduleResolution": "node",                       /* Specify how TypeScript looks up a file from a given module specifier. */
+    // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
+    // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
+    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
+    // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
+    // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
+    // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
+    // "resolveJsonModule": true,                        /* Enable importing .json files. */
+    // "noResolve": true,                                /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */
+
+    /* JavaScript Support */
+    // "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
+    // "checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
+    // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from 'node_modules'. Only applicable with 'allowJs'. */
+
+    /* Emit */
+    // "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    // "declarationMap": true,                           /* Create sourcemaps for d.ts files. */
+    // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
+    // "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
+    // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If 'declaration' is true, also designates a file that bundles all .d.ts output. */
+    // "outDir": "./",                                   /* Specify an output folder for all emitted files. */
+    // "removeComments": true,                           /* Disable emitting comments. */
+    // "noEmit": true,                                   /* Disable emitting files from a compilation. */
+    // "importHelpers": true,                            /* Allow importing helper functions from tslib once per project, instead of including them per-file. */
+    // "importsNotUsedAsValues": "remove",               /* Specify emit/checking behavior for imports that are only used for types. */
+    // "downlevelIteration": true,                       /* Emit more compliant, but verbose and less performant JavaScript for iteration. */
+    // "sourceRoot": "",                                 /* Specify the root path for debuggers to find the reference source code. */
+    // "mapRoot": "",                                    /* Specify the location where debugger should locate map files instead of generated locations. */
+    // "inlineSourceMap": true,                          /* Include sourcemap files inside the emitted JavaScript. */
+    // "inlineSources": true,                            /* Include source code in the sourcemaps inside the emitted JavaScript. */
+    // "emitBOM": true,                                  /* Emit a UTF-8 Byte Order Mark (BOM) in the beginning of output files. */
+    // "newLine": "crlf",                                /* Set the newline character for emitting files. */
+    // "stripInternal": true,                            /* Disable emitting declarations that have '@internal' in their JSDoc comments. */
+    // "noEmitHelpers": true,                            /* Disable generating custom helper functions like '__extends' in compiled output. */
+    // "noEmitOnError": true,                            /* Disable emitting files if any type checking errors are reported. */
+    // "preserveConstEnums": true,                       /* Disable erasing 'const enum' declarations in generated code. */
+    // "declarationDir": "./",                           /* Specify the output directory for generated declaration files. */
+    // "preserveValueImports": true,                     /* Preserve unused imported values in the JavaScript output that would otherwise be removed. */
+
+    /* Interop Constraints */
+    // "isolatedModules": true,                          /* Ensure that each file can be safely transpiled without relying on other imports. */
+    // "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
+    // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
+    // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
+    // "strictBindCallApply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
+    // "strictPropertyInitialization": true,             /* Check for class properties that are declared but not set in the constructor. */
+    // "noImplicitThis": true,                           /* Enable error reporting when 'this' is given the type 'any'. */
+    // "useUnknownInCatchVariables": true,               /* Default catch clause variables as 'unknown' instead of 'any'. */
+    // "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
+    // "noUnusedLocals": true,                           /* Enable error reporting when local variables aren't read. */
+    // "noUnusedParameters": true,                       /* Raise an error when a function parameter isn't read. */
+    // "exactOptionalPropertyTypes": true,               /* Interpret optional property types as written, rather than adding 'undefined'. */
+    // "noImplicitReturns": true,                        /* Enable error reporting for codepaths that do not explicitly return in a function. */
+    // "noFallthroughCasesInSwitch": true,               /* Enable error reporting for fallthrough cases in switch statements. */
+    // "noUncheckedIndexedAccess": true,                 /* Add 'undefined' to a type when accessed using an index. */
+    // "noImplicitOverride": true,                       /* Ensure overriding members in derived classes are marked with an override modifier. */
+    // "noPropertyAccessFromIndexSignature": true,       /* Enforces using indexed accessors for keys declared using an indexed type. */
+    // "allowUnusedLabels": true,                        /* Disable error reporting for unused labels. */
+    // "allowUnreachableCode": true,                     /* Disable error reporting for unreachable code. */
+
+    /* Completeness */
+    // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
+    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  }
+}
+
+```
+
+### ts-loader
+
+- ts-loader 内部调用了官方的编译器 tsc ，所以tsc与ts-loader其实是共享tsconfig.json这个配置文件的
+- tsc --init 可以初始化一个tsconfig.json配置文件
+- 同时ts-loader还有自己的一些配置，通过options选项传入
+- tsc编译器不但要做语言转换，还要做类型检查， transpileOnly 选项就是只做语言转换，这样的话即使编辑器有ts类型报错，编译器也会放过，这岂不是一个兜底方案？
+- 那如何在 transpileOnly 开启时，又做类型检查呢？可以借助一个插件，相当于这个插件放在一个独立的进程中进行实现，比如 fork-ts-checker-webpack-plugin 
+- 除了ts-loader还有一个 awesome-typescript-loader，
+  - 更适合于babel集成，使用babel的缓存和转义
+  - 不需要安装额外的插件，就可以把类型检查放在独立进程中进行（但类型检查存在缺陷）
+
+使用了ts，为何还需要babel呢？
+- tsc和babel都可以将ts、jsx等转为es3/es4/es5等，但前者有类型检查，后者有丰富的插件
+
+在babel7之前，是不支持ts的，如果想在babel7之前的项目使用ts，则需要先转为js，然后再使用babel转义
+babel7之后，就支持ts了，官方合作
+
+因此，我们可以在项目里使用babel做语言转换，然后使用typescript做类型检查，tsc --watch 可以开启编译器的监听模式。但两者最好不要混用
+
+### tslint eslint 代码检查工具
+
+- tslint检查工具，慢慢的变为eslint
+- tslint执行规则的方式存在一些架构问题，从而影响性能，而修复这些问题会破坏现有的规则
+- eslint的性能更好，并且社区用户通常拥有eslint的规则配置
+
+TSLint是为TypeScript设计的代码规范检查工具。它可以检查TypeScript代码中的错误，比如拼写错误、类型错误、代码不规范等，并提供一些自定义规则。TSLint已经停止了官方支持，官方推荐使用ESLint代替。
+
+ESLint是JavaScript的静态代码分析工具，它可以检查JavaScript代码中的错误、不规范的代码风格，并且支持自定义规则。与TSLint不同，ESLint可以支持多种编程语言，包括JavaScript、TypeScript、JSX等。
+
+从底层原理来分析：
+- 业务代码经过tsc编译器生成的ast文件与eslint生成的ast并不兼容，但现在社区提供 typescript-eslint插件将前者的ast转为后者的ast，从而使用eslint丰富的社区生态
+
 ### 断言
 
 ```js

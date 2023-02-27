@@ -467,6 +467,8 @@ umbrella.config(prefix: string);
 
 ## typescript
 
+无法直接使用node运行ts文件，需要先编译成js文件，才可以运行ts文件，但为了方便，可以安装ts-node模块，然后就可以使用ts-node xx.ts文件了
+
 ### 基本数据类型
 
 #### unknown
