@@ -78,6 +78,123 @@ Flutter 引擎是一个基于 Dart 语言的 UI 框架，它是由 Dart VM 驱�
 
 因此，Dart VM 是 Flutter 引擎的一部分，负责解释和执行 Dart 代码；Flutter 引擎是一个基于 Dart 语言的 UI 框架，包含了用于构建和渲染应用程序 UI 的组件和工具，以及一些其他的组件。
 
+## 基于Flutter 的 Web 渲染引擎「北海 Kraken 」技术原理
+
+Flutter 的 Web 渲染引擎「北海 Kraken」是由阿里巴巴 Ant Design 设计团队开发的，它基于 WebAssembly 技术实现了 Flutter 在浏览器端的运行。Kraken 引擎的实现原理如下：
+
+WebAssembly 技术
+Kraken 引擎的实现基于 WebAssembly 技术，WebAssembly 是一种可以在浏览器端运行的低级字节码格式，它可以将高级语言编译成机器码，然后在浏览器中运行，可以获得接近原生的性能。
+
+Flutter 与 Skia
+Flutter 是一个基于 Skia 图形库的 UI 框架，Skia 是一个由 Google 开发的 2D 图形库，它可以在各种平台上绘制矢量图形和位图，包括 Android、iOS、Windows、macOS 等。其实skia也是封装的系统的能力。
+
+通过 WebAssembly 转换成机器码
+Kraken 引擎将 Dart 代码编译成 WebAssembly 字节码，在浏览器中执行 WebAssembly 字节码，并通过 Skia 库将 Flutter UI 绘制成位图或矢量图形。
+
+与浏览器交互
+Kraken 引擎还需要与浏览器进行交互，包括处理 DOM 事件、处理网络请求等。Kraken 引擎通过 JavaScript 和 Dart 的互相调用，实现与浏览器的交互。
+
+综上，Kraken 引擎的实现基于 WebAssembly 技术，通过将 Dart 代码编译成 WebAssembly 字节码，并通过 Skia 库将 Flutter UI 绘制成位图或矢量图形，最终实现在浏览器端运行 Flutter 应用。
+
+## WebAssembly
+WebAssembly 是一种低级字节码格式，旨在提供高性能、低开销的解决方案，使 Web 应用程序能够在各种不同的环境中运行。WebAssembly 的原理主要分为以下几个步骤：
+
+1. 编写代码：首先需要使用支持 WebAssembly 的语言编写代码，例如 C、C++、Rust、Go 等。代码需要被编译为 WebAssembly 字节码，这通常使用特定的编译器来完成。
+
+2. 加载模块：将 WebAssembly 字节码文件加载到浏览器中。可以使用 JavaScript 来加载和实例化模块，并将其存储在内存中。
+
+3. 实例化模块：使用 WebAssembly 实例化模块，并在 JavaScript 中创建一个外部界面。这个界面将允许 JavaScript 与 WebAssembly 交互，并且可以从 JavaScript 中调用 WebAssembly 函数。
+
+4. 运行代码：WebAssembly 模块中的函数可以通过 JavaScript 代码调用，也可以通过 WebAssembly 模块自身调用。WebAssembly 模块中的函数执行完成后，可以将结果返回到 JavaScript 中。
+
+总体来说，WebAssembly 的运行原理是将编写好的代码编译成字节码，并在浏览器中实例化和执行这些字节码，从而实现高效的跨平台应用程序。
+
+**JavaScript 本身不可以直接编译为 WebAssembly**，但可以通过将其他语言编译为 WebAssembly 模块，然后在 JavaScript 中调用这些模块来实现。例如，C/C++、Rust、Go 等语言都可以编译为 WebAssembly。此外，一些编程语言的编译器已经集成了对 WebAssembly 的支持，如 AssemblyScript，它是一种类似 TypeScript 的语言，可以直接编译为 WebAssembly。
+
+
+
+以下是一个简单的 Rust 编写的 WebAssembly 的例子，并在 JavaScript 中调用它。
+
+首先，我们需要安装 Rust 和 wasm-pack 工具，这可以通过 Rust 官网和 wasm-pack 官网进行下载和安装。
+
+接下来，我们创建一个 Rust 项目，可以使用 cargo new --lib 命令来创建：
+
+`cargo new --lib rust-wasm-demo`
+然后，我们进入到项目目录并初始化 wasm-pack：
+
+`cd rust-wasm-demo`
+`wasm-pack init --scope your_username`
+其中 your_username 是你的 npm 用户名，这一步会生成一个默认的 lib.rs 文件和 Cargo.toml 文件。
+
+接着，我们在 lib.rs 文件中写下以下代码：
+
+
+```rust
+#[no_mangle]
+pub fn add(a: i32, b: i32) -> i32 {
+    return a + b;
+}
+```
+这个函数非常简单，它接受两个整数并将它们相加，返回它们的和。#[no_mangle] 是一个属性，告诉 Rust 编译器不要对函数名进行重命名，这样 JavaScript 就可以访问它了。
+
+然后，在 Cargo.toml 文件中添加以下内容：
+
+
+```rust
+[lib]
+crate-type = ["cdylib"]
+```
+这会告诉 Rust 编译器生成一个动态链接库，以便可以在 JavaScript 中使用它。
+
+接下来，我们需要构建 WebAssembly 模块。可以使用以下命令：
+
+`wasm-pack build --target web`
+这将构建 WebAssembly 模块并生成一个 JavaScript 包装器。在这个例子中，我们不需要使用该包装器，因此可以删除 pkg 目录。
+
+最后，我们可以在 JavaScript 中使用该模块。创建一个名为 index.html 的文件，并添加以下代码：
+
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Rust + WebAssembly Demo</title>
+    <script>
+      fetch('rust_wasm_demo_bg.wasm')
+        .then(response => response.arrayBuffer())
+        .then(bytes => WebAssembly.instantiate(bytes))
+        .then(obj => {
+          const add = obj.instance.exports.add;
+          const result = add(1, 2);
+          console.log(`Result: ${result}`);
+        })
+        .catch(console.error);
+    </script>
+  </head>
+  <body>
+    <h1>Rust + WebAssembly Demo</h1>
+  </body>
+</html>
+```
+
+这个文件非常简单，它加载了 WebAssembly 模块并在 JavaScript 中调用 add 函数。在浏览器中打开该文件并打开控制台，就可以看到输出了结果 3。
+
+这就是使用 Rust 编写 WebAssembly 并在 JavaScript 中调用的基本流程。
+
+## rupy
+
+Ruby是一种动态、面向对象、通用的编程语言，它具有简洁的语法、优雅的风格和丰富的库。Ruby的作者是松本行弘（Yukihiro Matsumoto），也被称为Matz，最初是在20世纪90年代开发的。它被广泛应用于Web开发、脚本编写、自动化、数据分析等领域。Ruby的主要特点包括易于学习、开发效率高、代码可读性好、具有自由度高的语言特性等。
+
+ruby on rails 什么意思？
+Ruby on Rails，也简称 Rails，是一个使用 Ruby 编程语言写的开源 Web 应用程序框架。它遵循了 Model-View-Controller（MVC）的设计模式，提供了一种简单快捷的方式来开发数据库驱动的 Web 应用程序。Ruby on Rails 框架的主要目标是开发高效且易维护的 Web 应用程序，提高开发效率和开发者的生产力。
+
+## cpp
+
+Cpp 是一种通用的、静态类型的、支持面向对象编程、支持泛型编程的编程语言，是 C 语言的一种超集。C++ 语言由 Bjarne Stroustrup 在 1983 年所创造，旨在扩充 C 语言的功能并提供面向对象的编程能力，也是当前应用最为广泛的编程语言之一。C++ 语言可以在操作系统、嵌入式系统、服务器、游戏开发、图形处理、科学计算等领域得到广泛应用。
+
+C++是C++ programming language的简称，而cpp则是C++文件的文件扩展名，两者都指代同一个编程语言。
+
 ## go
 
 go语言（或 Golang）是Google开发的开源编程语言，诞生于2006年1月2日下午15点4分5秒，于2009年11月开源，2012年发布go稳定版。Go语言在多核并发上拥有原生的设计优势，Go语言从底层原生支持并发，无须第三方库、开发者的编程技巧和开发经验。
