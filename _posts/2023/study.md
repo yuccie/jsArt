@@ -198,6 +198,58 @@ const result = findMostFrequentLetter('Hello World!');
 console.log(result); // 输出 { letter: 'l', count: 3 }
 ```
 
+### fn(arr, n, num) arr是一个数组，n 表示在这个数组中找出n个项，num表示在这n个项相加和为num
+
+可以使用回溯法（Backtracking）来解决这个问题。
+
+回溯法是一种穷举搜索的算法，它通过枚举所有可能的解，并逐步排除不可能的解，最终找到所有满足条件的解。
+
+具体实现步骤如下：
+
+1. 定义一个空数组 result，用于存储所有符合条件的数组。
+2. 定义一个递归函数 find，接收三个参数：当前的数组 curArr，剩余需要找的个数 count，以及剩余需要相加的和 sum。
+3. 如果剩余需要找的个数为 0，且剩余需要相加的和为 0，说明当前的数组符合条件，将其添加到 result 数组中。
+4. 如果剩余需要找的个数为 0，但剩余需要相加的和不为 0，说明当前的数组不符合条件，返回。
+5. 如果当前数组已经遍历完，返回。
+6. 遍历原数组 arr，将每个元素依次添加到 curArr 中，然后调用 find 函数，传入剩余需要找的个数 count - 1，以及剩余需要相加的和 sum - arr[i]。
+7。 在递归返回时，将 curArr 中的最后一个元素移除，继续遍历原数组。
+
+最终，result 数组中存储的就是所有符合条件的数组。
+
+```js
+function fn(arr, n, num) {
+  const result = [];
+
+  function find(curArr, count, sum) {
+    if (count === 0 && sum === 0) {
+      result.push(curArr.slice());
+      return;
+    }
+    if (count === 0 || sum < 0) {
+      return;
+    }
+    if (arr.length === 0) {
+      return;
+    }
+    for (let i = 0; i < arr.length; i++) {
+      curArr.push(arr[i]);
+      arr.splice(i, 1);
+      find(curArr, count - 1, sum - arr[i]);
+      arr.splice(i, 0, curArr.pop());
+    }
+  }
+
+  find([], n, num);
+  return result;
+}
+// 测试
+const arr = [1, 2, 3, 4, 5];
+const n = 3;
+const num = 7;
+const result = fn(arr, n, num);
+console.log(result);
+```
+
 ## html 相关
 
 ### viewport 原理
@@ -214,7 +266,30 @@ viewport 属性的值通常由两个部分组成，分别是 width 和 initial-s
 
 总之，viewport 属性是移动设备上网页布局和缩放的关键，通过合理设置 viewport 属性，可以让网页在不同设备上以合适的方式呈现，提高用户的体验。
 
+### Cookie、Session、LocalStorage 和 SessionStorage 都
+
+是在 Web 开发中用于存储数据的机制，但它们之间存在一些区别。
+
+- Cookie 是浏览器用于存储少量数据的机制，通常用于存储用户的登录状态、网站的一些偏好设置等。Cookie 会随着每个 HTTP 请求发送到服务器端，因此可以用于在客户端和服务器端之间传递信息。Cookie 可以设置过期时间，也可以通过 JavaScript 来操作。
+
+- Session 是在服务器端存储用户数据的机制，通常用于存储用户的登录状态、用户的购物车信息等。当用户通过浏览器访问网站时，服务器会为每个用户创建一个唯一的 Session ID，并将其存储在 Cookie 中返回给客户端。客户端每次请求时都会携带该 Cookie，服务器根据 Session ID 来判断用户的身份，从而获取用户的数据。Session 的数据存储在服务器端，因此相对于 Cookie 更加安全。
+
+- LocalStorage 是在浏览器端存储数据的机制，通常用于存储一些持久化的数据，例如用户的偏好设置、应用程序的配置等。LocalStorage 可以设置过期时间，数据会一直存在浏览器中，除非用户手动清除。
+
+- SessionStorage 与 LocalStorage 类似，都是在浏览器端存储数据的机制，但其数据的生命周期与 Session 相关。当用户关闭浏览器时，SessionStorage 中的数据也会被清除。
+
+总的来说，这些存储机制的使用场景和使用方式各不相同。需要根据具体的业务需求选择合适的存储机制。
+
 ## CSS
+
+### 像素
+
+- 1像素，其实就是屏幕上的一个马赛克点，是一个绝对单位，但是在retina屏上 等于 dpr 个像素点，比如iPhone X 上，1px 等于 3 个物理像素点。
+- 像素密度，屏幕上每英寸的像素数目，通常用“ppi”（Pixels Per Inch）表示
+- retina屏，其实就是相同宽度下，可以显示更多的马赛克点
+- 幕尺寸指的是屏幕对角线的长度，通常用“英寸”作为单位表示
+- 如1080 x 1920 像素，屏幕尺寸为 5.5 英寸的手机，像素密度为：1080 / 5.5 ≈ 401 ppi
+- 在 iPhone X 上，屏幕分辨率为 1125 x 2436 像素，而屏幕尺寸为 5.8 英寸，像素密度为 458 ppi（像素每英寸），因此每个物理像素上显示的图像元素数目是常规屏幕的 3 倍左右
 
 ### 要让前端项目开始使用 GPU 加速，需要考虑以下几个方面：
 
@@ -262,3 +337,76 @@ box.addEventListener('click', () => {
 2. 当被包裹的组件被销毁时，keep-alive 组件会将该组件的实例对象从 cache 中删除。
 3. 当被包裹的组件再次渲染时，keep-alive 组件会检查 cache 中是否有该组件的实例对象。如果有，则直接从 cache 中获取该实例对象，不再重新创建。
 4. 如果被包裹的组件需要更新，keep-alive 组件会先调用该组件的 beforeUpdate 钩子函数，然后再更新该组件的状态。
+
+
+## babel
+
+### babel 如何处理 this
+
+babel在不同的环境下，将this转换成不同的内容，比如undefined，可以写一个简单的babel工具测试下
+
+### 组件库如何实现的按需加载
+
+- 组件库按需加载： 
+  - 方式一：手动加载：
+  - 方式二：借助bebel-plugin-import插件
+
+```js
+// 方式一：
+import Button from 'vant/lib/button';
+import 'vant/lib/button/style';
+
+
+// 方式二：
+// 配置bebel插件
+module.exports = {
+  plugins: [
+    ['import', {
+      libraryName: 'vant',
+      libraryDirectory: 'es',
+      style: true
+    }, 'vant']
+  ]
+};
+
+// 业务中使用
+import { Button } from 'vant';
+Vue.use(Button);
+```
+
+其实对比二者，bebel-plugin-import 的作用，无非是将手动挨个引入组件及样式的操作自动化了而已。
+
+
+#### 组件库按需加载的本质
+
+```js
+import { Button } from 'vant';
+
+// bebel 转换为 如下，避免每次都手动引的麻烦。
+
+import "vant/es/button/style";
+import _Button from "vant/es/button";
+```
+
+其实底层就是，bebel插件在 AST 层面对导入语法进行分析，并进行替换操作，然后再生成最终的代码而已。
+
+而每个babel插件其实，就是类似如下的一个对象：
+
+```js
+export default function({ types: t }) {
+  return {
+    visitor: {
+      Identifier(path, state) {},
+      ASTNodeTypeHere(path, state) {}
+    }
+  };
+};
+```
+
+
+- [组件库按需加载原理分析](https://juejin.cn/post/6968505746757533710#heading-15)
+- [深入Babel，这一篇就够了](https://juejin.cn/post/6844903746804137991)
+- [一口(很长的)气了解 babel](https://juejin.cn/post/6844903743121522701)
+- [babel插件手册](https://github.com/jamiebuilds/babel-handbook/blob/master/translations/zh-Hans/plugin-handbook.md)
+
+
