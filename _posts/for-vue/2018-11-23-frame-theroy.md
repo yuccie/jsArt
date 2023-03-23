@@ -1613,7 +1613,67 @@ dispatch( type, payload ) {
 
 理解 Vuex 的核心在于理解其如何与 Vue 本身结合，如何利用 Vue 的响应式机制来实现核心 Store 的「响应式化」。
 
+### Pinia 和 Vuex
+Pinia 和 Vuex 都是 Vue.js 状态管理库，但它们的实现和使用方法有所不同。
+
+- 响应式：在 Pinia 中，状态存储和响应式是使用 Vue.js 3 中提供的响应式 API 实现的。Vuex 使用了 Vue.js 2 中的响应式机制。
+- 类型安全：Pinia 提供了类型安全的状态存储，通过 TypeScript 的类型检查可以避免一些常见的错误。Vuex 只能通过使用插件等方式来实现类型安全。
+- 插件：Vuex 允许用户编写插件来拦截和处理状态变化。Pinia 没有提供类似的插件机制，但是可以使用钩子函数来实现一些类似的功能。
+- 模块化：Pinia 支持模块化，可以将状态存储分解成多个模块，每个模块有自己的状态和操作方法。Vuex 也支持模块化，但是模块和全局状态之间的交互相对困难。
+总的来说，Pinia 在响应式、类型安全和模块化等方面比 Vuex 更为灵活和高效，但是在插件和工具生态方面可能会稍逊一筹。
+
+Vue 3 中的依赖收集原理相较于 Vue 2 有所改变。Vue 3 使用了 Proxy 代理对象来进行依赖收集，这样可以在访问对象的属性时触发代理对象的 get 函数，从而将当前正在运行的 effect 函数注册为当前属性的依赖，当属性值发生变化时，再通过代理对象的 set 函数通知 effect 函数重新执行。这样相比 Vue 2 中使用的 Object.defineProperty 方法进行依赖收集，有以下优点：
+
+- 无需初始化时递归遍历整个数据结构，只需要在访问时进行依赖收集，大大减少了初始化时的开销。
+- Proxy 可以监听到数组元素的变化，不需要额外处理数组的操作，如 push、pop、shift、unshift、splice、sort、reverse 等操作。
+- 可以很方便地监听到对象属性的新增和删除，无需额外处理。
+- 使用 Proxy 的方式比 Object.defineProperty 更加直观和易于理解。
+
+```vue
+<template>
+  <div>
+    <p>Count: {{ count }}</p>
+    <button @click="increment">Increment</button>
+  </div>
+</template>
+
+<script>
+import { reactive, effect } from 'vue';
+
+export default {
+  setup() {
+    const state = reactive({
+      count: 0,
+    });
+
+    // 响应式依赖收集与触发
+    effect(() => {
+      console.log(`Count changed to ${state.count}`);
+    });
+
+    const increment = () => {
+      state.count++;
+    };
+
+    return {
+      count: state.count,
+      increment,
+    };
+  },
+};
+</script>
+```
+在这个示例中，我们使用了 Vue 3 的 reactive 函数来创建一个响应式对象 state，它包含了一个数字类型的属性 count。我们通过 effect 函数来收集 count 属性的依赖，并在 count 属性值发生变化时触发该 effect。
+
+在 setup 函数中，我们将 state 对象的 count 属性和 increment 方法分别绑定到了组件实例的 count 和 increment 属性上，并在模板中使用它们。
+
+在用户点击 Increment 按钮时，increment 方法会将 state.count 属性的值加一，触发 effect 函数的执行，并输出 Count changed to ${state.count} 的日志。
+
+
+
 ### **vue-router**
+
+
 
 参考：[vue-router 官网][vuerouterofficialurl]
 
