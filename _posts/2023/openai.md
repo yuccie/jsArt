@@ -181,7 +181,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...
 
-l.53 \section{鍔炰簨澶勬竻鍗曟€濆瘑杈緘
+l.53 \section
 
 Try running pandoc with --latex-engine=xelatex.
 pandoc.exe: Error producing PDF
@@ -198,3 +198,11 @@ google 之发现，原来是没有指定字体的问题，加上参数 -v
 
 > pandoc test.md -o test.pdf --latex-engine=xelatex -v mainfont="Microsoft YaHei"
 以上，完美~~~
+
+### IVR(Interactive Voice Response)即互动式语音应答，您只须用电话即可进入服务中心，可以根据操作提示收听手机娱乐产品，也可以根据用户输入的内容播放有关的信息。
+
+IVR 是 Interactive Voice Response 的缩写，即交互式语音应答系统。它是一种自动化的电话系统，允许客户通过语音或触摸键盘输入与计算机系统进行交互。
+
+IVR 的基本理论是使用预先录制的语音提示和菜单来引导呼叫者完成一系列选项或操作。该系统使用语音识别技术来理解呼叫者的响应，并可以将呼叫路由到适当的部门或代理商，或提供所请求的信息。
+
+IVR 系统通常用于客户支持、银行和金融服务等行业，其中有大量的客户互动可以自动化。其目标是为客户提供一种方便高效的访问信息或服务的方式，同时减轻人工代理人的工作负担。

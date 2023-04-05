@@ -1052,8 +1052,11 @@ rootDirs [2]	string[]		根（root）文件夹列表，表示运行时组合工�
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   }
 }
-
 ```
+
+tsconfig.json 是 TypeScript 的默认配置文件，它用于配置 TypeScript 项目的编译选项，包括编译时需要的文件、输出目录、模块规范等。而 tsconfig.node.json 则是专门针对 Node.js 项目而制定的 TypeScript 配置文件，它与 tsconfig.json 相比增加了一些针对 Node.js 开发的特殊配置项，比如 module 配置项需要设置为 commonjs，因为 Node.js 默认使用的是 CommonJS 模块规范，而不是 ES 模块规范。
+
+因此，如果你正在开发一个基于 Node.js 的 TypeScript 项目，使用 tsconfig.node.json 文件可以更方便地配置和管理项目，同时也能避免一些常见的配置错误。
 
 ### ts-loader
 
