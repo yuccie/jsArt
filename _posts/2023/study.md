@@ -252,6 +252,10 @@ console.log(result);
 
 ## html 相关
 
+### DSL
+
+领域特定语言（英语：domain-specific language、DSL）指的是专注于某个应用程序领域的计算机语言。 又译作领域专用语言。 不同于普通的跨领域通用计算机语言(GPL)，领域特定语言只用在某些特定的领域。 比如用来显示网页的HTML，以及Emacs所使用的Emac LISP语言。
+
 ### viewport 原理
 
 **viewport的原理**
