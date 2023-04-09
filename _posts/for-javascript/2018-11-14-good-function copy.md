@@ -90,8 +90,15 @@ WebView对于ios和androd不太一样，因此需要分开说：
 - reload：重新加载
 - stringByEvaluatingJavaScriptFromString：执行一段js脚本，并且返回执行结果
 
+#### 当前所有版本的 iOS Safari（包括所有基于 iOS WebView 的浏览器）都存在一个 bug，下载中的脚本会阻塞页面的显示，无论脚本是否在页面底部或是否有 defer 或 async 属性。
 
+这个问题确实存在于当前所有版本的 iOS Safari 中，包括所有基于 iOS WebView 的浏览器。这个问题是由于 iOS Safari 的一些特殊行为导致的，具体来说是因为 iOS Safari 在下载和解析 JavaScript 时采用了串行处理的方式，因此会阻塞页面的显示。而 defer 和 async 属性在 iOS Safari 中并不能完全解决这个问题，因为它们只能控制 JavaScript 的执行时机，并不能改变 JavaScript 下载和解析的顺序。
 
+而安卓的浏览器会采用类似于多线程的方式来处理 JavaScript 的下载和解析，因此即使下载中的 JavaScript 阻塞了页面的显示，也不会像 iOS Safari 那样严重影响用户体验。
+
+另外，安卓上的浏览器也可能使用了一些优化技术来加速 JavaScript 的下载和解析，例如对 JavaScript 文件进行压缩、缓存等等（但这个压缩和缓存，safari也会有，服务器设置响应头和压缩代码格式）。这些技术可以帮助减少 JavaScript 下载和解析的时间，从而提高页面加载速度和用户体验。
+
+其实就是safari和安卓浏览器对于是否并行下载和解析js资源的行为不一致而已。
 
 ### jsBridge其他
 

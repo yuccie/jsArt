@@ -2025,6 +2025,14 @@ content-type: text/html; charset=UTF-8
 - 为了减轻服务器的压力，在 HTTP/1.0 中提供了 **Cache** 机制，用来缓存已经下载过的数据。
 - 服务器需要统计客户端的基础信息，比如 Windows 和 macOS 的用户数量分别是多少，所以 HTTP/1.0 的请求头中还加入了**用户代理**的字段。
 
+当 Content-Encoding 字段的值为 br 时，表示服务器对实体内容使用了 Brotli 算法进行压缩
+
+服务器需要特殊配置才能支持 Brotli 压缩。具体来说，服务器需要安装 Brotli 压缩库，并将其集成到 Web 服务器或 CDN 中。常见的 Web 服务器（如 Apache、Nginx 等）都支持 Brotli 压缩，可以通过配置文件或插件来启用。一些 CDN（如 Cloudflare、Fastly 等）也支持 Brotli 压缩，并可以在控制面板中进行配置。
+
+对于浏览器，大部分现代浏览器都已经支持 Brotli 压缩。例如，Chrome、Firefox、Safari、Edge 等主流浏览器都支持 Brotli 压缩，可以在请求头中通过 Accept-Encoding 字段来指定支持的压缩类型。
+
+需要注意的是，Brotli 压缩需要消耗更多的 CPU 资源，因此可能会对服务器和客户端的性能造成一定的影响。此外，Brotli 压缩也可能会影响缓存效果，因为不同的压缩算法可能会导致缓存命中率的变化。因此，需要根据具体的情况来决定是否使用 Brotli 压缩，以达到最优的性能和用户体验。
+
 **3. 缝缝补补的 HTTP/1.1：**
 
 1. 改进持久连接
