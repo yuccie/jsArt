@@ -135,83 +135,6 @@ if ('production' === 'production') {
 
 ### 其他
 
-#### 使用Object.defineProperty对象拦截
-
-```js
-function observe(obj) {
-  // 如果不是对象，直接返回
-  if (typeof obj === null || typeof obj !== 'object') return
-
-  Object.keys(obj).forEach(key => {
-    let val = obj[key]
-
-    observe(val)
-
-    Object.defineProperty(obj, key, {
-      set(newVal) {
-        console.log('djch set', newVal === val, key)
-        if (newVal === val) return
-        val = newVal
-      },
-      get() {
-        console.log('djch get', key, val)
-        return val
-      },
-    })
-  })
-}
-
-const obj = {
-  name: 'Alice',
-  age: 20,
-  address: {
-    city: 'Shanghai',
-    street: 'Nanjing Road'
-  }
-};
-
-observe(obj);
-obj.name = 'Bob'; // 打印 "Setting name to Bob"
-console.log(obj.address.city); // 打印 "Getting address" 和 "Getting city" 和 "Shanghai"
-```
-
-#### 使用 Proxy 做对象拦截
-
-使用Proxy做代理，不需要递归
-
-```js
-const handler = {
-  get(target, key) {
-    console.log('djch get', key, target)
-    if (typeof target[key] !== null && typeof target[key] === 'object') {
-      return new Proxy(target[key], handler)
-    }
-    return target[key]
-  },
-  set(target, key, value) {
-    console.log('djch set', key, target, value)
-    target[key] = value;
-    // set on proxy: trap returned falsish for property xxx
-    // 在使用 set 方法时，需要注意的是，该方法需要返回一个布尔值，用于表示是否成功设置了属性的值。如果 set 方法返回了一个 falsy 值，例如 undefined，代理对象会认为设置属性值失败，从而触发该错误。
-    return true
-  }
-}
-
-const obj = {
-  name: 'Alice',
-  age: 20,
-  address: {
-    city: 'Shanghai',
-    street: 'Nanjing Road'
-  }
-};
-
-const proxy = new Proxy(obj, handler);
-
-proxy.name = 'Bob';              // 打印 "Setting name to Bob"
-console.log(proxy.address.city); // 打印 "Getting address" 和 "Getting city" 和 "Shanghai"
-```
-
 ### SemVer 
 全称为Semantic Versioning(语义化版本表示)
 
@@ -222,7 +145,6 @@ console.log(proxy.address.city); // 打印 "Getting address" 和 "Getting city" 
 
 ## 微服务
 
-## 
 
 
 
