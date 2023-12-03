@@ -1588,6 +1588,7 @@ JavaScript 的**许多内置对象都重写了该函数，以实现更适合自�
 
 const a = {
   value: [3, 2, 1],
+  // valueOf() 方法。该方法在进行隐式类型转换时被调用
   valueOf() {
     return this.value.pop();
   },
