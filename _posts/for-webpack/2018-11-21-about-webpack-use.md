@@ -911,6 +911,7 @@ Es6引入自己的模块格式的一个原因是为了支持静态结构，有�
 5. ready for macros （可以使用宏了，在编译期间可操作语法树）
 
 ***9.2、tree shaking使用***<br/>
+
 使用步骤：
 1. 定义类似如下文件
 ```js
@@ -938,7 +939,52 @@ console.log(cube(2))
 
 >通过如上方式，我们已经可以通过 import 和 export 语法，找出那些需要删除的“未使用代码(dead code)”，然而，我们不只是要找出，还需要在 bundle 中删除它们。为此，我们将使用 -p(production) 这个 webpack 编译标记，来启用 UglifyJSPlugin 插件。
 
-再反过来看看上面官方的一段话，以及回顾一下静态数据结构，则表明，webpack可以根据import和export等语法分析出哪些代码是dead-code，然后再利用UglifyJSPlugin插件删除多余代码。
+再反过来看看上面官方的一段话，以及回顾一下静态数据结构，则表明，**webpack可以根据import和export等语法分析出哪些代码是dead-code**，tree-shaking的消除原理是依赖于ES6的模块特性，然后再利用UglifyJSPlugin插件删除多余代码。
+
+
+Webpack 中，Tree-shaking 的实现一是先标记出模块导出值中哪些没有被用过，二是使用 Terser 删掉这些没被用到的导出语句。标记过程大致可划分为三个步骤：
+1. Make 阶段，收集模块导出变量并记录到模块依赖关系图 ModuleGraph 变量中
+2. Seal 阶段，遍历 ModuleGraph 标记模块导出变量有没有被使用
+3. 生成产物时，若变量没有被其它模块使用则删除对应的导出语句
+
+
+ES6 module 特点
+ 
+- 只能作为模块顶层的语句出现
+- import的模块名只能是字符串常量
+- import binding 是 immutable 的
+  - 当我们使用 import 语句引入一个模块时，会创建一个绑定（binding），将模块导出的值绑定到一个变量上。这个绑定是不可变的，意味着我们无法通过重新赋值来改变绑定的值。
+- ES6模块依赖关系是确定的，和运行时的状态无关，可以进行可靠的静态分析，这就是tree-shaking的基础。
+- rollup只处理函数和顶层的import/export变量，不能把没用到的类的方法消除掉
+- javascript动态语言的特性使得静态分析比较困难
+
+
+
+使用tree-shaking的最佳实践
+
+- 避免无意义的赋值， Webpack 的 Tree Shaking 逻辑停留在代码静态分析层面，只是浅显地判断
+  - 模块导出变量是否被其它模块引用
+  - 引用模块的主体代码中有没有出现这个变量
+  - 没有进一步，从语义上分析模块导出值是不是真的被有效使用。
+  - 更深层次的原因则是 JavaScript 的赋值语句并不纯，视具体场景有可能产生意料之外的副作用
+- 使用 `#pure` 标注纯函数调用
+  - 通过标注纯函数调用，编译器或构建工具可以更加自信地进行优化，因为不会产生任何副作用，因此可以删除
+- 禁止 Babel 转译模块导入导出语句
+  - Babel 提供的部分功能特性会致使 Tree Shaking 功能失效，例如 Babel 可以将 import/export 风格的 ESM 语句等价转译为 CommonJS 风格的模块化语句，但该功能却导致 Webpack 无法对转译后的模块导入导出内容做静态分析
+- 优化导出值的粒度
+  - Tree Shaking 逻辑作用在 ESM 的 export 语句上，引入如果使用 `export default {}` 则无法使用
+    - export default 导出的是一个对象，无法通过静态分析判断出一个对象的哪些变量未被使用，所以 tree-shaking 只对使用 export 导出的变量生效
+    - 函数式编程越来越火的原因，因为可以很好利用 tree-shaking 精简项目的体积，也是 vue3 全面拥抱了函数式编程的原因之一
+- unused harmony import 如果没有使用到，就会打上这样的标记。
+
+sideEffects 与副作用
+
+- 默认情况下，如果没有在 package.json 文件中定义 "sideEffects" 字段，大多数构建工具会假定所有模块都具有副作用，以确保安全性
+- 如果配置了，
+  - 字符串值：` "sideEffects": [ "./src/some-module.js"]` 表示具有副作用的模块路径，这个模块不做处理
+  - 字符串值 "*"："sideEffects": ["*"] 表示所有模块都具有副作用，不会进行剪裁
+  - 布尔值 false： "sideEffects": false 表示所有模块都是无副作用的，可以进行剪裁
+
 
 如何发挥电脑多进程性能:
 
