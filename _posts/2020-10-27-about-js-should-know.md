@@ -3357,10 +3357,10 @@ controller.abort();
 ```js
 // 1 秒后中止
 let controller = new AbortController();
-setTimeout(() => controller.abort(), 1000);
+setTimeout(() => controller.abort(), 0);
 
 try {
-  let response = await fetch('/article/fetch-abort/demo/hang', {
+  let response = await fetch('https://www.baidu.com', {
     signal: controller.signal
   });
 } catch(err) {

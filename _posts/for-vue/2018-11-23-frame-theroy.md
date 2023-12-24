@@ -1779,8 +1779,6 @@ const Foo = {
 // 用创建好的实例调用 beforeRouteEnter 守卫中传给 next 的回调函数。
 ```
 
-<<<<<<< HEAD
-=======
 #### **滚动行为**
 
 使用前端路由，当切换到新路由时，想要页面滚到顶部，或者是保持原先的滚动位置，结合vue-router可以自定义路由切换时页面如何滚动。
@@ -1812,7 +1810,6 @@ const router = new VueRouter({
 - history.pushState 可以使浏览器地址改变，但是无需刷新页面。
 - 用 history.pushState() 或者 history.replaceState() 不会触发 popstate 事件。 
 - popstate 事件只会在浏览器某些行为下触发, 比如点击后退、前进按钮或者调用 history.back()、history.forward()、history.go()方法。
->>>>>>> 25e5544 (增加sls)
 ### **axios**
 
 参考：[axios 官网][axiosofficialurl]

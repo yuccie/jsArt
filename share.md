@@ -414,36 +414,37 @@ reverse 不够灵活，所以才有了 sort
 
 ```js
 let values = [0, 1, 5, 10, 15];
-values.sort(); // 0,1,10,15,5
-alert(values); // 0,1,10,15,5
+values.sort();                   // 0,1,10,15,5
+alert(values);                   // 0,1,10,15,5
 
 // 默认只会比较开头的第一个字符串，获取unicode编码
-"10".charCodeAt(0); // 49
-"5".charCodeAt(0); // 53
-"a".charCodeAt();  // 97
-"A".charCodeAt();  // 65
-String.fromCharCode(65); // A
+"10".charCodeAt(0);             // 49
+"5".charCodeAt(0);              // 53
+"a".charCodeAt();               // 97
+"A".charCodeAt();               // 65
+String.fromCharCode(65);        // A
 
 // 注意：在js内部，字符以UTF-16格式存储，也就是2字节。
 // 但对于那些需要4字节存储的字符，上述方法无法识别，
 let s = '𠮷a'; 
 
 // 被处理错误
-s.length; // 3 错误
-s.charAt(0) // '' ，读不出来
-s.charAt(1) // '' ，读不出来
-s.charCodeAt(0) // 55362，前两个字节
-s.charCodeAt(1) // 57271，后两个字节，但读出完整的
+s.length;         // 3 错误
+s.charAt(0)       // '' ，读不出来
+s.charAt(1)       // '' ，读不出来
+s.charCodeAt(0)   // 55362，前两个字节
+s.charCodeAt(1)   // 57271，后两个字节
 
 // 被正确处理，'𠮷a'视为三个字符，“𠮷”的十进制码点134071，后两个字节，最后是a
-s.codePointAt(0) // 134071，被争取且完整的读出来了
+s.codePointAt(0) // 134071，被截取且完整的读出来了
 s.codePointAt(1) // 57271，后两个字节
 s.codePointAt(2) // 97
 
 // 如何处理长度呢？
 // ES6提供了codePointAt方法，能够正确处理 4 个字节储存的字符，返回一个字符的码点。
 // 占2个字节的字符最大的码点为0xFFFF(十进制为65536）。超过65536（0xFFFF）的字符占4个字节。
-// 可以借助for...of，其可以处理4字节字符
+// 一个字节是8位，也就是 2^8 = 256，小于256都是一个字节，大于256 小于 256 * 2^8 = 65536 就是两字节 
+// 可以借助for...of，其可以利用codePointAt处理4字节字符
 let len = 0;
 for (let char of s) {
   if (char.codePointAt(0) > 0xFFFF) {

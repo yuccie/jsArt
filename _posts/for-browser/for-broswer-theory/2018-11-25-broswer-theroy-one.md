@@ -676,13 +676,10 @@ var a;
 var barObj = { msg: 'barObj' };
 var fooObj = { msg: 'fooObj' };
 
-function foo() {
-  a();
-}
+function foo() { a() }
 function bar() {
-  a = () => {
-    console.log(this.msg);
-  };
+  a = () => console.log(this.msg)
+
   a()
 }
 

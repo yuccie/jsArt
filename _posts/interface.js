@@ -155,7 +155,7 @@ function deepClone(target) {
 
   function _deep(target) {
     // 非数组和对象，直接返回
-    if (['Array', 'Object'].includes(_getType())) return target;
+    if (['Array', 'Object'].includes(_getType(target))) return target;
 
     if (wMap.has(target)) return wMap.get(target);
 
