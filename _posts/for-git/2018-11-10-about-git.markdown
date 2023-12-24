@@ -222,15 +222,15 @@ ssh-keygen -t rsa -C "your_mail@example.com" -f ~/.ssh/my_example_rsa
 # 注意：还需要在~/.ssh目录增加(若没有)config文件，然后里面配置如下信息
 
 #------------
-# missfresh-gitlab（这是区分不同的用户名，自定义即可）
-Host gitlab.missfresh.net
-HostName gitlab.missfresh.net
+# xxx-gitlab（这是区分不同的用户名，自定义即可）
+Host gitlab.xxx.net
+HostName gitlab.xxx.net
 PreferredAuthentications publickey
-IdentityFile ~/.ssh/missfresh-gitlab-rsa
+IdentityFile ~/.ssh/xxx-gitlab-rsa
 
 # 配置文件参数
 # Host : 别名,随便取
-# HostName : 如果要登录的主机名为git@gitlab.missfresh.net:xxx.git,则Host为：gitlab.missfresh.net
+# HostName : 如果要登录的主机名为git@gitlab.xxx.net:xxx.git,则Host为：gitlab.xxx.net
 # User : 登录名,最好用账户邮箱
 # PreferredAuthentications: 优先使用哪个方式验证,支持秘钥(publickey)和密码(password)方式
 # IdentityFile : 指明对应用户的私钥文件地址(私钥的权限600)
@@ -238,13 +238,13 @@ IdentityFile ~/.ssh/missfresh-gitlab-rsa
 
 # 配置完可以测试一下：
 # @前面的协议一般都为git，后面的地址就是上面HostName
-ssh -T git@gitlab.missfresh.net
+ssh -T git@gitlab.xxx.net
 # 还可以直接通过别名方式：ssh -T Hostxxx
 # 若输出类似一下信息，则代表成功：
 Hi xxx! You have successfully authenticated, but GitHub does not provide shell access.
 
 # 可以打印详细信息，尤其连接有问题时
-ssh -T -v git@gitlab.missfresh.net
+ssh -T -v git@gitlab.xxx.net
 
 # 如果正常操作后，还是提示permission denied就执行
 ssh-add -k ~/.ssh/gitlab_rsa

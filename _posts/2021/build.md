@@ -315,6 +315,16 @@ module.exports = {
 };
 ```
 
+### 提升webpack构建速度
+
+- speed-measure-webpack-plugin
+- 
+
+1. 减小文件搜索范围
+   1. resolve.modules
+   2. 设置 test & include & exclude
+2. 增强代码代码压缩工具
+3. 用 Happypack 来加速代码构建 Happypack 的处理思路是：将原有的 webpack 对 loader 的执行过程，从单一进程的形式扩展多进程模式，从而加速代码构建
 ### webpack-dev-server（WDS） 热更新
 
 - 为了不手动刷新浏览器
