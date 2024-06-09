@@ -4458,6 +4458,7 @@ console.log(instance1.colors); //"red,blue,green,black"
 var instance2 = new SubType();
 console.log(instance2.colors); //"red,blue,green,black"
 
+
 // -----借用构造函数模式-----：
 // 函数只不过是在特定环境中执行代码的对象，
 // 因此通过使用apply()和call()方法也可以在（将来）新创建的对象上执行构造函数，

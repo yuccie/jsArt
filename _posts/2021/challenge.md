@@ -13,7 +13,8 @@
 - 开发一个鸿蒙简单应用
 - 编译原理，
 - rust原理
-- 
+
+
 
 ## 完成列表
 
@@ -97,6 +98,9 @@ export NVM_DIR="$HOME/.nvm"
 1. 如果控制台可以找到对应的bin，说明环境变量没问题， nvm alias default 10 设置默认值，然后重启vscode生效
 2. 增加preLaunchTask钩子，同时添加task任务配置。 参考：http://keep.ipromiseyourlife.com/2019/10/31/vscode%E4%B8%AD%E9%85%8D%E7%BD%AE%E4%B8%80%E9%94%AE%E5%88%87%E6%8D%A2node%E7%89%88%E6%9C%AC/
 
+
+- Can't find Node.js binary "npm": path does not exist. Make sure Node.js is installed and in your PATH, or set the "runtimeExecutable" in your launch.json
+
 ## 调试server端代码，还可以这样
 1、在浏览器中输入： chrome://inspect/#devices  
 2、点击 Open dedicated DevTools for Node
@@ -113,6 +117,10 @@ Android 调试桥 (adb) **是一种功能多样的命令行工具，可让您与
 - 客户端：用于发送命令。客户端在开发机器上运行。您可以通过发出 adb 命令从命令行终端调用客户端。
 - 守护程序 (adbd)：用于在设备上运行命令。守护程序在每个设备上作为后台进程运行。
 - 服务器：用于管理客户端与守护程序之间的通信。服务器在开发机器上作为后台进程运行。
+
+- adb devices
+- adb logcat | grep 'djch'
+
 
 ### 工作原理
 

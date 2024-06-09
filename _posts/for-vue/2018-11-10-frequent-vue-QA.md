@@ -69,6 +69,9 @@ Vue.component(`${prefix}recycle-scroller`, RecycleScroller)
 Vue.component(`${prefix}RecycleScroller`, RecycleScroller)
 ```
 
+HTML 标签名通常使用小写字母，而不是驼峰命名法。这是为了保持一致性和避免混淆，因为 HTML 是大小写不敏感的。使用短横线分隔命名法可以提高可读性，使标签名更清晰和易于理解。
+
+
 
 #### 过滤器
 
