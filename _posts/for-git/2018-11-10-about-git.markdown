@@ -352,6 +352,10 @@ dist
 #### git 常用操作
 
 ```bash
+# 切换到某个提交，测试代码
+git checkout xxx # 此时也可以 强推，将xxx之后的提交给覆盖掉  git push -f origin branch_name
+git push -f origin HEAD:master
+
 # 丢弃暂存区修改,注意这里是已经被跟踪的文件
 $ git checkout -- .
 
@@ -613,6 +617,8 @@ git fetch --all
 
 # 
 git reset --hard origin/master
+
+# 
 ```
 
 #### git rebase

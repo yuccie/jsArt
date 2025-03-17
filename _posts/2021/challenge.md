@@ -94,6 +94,33 @@ export NVM_DIR="$HOME/.nvm"
 	]
 }
 ```
+
+有时候，即使执行了 preLaunchTask 里的nvm命令，最终npm run xxx 执行时，版本又改变了，这是因为：preLaunchTask 的环境变量改变没有被 runtimeArgs 继承的问题。我们需要修改 launch.json 的配置，确保 node 版本的切换能够正确传递：
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "启动程序",
+        "cwd": "${workspaceRoot}",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["run", "watch"],
+        "autoAttachChildProcesses": true,
+        "stopOnEntry": false,
+        "preLaunchTask": "node16",
+        "envFile": "${workspaceFolder}/.env",
+        "env": {
+          "PATH": "${env:NVM_DIR}/versions/node/v16.20.2/bin:${env:PATH}"
+        }
+      }
+    ]
+}
+```
+
+
 综上有几种方式：
 1. 如果控制台可以找到对应的bin，说明环境变量没问题， nvm alias default 10 设置默认值，然后重启vscode生效
 2. 增加preLaunchTask钩子，同时添加task任务配置。 参考：http://keep.ipromiseyourlife.com/2019/10/31/vscode%E4%B8%AD%E9%85%8D%E7%BD%AE%E4%B8%80%E9%94%AE%E5%88%87%E6%8D%A2node%E7%89%88%E6%9C%AC/
