@@ -1592,6 +1592,10 @@ module.exports = function(source) {
 };
 
 // 由于 Loader 运行在 Node.js 中，你可以调用任何 Node.js 自带的 API，或者安装第三方模块进行调用：
+// node-sass 是一个原生模块，它依赖于 Node.js 的原生绑定（Native Bindings）。这意味着它需要预编译的二进制文件来与 Node.js 运行时交互。
+// 它使用了 C++ 和 Node.js 的原生模块接口（如 node-gyp）来实现高性能的 Sass 编译功能。
+// node-gyp 是一个 npm 包，用于将 C/C++ 编写的 Node.js 扩展编译成 .node 文件，这些文件可以直接被 Node.js 加载和使用
+// 但通常不需要手动安装，因为依赖于 node-gyp 的模块（如 node-sass）会在安装时自动调用它
 const sass = require('node-sass');
 module.exports = function(source) {
   return sass(source);
